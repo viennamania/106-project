@@ -968,8 +968,8 @@ export function NetworkFeedPage({
       ? contentCopy.messages.feedLoadingTitle
       : isPublicReferralFeed
         ? locale === "ko"
-          ? "공개 네트워크 콘텐츠"
-          : "Public network content"
+          ? "전체 공개 콘텐츠"
+          : "All public content"
         : isDisconnected
           ? feedView === "saved"
             ? locale === "ko"
@@ -992,8 +992,8 @@ export function NetworkFeedPage({
                   ? "1 USDT 결제를 완료한 콘텐츠"
                   : "Content you unlocked with payment"
                 : locale === "ko"
-                  ? "상위 네트워크 콘텐츠"
-                  : "Upstream network content"
+                  ? "전체 공개 콘텐츠"
+                  : "All public content"
             : locale === "ko"
               ? "활성화 후 이용 가능"
               : "Available after activation";
@@ -1539,8 +1539,8 @@ function SocialFeedPost({
     !item.canAccess;
   const metaItems = [
     priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel,
-    ...(showNetworkLevel
-      ? [`${levelLabel} ${item.networkLevel ?? "-"}`]
+    ...(showNetworkLevel && item.networkLevel
+      ? [`${levelLabel} ${item.networkLevel}`]
       : []),
     formatDate(item.publishedAt ?? item.createdAt, locale),
   ];
@@ -2581,9 +2581,9 @@ function SocialFeedPost({
           <Pill tone={isPaidContent ? "paid" : "neutral"}>
             {priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel}
           </Pill>
-          {showNetworkLevel ? (
+          {showNetworkLevel && item.networkLevel ? (
             <Pill>
-              {levelLabel} {item.networkLevel ?? "-"}
+              {levelLabel} {item.networkLevel}
             </Pill>
           ) : null}
           {item.tags.slice(0, 3).map((tag) => (

@@ -36,8 +36,8 @@ export async function generateMetadata({
   const title = locale === "ko" ? "저장한 피드" : "Saved feed";
   const description =
     locale === "ko"
-      ? "내가 저장한 네트워크 피드를 다시 확인하세요."
-      : "Revisit network feed posts you saved.";
+      ? "내가 저장한 공개 콘텐츠를 다시 확인하세요."
+      : "Revisit public feed posts you saved.";
 
   return {
     description,

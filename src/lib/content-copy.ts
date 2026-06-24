@@ -203,10 +203,10 @@ const englishCopy: ContentCopy = {
       "Create, automate, and manage posts for your downstream network.",
     creatorTitle: "Studio area",
     description:
-      "Feed is for consuming upstream content. Studio is for creating and managing your own content.",
+      "Feed is for browsing public content. Studio is for creating and managing your own content.",
     title: "Choose your content area",
     viewerDescription:
-      "Read and browse content published by your upstream network.",
+      "Browse public content and continue into saves, paid access, and comments.",
     viewerTitle: "Feed area",
   },
   fields: {
@@ -265,7 +265,7 @@ const englishCopy: ContentCopy = {
     creatorSettings: "Creator settings",
     draft: "Draft",
     extendedLevels: "Level 3-6",
-    feedEmpty: "No content from your upstream network yet.",
+    feedEmpty: "No public content is available yet.",
     featured: "Featured",
     free: "Free",
     paid: "Paid",
@@ -292,19 +292,19 @@ const englishCopy: ContentCopy = {
       "Checking member access and loading the full content experience.",
     detailLoadingTitle: "Preparing content",
     detailLoadFailed: "Failed to load the content detail.",
-    feedLoadFailed: "Failed to load the network feed.",
+    feedLoadFailed: "Failed to load the public feed.",
     feedLoadingDescription:
-      "Preparing featured content, nearby levels, and creator cards now.",
-    feedLoadingTitle: "Preparing network feed",
+      "Preparing featured content, creator cards, and public activity now.",
+    feedLoadingTitle: "Preparing public feed",
     imageGenerated: "AI cover generated. You can publish or save it now.",
     likeHint: "Double-tap the cover to leave a like.",
     memberMissing: "Member not found.",
-    noFilteredFeed: "No posts match this network range yet.",
-    paymentRequired: "Completed signup is required to use network content.",
+    noFilteredFeed: "No posts match the selected creator yet.",
+    paymentRequired: "Completed signup is required to save, comment, or unlock paid content.",
     postsLoading: "Loading your posts, counts, and filters now.",
     previewLocked: "Complete signup to continue to the full content.",
     profileSaved: "Creator profile saved.",
-    publishSuccess: "Content published to your network feed.",
+    publishSuccess: "Content published to the public feed.",
     saveDraftSuccess: "Draft saved.",
     searchPlaceholder: "Search your posts",
     shareFailed: "Sharing is not available right now.",
@@ -314,10 +314,10 @@ const englishCopy: ContentCopy = {
     uploadSuccess: "Image uploaded. Save your profile to publish it.",
   },
   meta: {
-    detailDescription: "Read content shared inside your upstream network.",
+    detailDescription: "Read content shared in the public feed.",
     detailTitle: "Network Content",
     feedDescription:
-      "Consume free and paid content published by creators in your upstream referral network.",
+      "Browse public content and continue into saves, paid access, and comments.",
     feedTitle: "Network Feed",
     studioDescription:
       "Create and manage free or paid posts for your downstream network.",
@@ -325,10 +325,10 @@ const englishCopy: ContentCopy = {
   },
   page: {
     detailDescription:
-      "Only members inside the matching network branch can open this content.",
-    detailEyebrow: "network content",
+      "Open public previews here. Paid content unlocks after payment.",
+    detailEyebrow: "public content",
     feedDescription:
-      "This area is only for reading content from creators in your upstream 6-level network.",
+      "Browse public creator content first. Your network level is shown only when the post is connected to your referral graph.",
     feedEyebrow: "feed area",
     feedTitle: "Network Feed",
     newDescription:
@@ -384,10 +384,10 @@ const koreanCopy: ContentCopy = {
       "내 하위 네트워크용 콘텐츠를 만들고 자동화하며 관리합니다.",
     creatorTitle: "스튜디오 영역",
     description:
-      "피드는 상위 네트워크 콘텐츠를 보는 영역이고, 스튜디오는 내 콘텐츠를 만드는 영역입니다.",
+      "피드는 전체 공개 콘텐츠를 둘러보는 영역이고, 스튜디오는 내 콘텐츠를 만드는 영역입니다.",
     title: "콘텐츠 영역 선택",
     viewerDescription:
-      "상위 네트워크가 발행한 콘텐츠를 읽고 탐색합니다.",
+      "공개된 콘텐츠를 둘러보고 저장, 결제, 댓글 활동을 이어갑니다.",
     viewerTitle: "피드 영역",
   },
   fields: {
@@ -447,7 +447,7 @@ const koreanCopy: ContentCopy = {
     creatorSettings: "크리에이터 설정",
     draft: "임시저장",
     extendedLevels: "3~6단계",
-    feedEmpty: "현재 내 상위 네트워크에서 공개된 콘텐츠가 없습니다.",
+    feedEmpty: "아직 공개된 콘텐츠가 없습니다.",
     featured: "추천 콘텐츠",
     free: "무료",
     paid: "유료",
@@ -474,19 +474,19 @@ const koreanCopy: ContentCopy = {
       "회원 상태와 열람 권한을 확인한 뒤 전체 콘텐츠를 불러오고 있습니다.",
     detailLoadingTitle: "콘텐츠 준비 중",
     detailLoadFailed: "콘텐츠 상세를 불러오지 못했습니다.",
-    feedLoadFailed: "네트워크 피드를 불러오지 못했습니다.",
+    feedLoadFailed: "공개 피드를 불러오지 못했습니다.",
     feedLoadingDescription:
-      "추천 콘텐츠와 단계별 카드, 크리에이터 정보를 불러오는 중입니다.",
-    feedLoadingTitle: "네트워크 피드 준비 중",
+      "추천 콘텐츠, 크리에이터 카드, 공개 활동을 불러오는 중입니다.",
+    feedLoadingTitle: "공개 피드 준비 중",
     imageGenerated: "AI 커버를 생성했습니다. 이제 게시하거나 저장할 수 있습니다.",
     likeHint: "커버 이미지를 두 번 터치하면 좋아요 연출이 실행됩니다.",
     memberMissing: "회원을 찾을 수 없습니다.",
-    noFilteredFeed: "선택한 단계 범위에 해당하는 콘텐츠가 아직 없습니다.",
-    paymentRequired: "완료 회원만 네트워크 콘텐츠를 사용할 수 있습니다.",
+    noFilteredFeed: "선택한 크리에이터의 콘텐츠가 아직 없습니다.",
+    paymentRequired: "저장, 댓글, 유료 콘텐츠 열람은 가입 완료 후 이용할 수 있습니다.",
     postsLoading: "콘텐츠 목록과 상태, 필터를 불러오는 중입니다.",
     previewLocked: "가입을 완료하면 이 콘텐츠 전체를 열람할 수 있습니다.",
     profileSaved: "크리에이터 프로필을 저장했습니다.",
-    publishSuccess: "콘텐츠를 네트워크 피드에 게시했습니다.",
+    publishSuccess: "콘텐츠를 공개 피드에 게시했습니다.",
     saveDraftSuccess: "임시 저장했습니다.",
     searchPlaceholder: "내 콘텐츠 검색",
     shareFailed: "지금은 공유 기능을 사용할 수 없습니다.",
@@ -496,10 +496,10 @@ const koreanCopy: ContentCopy = {
     uploadSuccess: "이미지를 업로드했습니다. 프로필 저장 후 반영됩니다.",
   },
   meta: {
-    detailDescription: "상위 네트워크 안에서 공유된 콘텐츠를 확인하세요.",
+    detailDescription: "공개 피드에서 공유된 콘텐츠를 확인하세요.",
     detailTitle: "네트워크 콘텐츠",
     feedDescription:
-      "상위 6단계 네트워크의 크리에이터가 발행한 무료/유료 콘텐츠를 소비하는 영역입니다.",
+      "전체 공개 콘텐츠를 둘러보고 저장, 결제, 댓글 활동을 이어가는 영역입니다.",
     feedTitle: "네트워크 피드",
     studioDescription:
       "하위 네트워크에 노출할 콘텐츠를 만들고 관리하는 영역입니다.",
@@ -507,10 +507,10 @@ const koreanCopy: ContentCopy = {
   },
   page: {
     detailDescription:
-      "이 콘텐츠는 해당 네트워크 브랜치 안의 회원만 열람할 수 있습니다.",
-    detailEyebrow: "network content",
+      "공개 미리보기를 먼저 확인하세요. 유료 콘텐츠는 결제 후 열람됩니다.",
+    detailEyebrow: "public content",
     feedDescription:
-      "이 영역은 내 상위 6단계 네트워크 크리에이터의 콘텐츠를 읽는 전용 공간입니다.",
+      "공개 크리에이터 콘텐츠를 먼저 둘러보세요. 내 추천 그래프와 연결된 콘텐츠만 단계가 표시됩니다.",
     feedEyebrow: "feed area",
     feedTitle: "네트워크 피드",
     newDescription:

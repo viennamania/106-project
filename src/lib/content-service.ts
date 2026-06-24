@@ -1514,20 +1514,11 @@ async function loadNetworkFeedItemsFromAncestors(
   locale: Locale,
   options?: NetworkFeedQueryOptions,
 ) {
-  if (ancestors.length === 0) {
-    return {
-      items: [],
-      nextCursor: null,
-    };
-  }
-
   const postsCollection = await getContentPostsCollection();
-  const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
   const hiddenContentIds = await getHiddenContentIdsForViewer(options?.viewerEmail);
   const cursor = decodeNetworkFeedCursor(options?.cursor);
   const baseFilter: Filter<ContentPostDocument> = {
     ...getPublishedContentLocaleFilter(locale),
-    authorReferralCode: { $in: referralCodes },
     status: "published",
     ...(hiddenContentIds.length > 0
       ? { contentId: { $nin: hiddenContentIds } }
@@ -2788,15 +2779,9 @@ export async function getPublicNetworkFeedItemForReferralCode(
 ) {
   const ancestors = await resolveNetworkAncestorsFromReferralCode(referralCode);
 
-  if (ancestors.length === 0) {
-    return null;
-  }
-
   const postsCollection = await getContentPostsCollection();
-  const referralCodes = ancestors.map((ancestor) => ancestor.referralCode);
   const post = await postsCollection.findOne({
     ...getPublishedContentLocaleFilter(locale),
-    authorReferralCode: { $in: referralCodes },
     contentId,
     status: "published",
   });

@@ -43,13 +43,13 @@ function getFeedShareTitle({
 }) {
   if (locale === "ko") {
     return brandName
-      ? `${brandName} 네트워크 피드 미리보기`
-      : "1066friend+ 네트워크 피드 미리보기";
+      ? `${brandName} 공개 콘텐츠 피드`
+      : "1066friend+ 공개 콘텐츠 피드";
   }
 
   return brandName
-    ? `${brandName} network feed preview`
-    : "1066friend+ network feed preview";
+    ? `${brandName} public content feed`
+    : "1066friend+ public content feed";
 }
 
 function getFeedShareDescription({
@@ -62,12 +62,12 @@ function getFeedShareDescription({
   if (locale === "ko") {
     return brandName
       ? `${brandName}이 공유한 최신 콘텐츠를 확인하고 1066friend+ 네트워크를 시작하세요.`
-      : "SNS로 공유된 최신 네트워크 콘텐츠를 먼저 확인하고 1066friend+를 시작하세요.";
+      : "SNS로 공유된 최신 공개 콘텐츠를 먼저 확인하고 1066friend+를 시작하세요.";
   }
 
   return brandName
     ? `Explore the latest content shared by ${brandName} and start your 1066friend+ network.`
-    : "Preview the latest shared network content and start your 1066friend+ network.";
+    : "Preview the latest shared public content and start your 1066friend+ network.";
 }
 
 export async function generateMetadata({
