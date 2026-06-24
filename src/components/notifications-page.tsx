@@ -25,6 +25,10 @@ import { useMemberSession } from "@/components/member-session-provider";
 import { NotificationCenterContent } from "@/components/notification-center-content";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { setPathSearchParams } from "@/lib/landing-branding";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import type {
   AppNotificationPreferencesRecord,
@@ -568,15 +572,16 @@ export function NotificationsPage({
   }, [isCompletedMember, loadNotifications, memberSync.member?.email]);
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_24%),radial-gradient(circle_at_0%_20%,rgba(255,255,255,0.62),transparent_20%),linear-gradient(180deg,#f7f2e8_0%,#fbf7ef_44%,#f6f2eb_100%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,161,83,0.14),transparent_24%),radial-gradient(circle_at_0%_20%,rgba(255,255,255,0.62),transparent_20%),linear-gradient(180deg,#fbf7ef_0%,#f6efe3_44%,#f1e6d6_100%)]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -588,7 +593,7 @@ export function NotificationsPage({
                   <Bell className="size-4 sm:size-5" />
                 </div>
                 <div className="min-w-0 space-y-1">
-                  <p className="eyebrow hidden sm:block">{dictionary.activateNetworkPage.eyebrow}</p>
+                  <p className="friend-service-kicker hidden sm:block">{SERVICE_BRAND_NAME}</p>
                   <h1 className="text-[1.02rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
                     {notificationCopy.title}
                   </h1>
@@ -658,7 +663,7 @@ export function NotificationsPage({
           <section className="glass-card rounded-[30px] px-4 py-5 sm:px-5 sm:py-6">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
-                <p className="eyebrow">{dictionary.activateNetworkPage.eyebrow}</p>
+                <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
                 <h2 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                   {notificationCopy.title}
                 </h2>

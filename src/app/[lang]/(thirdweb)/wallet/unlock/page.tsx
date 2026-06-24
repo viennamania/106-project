@@ -8,6 +8,7 @@ import {
   type Locale,
 } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 import {
   getWalletUnlockCopy,
   normalizeWalletUnlockReturnTo,
@@ -20,11 +21,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale = hasLocale(lang) ? lang : "ko";
-  const dictionary = getDictionary(locale);
   const copy = getWalletUnlockCopy(locale);
 
   return {
-    title: `${dictionary.common.appName} ${copy.unlockTitle}`,
+    title: `${SERVICE_BRAND_NAME} ${copy.unlockTitle}`,
     description: copy.unlockSubtitle,
   };
 }

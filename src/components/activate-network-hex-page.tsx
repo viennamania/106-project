@@ -37,6 +37,10 @@ import {
 } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   hasThirdwebClientId,
@@ -961,15 +965,16 @@ export function ActivateNetworkHexPage({
   const canStepUp = !isRootFocus && Boolean(parentFocusEmail);
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_24%),radial-gradient(circle_at_84%_14%,rgba(250,204,21,0.14),transparent_22%),linear-gradient(180deg,#020617_0%,#0f172a_28%,#111827_62%,#f6efe3_100%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(213,161,83,0.18),transparent_24%),radial-gradient(circle_at_84%_14%,rgba(17,24,39,0.12),transparent_22%),linear-gradient(180deg,#fbf7ef_0%,#f6efe3_58%,#ece1cf_100%)]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-[110rem] flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
@@ -986,6 +991,9 @@ export function ActivateNetworkHexPage({
               <Hexagon className="size-4 sm:size-5" />
             </div>
             <div className="min-w-0 flex-1">
+              <p className="friend-service-kicker mb-1 text-[0.62rem]">
+                {SERVICE_BRAND_NAME}
+              </p>
               <p className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                 {copy.hexView}
               </p>

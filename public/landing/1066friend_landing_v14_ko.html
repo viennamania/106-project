@@ -488,14 +488,14 @@ section{padding:100px 24px}
   color:var(--p1);
   margin-bottom:10px;
   word-break:keep-all;
-  overflow-wrap:break-word;
+  overflow-wrap:normal;
 }
 .sns-feature-desc{
   font-size:15px;
   color:var(--text-mid);
   line-height:1.65;
   word-break:keep-all;
-  overflow-wrap:break-word;
+  overflow-wrap:normal;
 }
 
 /* -- SECTION 4 ───────────────────────── */
@@ -700,12 +700,14 @@ footer{
 }
 
 /* -- RESPONSIVE ─────────────────────────────────── */
-@media(max-width:768px){
+@media(max-width:900px){
   nav{padding:14px 20px}
   .why-grid,.how-steps,.earn-grid,.trust-grid{grid-template-columns:1fr}
   .sns-feature-grid{grid-template-columns:1fr;gap:16px;margin-top:36px}
-  .sns-feature-card{padding:24px 22px;gap:16px;align-items:flex-start}
-  .sns-feature-icon{font-size:34px}
+  .sns-feature-card{padding:22px 20px;gap:14px;align-items:flex-start}
+  .sns-feature-icon{font-size:34px;min-width:42px;text-align:center}
+  .sns-feature-title{font-family:inherit;font-size:20px;line-height:1.35}
+  .sns-feature-desc{font-size:14px;line-height:1.7}
   .how-arrow{display:none}
   .yours-options{flex-direction:column;align-items:center}
   footer{flex-direction:column;padding:40px 24px 28px}

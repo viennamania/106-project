@@ -95,6 +95,11 @@ import {
 } from "@/lib/thirdweb";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import {
+  getServiceConnectModalTitle,
+  getServiceHubLabel,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 type NoticeTone = "info" | "success" | "error";
 
@@ -442,6 +447,8 @@ export function SmartWalletApp({
     preferredReferralCode,
   );
   const activationSeparationCopy = getActivationSeparationCopy(locale);
+  const serviceConnectModalTitle = getServiceConnectModalTitle(locale);
+  const serviceHubLabel = getServiceHubLabel(locale);
   const activatePageHref = buildPathWithReferral(
     `/${locale}/activate`,
     preferredReferralCode,
@@ -1586,7 +1593,7 @@ export function SmartWalletApp({
   }
 
   return (
-    <div className="relative isolate">
+    <div className="friend-service-surface relative isolate">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(234,179,8,0.14),transparent_22%),radial-gradient(circle_at_0%_10%,rgba(255,255,255,0.62),transparent_20%),radial-gradient(circle_at_100%_20%,rgba(30,41,59,0.12),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#fbf7ef_44%,#f6f2eb_100%)]" />
       <LogoutConfirmDialog
         cancelLabel={dictionary.common.logoutDialog.cancel}
@@ -1610,7 +1617,8 @@ export function SmartWalletApp({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={serviceConnectModalTitle}
       />
 
       {isServiceSuspended ? (
@@ -1682,7 +1690,7 @@ export function SmartWalletApp({
                 </div>
                 <div className="min-w-0">
                   <h1 className="truncate text-[1.02rem] font-semibold tracking-tight text-slate-950">
-                    {dictionary.common.appName}
+                    {SERVICE_BRAND_NAME}
                   </h1>
                   <div className="mt-1 flex min-h-6 items-center">
                     {hasThirdwebClientId ? (
@@ -1775,10 +1783,10 @@ export function SmartWalletApp({
                   <WalletMinimal className="size-4 sm:size-5" />
                 </div>
                 <div className="min-w-0 space-y-1">
-                  <p className="eyebrow hidden sm:block">{dictionary.common.headerEyebrow}</p>
+                  <p className="friend-service-kicker hidden sm:block">{serviceHubLabel}</p>
                   <div>
                     <h1 className="text-[1.05rem] font-semibold tracking-tight text-slate-950 sm:text-lg">
-                      {dictionary.common.appName}
+                      {SERVICE_BRAND_NAME}
                     </h1>
                   </div>
                 </div>
@@ -2723,7 +2731,7 @@ function MembershipLoadingSection({
           <div className="space-y-3">
             <p className="eyebrow">{dictionary.member.eyebrow}</p>
             <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
-              {dictionary.common.appName}
+              {SERVICE_BRAND_NAME}
             </h2>
             <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
               {dictionary.member.syncing}

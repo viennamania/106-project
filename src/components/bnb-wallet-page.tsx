@@ -28,6 +28,10 @@ import {
   buildReferralLandingPath,
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
@@ -232,15 +236,16 @@ export function BnbWalletPage({
   const isRefreshing = isBalanceFetching || isMarketFetching;
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.15),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(37,99,235,0.12),transparent_22%),linear-gradient(180deg,#fbf7ef_0%,#f7f1e8_100%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(213,161,83,0.18),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(17,24,39,0.08),transparent_22%),linear-gradient(180deg,#fbf7ef_0%,#f6efe3_100%)]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -253,7 +258,7 @@ export function BnbWalletPage({
               <ArrowLeft className="size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
+              <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.bnbPage.title}
@@ -401,7 +406,7 @@ export function BnbWalletPage({
 
                 <div className="glass-card rounded-[30px] p-5 sm:p-6">
                   <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
+                    <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                       {dictionary.bnbPage.title}
                     </h2>
@@ -511,7 +516,7 @@ export function BnbWalletPage({
                     <WalletMinimal className="size-5" />
                   </div>
                   <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.bnbPage.eyebrow}</p>
+                    <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                       {dictionary.bnbPage.actions.sendAll}
                     </h2>

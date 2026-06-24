@@ -696,3 +696,68 @@ a {
     filter: none;
   }
 }
+
+.friend-service-surface {
+  --friend-ink: #09090b;
+  --friend-muted: #5f5648;
+  --friend-line: rgba(194, 165, 110, 0.38);
+  --friend-paper: rgba(255, 255, 255, 0.88);
+  --friend-gold: #d6a642;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(214, 166, 66, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(9, 9, 11, 0.08), transparent 24%),
+    linear-gradient(180deg, #f6efe3 0%, #fbf7ef 42%, #f8f2e9 100%);
+  color: var(--friend-ink);
+}
+
+.friend-service-surface .glass-card {
+  border-color: var(--friend-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 252, 246, 0.84));
+  box-shadow:
+    0 22px 58px rgba(55, 43, 23, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.friend-service-surface .eyebrow {
+  color: rgba(118, 91, 43, 0.82);
+}
+
+.friend-brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  border: 1px solid rgba(214, 166, 66, 0.46);
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.94);
+  color: #fff7df;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 16px 34px rgba(35, 24, 10, 0.16);
+}
+
+.friend-brand-chip::before {
+  content: "";
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: var(--friend-gold);
+  box-shadow: 0 0 0 5px rgba(214, 166, 66, 0.16);
+}
+
+.friend-service-kicker {
+  color: rgba(118, 91, 43, 0.78);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.friend-service-surface :where(a, button) {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}

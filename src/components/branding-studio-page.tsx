@@ -45,6 +45,10 @@ import {
 } from "@/lib/thirdweb";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { cn } from "@/lib/utils";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 type BrandingStudioMember = {
   email: string;
@@ -414,8 +418,8 @@ export function BrandingStudioPage({
       : null;
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(245,158,11,0.16),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.14),transparent_26%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(214,166,66,0.16),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(15,23,42,0.10),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,195,77,0.12),transparent_26%)]" />
 
       <EmailLoginDialog
         dictionary={dictionary}
@@ -423,7 +427,8 @@ export function BrandingStudioPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
@@ -438,9 +443,14 @@ export function BrandingStudioPage({
                 <ArrowLeft className="size-4" />
               </Link>
 
-              <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.2rem]">
-                {studioCopy.page.title}
-              </h1>
+              <div className="min-w-0">
+                <p className="friend-service-kicker text-[0.62rem] sm:text-xs">
+                  {SERVICE_BRAND_NAME}
+                </p>
+                <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-950 sm:text-[1.2rem]">
+                  {studioCopy.page.title}
+                </h1>
+              </div>
             </div>
 
             {hasThirdwebClientId && status === "connected" ? (

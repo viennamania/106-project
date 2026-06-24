@@ -33,6 +33,10 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
@@ -308,14 +312,15 @@ export function AssetManagementPage({
   const isRefreshing = isUsdtFetching || isBnbFetching || isMarketFetching;
 
   return (
-    <div className="relative isolate overflow-hidden bg-slate-50/70">
+    <div className="friend-service-surface relative isolate overflow-hidden">
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8">
@@ -328,7 +333,9 @@ export function AssetManagementPage({
               <ArrowLeft className="size-4 sm:size-5" />
             </Link>
             <div className="min-w-0 space-y-1">
-              <p className="eyebrow hidden sm:block">{copy.eyebrow}</p>
+              <p className="friend-service-kicker text-[0.62rem] sm:text-xs">
+                {SERVICE_BRAND_NAME}
+              </p>
               <h1 className="truncate text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                 {copy.title}
               </h1>

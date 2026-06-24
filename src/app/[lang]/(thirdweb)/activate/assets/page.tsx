@@ -5,6 +5,7 @@ import { AssetManagementPage } from "@/components/asset-management-page";
 import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 
 function normalizeReturnToPath(
   value: string | string[] | undefined,
@@ -30,11 +31,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale = hasLocale(lang) ? lang : "ko";
-  const dictionary = getDictionary(locale);
   const copy = getAssetManagementCopy(locale);
 
   return {
-    title: `${dictionary.common.appName} ${copy.title}`,
+    title: `${SERVICE_BRAND_NAME} ${copy.title}`,
     description: copy.metaDescription,
   };
 }

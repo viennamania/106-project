@@ -25,6 +25,10 @@ import {
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
 import { type Dictionary, type Locale } from "@/lib/i18n";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
@@ -339,8 +343,8 @@ export function SilverRewardClaimPage({
     : null;
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(34,197,94,0.14),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_24%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(213,161,83,0.18),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(17,24,39,0.08),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_24%)]" />
       <LogoutConfirmDialog
         cancelLabel={dictionary.common.logoutDialog.cancel}
         confirmLabel={dictionary.common.logoutDialog.confirm}
@@ -358,7 +362,8 @@ export function SilverRewardClaimPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -371,7 +376,7 @@ export function SilverRewardClaimPage({
               <ArrowLeft className="size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
+              <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.rewardsPage.silverClaim.title}
@@ -511,7 +516,7 @@ export function SilverRewardClaimPage({
               <section className="glass-card rounded-[30px] p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
+                    <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                       {dictionary.walletPage.labels.memberAccount}
                     </h2>
@@ -594,7 +599,7 @@ export function SilverRewardClaimPage({
             <section className="glass-card rounded-[30px] p-5 sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
-                  <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
+                  <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                     {dictionary.rewardsPage.silverClaim.title}
                   </h2>

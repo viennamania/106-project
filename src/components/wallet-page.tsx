@@ -56,6 +56,10 @@ import {
 } from "@/lib/member";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { getReferralLevelTheme } from "@/lib/referral-level-theme";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   BSC_EXPLORER,
@@ -757,11 +761,12 @@ export function WalletPage({
     <div
       className={cn(
         "relative isolate overflow-hidden",
+        !isFanletterService && "friend-service-surface",
         isFanletterService && "fanletter-wallet-manage bg-[#030504] text-white",
       )}
     >
       {!isFanletterService ? (
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_26%),radial-gradient(circle_at_88%_8%,rgba(13,148,136,0.18),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(213,161,83,0.18),transparent_26%),radial-gradient(circle_at_88%_8%,rgba(17,24,39,0.08),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_28%)]" />
       ) : null}
       <EmailLoginDialog
         dictionary={dictionary}
@@ -769,7 +774,12 @@ export function WalletPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={isFanletterService ? undefined : SERVICE_BRAND_NAME}
+        title={
+          isFanletterService
+            ? dictionary.common.connectModalTitle
+            : getServiceConnectModalTitle(locale)
+        }
       />
       <QrCodeDialog
         accountAddress={accountAddress}
@@ -799,7 +809,14 @@ export function WalletPage({
               <WalletMinimal className="size-4 sm:size-5" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="eyebrow hidden sm:block">{dictionary.walletPage.eyebrow}</p>
+              <p
+                className={cn(
+                  "text-[0.62rem] sm:text-xs",
+                  isFanletterService ? "eyebrow" : "friend-service-kicker",
+                )}
+              >
+                {isFanletterService ? dictionary.walletPage.eyebrow : SERVICE_BRAND_NAME}
+              </p>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                   {dictionary.walletPage.title}

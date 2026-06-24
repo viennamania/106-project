@@ -5,6 +5,7 @@ import { BrandingStudioPage } from "@/components/branding-studio-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 
 function normalizeReturnToPath(
   value: string | string[] | undefined,
@@ -33,7 +34,7 @@ export async function generateMetadata({
   const copy = getLandingBrandingCopy(locale);
 
   return {
-    title: copy.meta.title,
+    title: `${SERVICE_BRAND_NAME} ${copy.meta.title}`,
     description: copy.meta.description,
   };
 }

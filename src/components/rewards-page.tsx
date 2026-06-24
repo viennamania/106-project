@@ -31,6 +31,10 @@ import {
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   createEmptyPointsSummary,
@@ -452,15 +456,16 @@ export function RewardsPage({
   }
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(16,185,129,0.15),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(249,115,22,0.12),transparent_24%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(214,166,66,0.16),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(15,23,42,0.10),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(245,195,77,0.12),transparent_24%)]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -473,7 +478,7 @@ export function RewardsPage({
               <ArrowLeft className="size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
+              <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.rewardsPage.title}

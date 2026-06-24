@@ -14,6 +14,10 @@ import {
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildReferralLandingPath } from "@/lib/landing-branding";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 import { thirdwebClient } from "@/lib/thirdweb";
 import {
@@ -313,7 +317,7 @@ export function WalletUnlockPage({
   }
 
   return (
-    <main className="min-h-dvh overflow-y-auto bg-[#f8f7f4] text-slate-950">
+    <main className="friend-service-surface min-h-dvh overflow-y-auto bg-[#f8f7f4] text-slate-950">
       <div className="mx-auto flex min-h-dvh w-full max-w-[520px] flex-col bg-white px-6 pb-[max(48px,calc(env(safe-area-inset-bottom)+24px))] pt-[max(16px,env(safe-area-inset-top))] [@media(max-height:760px)]:pb-[max(24px,calc(env(safe-area-inset-bottom)+12px))]">
         <div className="flex h-10 items-center justify-between sm:h-12">
           <Link
@@ -323,6 +327,9 @@ export function WalletUnlockPage({
             <ArrowLeft className="size-5" />
             <span className="sr-only">{copy.back}</span>
           </Link>
+          <span className="friend-service-kicker text-[0.64rem]">
+            {SERVICE_BRAND_NAME}
+          </span>
         </div>
 
         <section className="flex flex-1 flex-col justify-start gap-7 pb-2 [@media(max-height:760px)]:gap-2">
@@ -429,7 +436,8 @@ export function WalletUnlockPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
     </main>
   );

@@ -6,6 +6,7 @@ import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { getIncomingReferralState } from "@/lib/member-service";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,7 @@ export async function generateMetadata({
   const dictionary = getDictionary(locale);
 
   return {
-    title: `${dictionary.common.appName} Activate`,
+    title: `${SERVICE_BRAND_NAME} Activate`,
     description: dictionary.meta.description,
   };
 }

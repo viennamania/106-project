@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BnbWalletPage } from "@/components/bnb-wallet-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 
 function normalizeReturnToPath(
   value: string | string[] | undefined,
@@ -32,7 +33,7 @@ export async function generateMetadata({
   const dictionary = getDictionary(locale);
 
   return {
-    title: `${dictionary.common.appName} BNB`,
+    title: `${SERVICE_BRAND_NAME} BNB`,
     description: dictionary.bnbPage.description,
   };
 }

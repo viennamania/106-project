@@ -338,7 +338,7 @@ export function ReferralsPage({
           : "activate";
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-[#fbf7ef] text-slate-950">
+    <div className="friend-service-surface relative isolate min-h-screen overflow-hidden text-slate-950">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,195,77,0.18),transparent_24%),radial-gradient(circle_at_88%_8%,rgba(15,23,42,0.12),transparent_24%),linear-gradient(180deg,#f6efe3_0%,#fbf7ef_44%,#f8f2e9_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[linear-gradient(180deg,rgba(15,23,42,0.08),transparent)]" />
       <LogoutConfirmDialog

@@ -5,6 +5,7 @@ import { NotificationsPage } from "@/components/notifications-page";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 
 function sanitizeReturnTo(
   input: string | null | undefined,
@@ -34,7 +35,7 @@ export async function generateMetadata({
   const dictionary = getDictionary(locale);
 
   return {
-    title: `${dictionary.activateNetworkPage.notifications.title} | ${dictionary.common.appName}`,
+    title: `${SERVICE_BRAND_NAME} ${dictionary.activateNetworkPage.notifications.title}`,
     description: dictionary.activateNetworkPage.notifications.pageDescription,
   };
 }

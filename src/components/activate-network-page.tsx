@@ -62,6 +62,10 @@ import {
   thirdwebClient,
 } from "@/lib/thirdweb";
 import { cn } from "@/lib/utils";
+import {
+  getServiceConnectModalTitle,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 type ActivateNetworkState = {
   error: string | null;
@@ -989,7 +993,7 @@ export function ActivateNetworkPage({
   ]);
 
   return (
-    <div className="relative isolate overflow-hidden">
+    <div className="friend-service-surface relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(217,161,58,0.16),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(37,99,235,0.12),transparent_24%),linear-gradient(180deg,#f6efe3_0%,#fbf7ef_38%,#f7f1e8_100%)]" />
       <EmailLoginDialog
         dictionary={dictionary}
@@ -997,7 +1001,8 @@ export function ActivateNetworkPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel={SERVICE_BRAND_NAME}
+        title={getServiceConnectModalTitle(locale)}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -1013,8 +1018,11 @@ export function ActivateNetworkPage({
               <GitBranch className="size-4 sm:size-5" />
             </div>
             <div className="min-w-0 flex-1">
+              <p className="friend-service-kicker sm:hidden">
+                {SERVICE_BRAND_NAME}
+              </p>
               <p className="eyebrow hidden sm:block">
-                {dictionary.activateNetworkPage.eyebrow}
+                {SERVICE_BRAND_NAME}
               </p>
               <h1 className="truncate text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                 {dictionary.activateNetworkPage.title}
