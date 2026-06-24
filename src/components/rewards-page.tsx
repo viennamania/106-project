@@ -478,21 +478,21 @@ export function RewardsPage({
         title={getServiceConnectModalTitle(locale)}
       />
 
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="relative flex flex-col gap-3 overflow-hidden rounded-[26px] border border-zinc-200 bg-white px-5 py-4 shadow-[0_18px_55px_rgba(24,24,27,0.07)] sm:flex-row sm:items-center sm:justify-between">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
+        <header className="relative flex flex-col gap-3 overflow-hidden rounded-[22px] border border-zinc-200 bg-white px-4 py-3 shadow-[0_18px_55px_rgba(24,24,27,0.07)] sm:flex-row sm:items-center sm:justify-between sm:rounded-[26px] sm:px-5 sm:py-4">
           <div className="flex items-start gap-3">
             <Link
-              className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12"
               href={activateHref}
             >
-              <ArrowLeft className="size-5" />
+              <ArrowLeft className="size-4 sm:size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+              <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-zinc-500 sm:text-[0.68rem] sm:tracking-[0.22em]">
                 {SERVICE_BRAND_NAME}
               </p>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+                <h1 className="text-base font-semibold tracking-tight text-slate-950 sm:text-lg">
                   {dictionary.rewardsPage.title}
                 </h1>
                 <p className="hidden text-sm text-slate-600 sm:block">
@@ -531,7 +531,7 @@ export function RewardsPage({
         ) : isConnectionResolving ? (
           <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
         ) : isDisconnected ? (
-          <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+          <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[28px] sm:p-6">
             <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
               <WalletMinimal className="size-5" />
             </div>
@@ -559,8 +559,8 @@ export function RewardsPage({
           </MessageCard>
         ) : (
           <>
-            <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
-              <section className="relative overflow-hidden rounded-[30px] border border-zinc-900 bg-zinc-950 p-5 text-white shadow-[0_28px_80px_rgba(24,24,27,0.24)] sm:p-6">
+            <section className="grid gap-3 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+              <section className="relative overflow-hidden rounded-[26px] border border-zinc-900 bg-zinc-950 p-4 text-white shadow-[0_28px_80px_rgba(24,24,27,0.24)] sm:rounded-[30px] sm:p-6">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)]" />
                 <div className="relative">
                   <div className="flex flex-wrap items-center gap-2">
@@ -580,22 +580,22 @@ export function RewardsPage({
                     )}
                   </div>
 
-                  <div className="mt-8 space-y-2">
-                    <p className="text-sm uppercase tracking-[0.26em] text-white/55">
+                  <div className="mt-5 space-y-1.5 sm:mt-8 sm:space-y-2">
+                    <p className="text-[0.68rem] uppercase tracking-[0.2em] text-white/55 sm:text-sm sm:tracking-[0.26em]">
                       {dictionary.rewardsPage.labels.spendablePoints}
                     </p>
                     <AnimatedNumberText
-                      className="text-4xl font-semibold tracking-tight sm:text-5xl"
+                      className="text-3xl font-semibold tracking-tight sm:text-5xl"
                       locale={locale}
                       value={formatPoints(state.summary.spendablePoints, locale)}
                     />
                   </div>
 
-                  <p className="mt-5 max-w-2xl text-sm leading-6 text-white/72">
+                  <p className="mt-4 hidden max-w-2xl text-sm leading-6 text-white/72 sm:block">
                     {dictionary.rewardsPage.previewNote}
                   </p>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
                     <MiniStat
                       label={dictionary.rewardsPage.labels.lifetimePoints}
                       value={formatPoints(state.summary.lifetimePoints, locale)}
@@ -618,7 +618,7 @@ export function RewardsPage({
                     />
                   </div>
 
-                  <div className="mt-6 rounded-[24px] border border-white/12 bg-white/10 px-4 py-4">
+                  <div className="mt-5 rounded-[20px] border border-white/12 bg-white/10 px-3 py-3 sm:mt-6 sm:rounded-[24px] sm:px-4 sm:py-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-xs uppercase tracking-[0.22em] text-white/60">
                         {dictionary.rewardsPage.labels.progress}
@@ -627,7 +627,7 @@ export function RewardsPage({
                         {state.summary.progressPercent}%
                       </p>
                     </div>
-                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/12">
+                    <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/12 sm:h-3">
                       <div
                         className="h-full rounded-full bg-[linear-gradient(90deg,#f8fafc_0%,#fcd34d_45%,#34d399_100%)]"
                         style={{ width: `${state.summary.progressPercent}%` }}
@@ -637,7 +637,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+              <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
@@ -659,8 +659,9 @@ export function RewardsPage({
                   </button>
                 </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="mt-4 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3">
                   <MetricCard
+                    className="sm:col-span-2"
                     label={dictionary.walletPage.labels.memberAccount}
                     value={activeMember?.email ?? state.email ?? "-"}
                   />
@@ -679,16 +680,18 @@ export function RewardsPage({
                     value={activeMember?.referralCode ?? "-"}
                   />
                   <MetricCard
+                    className="hidden sm:block"
                     label={dictionary.rewardsPage.labels.pointTier}
                     value={getTierLabel(state.summary.tier, dictionary)}
                   />
                   <MetricCard
+                    className="hidden sm:block"
                     label={dictionary.rewardsPage.labels.membershipCard}
                     value={getMembershipCardLabel(membershipCardTier, dictionary)}
                   />
                 </div>
 
-                <div className="mt-4 rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3">
+                <div className="mt-4 hidden rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3 sm:block">
                   <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
                     {dictionary.walletPage.labels.updatedAt}
                   </p>
@@ -729,7 +732,7 @@ export function RewardsPage({
               </section>
             </section>
 
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <section className="hidden gap-3 md:grid md:grid-cols-2 xl:grid-cols-5">
               <MetricStatCard
                 label={dictionary.rewardsPage.labels.spendablePoints}
                 value={formatPoints(state.summary.spendablePoints, locale)}
@@ -758,20 +761,20 @@ export function RewardsPage({
               />
             </section>
 
-            <section className="rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+            <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
-                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                     {dictionary.rewardsPage.labels.rewardCatalog}
                   </h2>
-                  <p className="text-sm leading-6 text-slate-600">
+                  <p className="text-xs leading-5 text-slate-600 sm:text-sm sm:leading-6">
                     {dictionary.rewardsPage.catalog.previewNote}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-5">
+              <div className="mt-4 sm:mt-5">
                 {actionNotice ? (
                   <div className="mb-4">
                     <MessageCard>{actionNotice}</MessageCard>
@@ -792,7 +795,7 @@ export function RewardsPage({
                 ) : state.catalog.length === 0 ? (
                   <MessageCard>{dictionary.rewardsPage.catalog.empty}</MessageCard>
                 ) : (
-                  <div className="grid gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+                  <div className="grid gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
                     {state.catalog.map((reward) => (
                       <RewardCatalogCard
                         canRedeem={activeMember?.status === "completed"}
@@ -815,8 +818,8 @@ export function RewardsPage({
               </div>
             </section>
 
-            <section className="grid min-w-0 gap-5 lg:grid-cols-[1.02fr_0.98fr]">
-              <section className="min-w-0 rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+            <section className="grid min-w-0 gap-3 sm:gap-5 lg:grid-cols-[1.02fr_0.98fr]">
+              <section className="min-w-0 rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -843,7 +846,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="min-w-0 rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+              <section className="min-w-0 rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -909,18 +912,25 @@ function MetricStatCard({
 }
 
 function MetricCard({
+  className,
   label,
   value,
 }: {
+  className?: string;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_16px_36px_rgba(15,23,42,0.04)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+    <div
+      className={cn(
+        "rounded-[18px] border border-slate-200 bg-white/90 px-3 py-3 shadow-[0_16px_36px_rgba(15,23,42,0.04)] sm:rounded-[24px] sm:px-4 sm:py-4",
+        className,
+      )}
+    >
+      <p className="text-[0.64rem] uppercase tracking-[0.16em] text-slate-500 sm:text-xs sm:tracking-[0.22em]">
         {label}
       </p>
-      <p className="mt-2 break-all text-sm font-semibold text-slate-950">
+      <p className="mt-1.5 break-all text-sm font-semibold text-slate-950 sm:mt-2">
         {value}
       </p>
     </div>
@@ -1103,7 +1113,7 @@ function RewardCatalogCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-[30px] p-[1px] transition duration-300",
+        "group relative overflow-hidden rounded-[24px] p-[1px] transition duration-300 sm:rounded-[30px]",
         isCompletedReward
           ? theme.completedFrameClassName
           : theme.pendingFrameClassName,
@@ -1111,30 +1121,30 @@ function RewardCatalogCard({
     >
       <div
         className={cn(
-          "pointer-events-none absolute inset-x-6 top-0 h-24 rounded-b-[28px] blur-3xl",
+          "pointer-events-none absolute inset-x-4 top-0 h-16 rounded-b-[24px] blur-2xl sm:inset-x-6 sm:h-24 sm:rounded-b-[28px] sm:blur-3xl",
           theme.glowClassName,
         )}
       />
       <div
         className={cn(
-          "relative flex h-full flex-col rounded-[29px] p-5 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-6",
+          "relative flex h-full flex-col rounded-[23px] p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:rounded-[29px] sm:p-6",
           surfaceClassName,
         )}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={cn(
-                "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-[0_14px_28px_rgba(15,23,42,0.12)]",
+                "flex size-10 shrink-0 items-center justify-center rounded-[18px] shadow-[0_14px_28px_rgba(15,23,42,0.12)] sm:size-12 sm:rounded-2xl",
                 iconClassName,
               )}
             >
-              <Icon className="size-5" />
+              <Icon className="size-4 sm:size-5" />
             </div>
             <div className="min-w-0">
               <p
                 className={cn(
-                  "break-keep text-[0.72rem] font-medium leading-5 tracking-[0.14em]",
+                  "break-keep text-[0.66rem] font-medium leading-4 tracking-[0.12em] sm:text-[0.72rem] sm:leading-5 sm:tracking-[0.14em]",
                   metaLabelClassName,
                 )}
               >
@@ -1146,7 +1156,7 @@ function RewardCatalogCard({
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={cn(
-                "inline-flex max-w-full items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em]",
+                "inline-flex max-w-full items-center rounded-full border px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] sm:px-3 sm:text-[0.68rem] sm:tracking-[0.2em]",
                 toneLabelClassName,
               )}
             >
@@ -1154,7 +1164,7 @@ function RewardCatalogCard({
             </span>
             <span
               className={cn(
-                "inline-flex items-center rounded-full border px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em]",
+                "inline-flex items-center rounded-full border px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] sm:px-3 sm:text-[0.68rem] sm:tracking-[0.2em]",
                 isCompletedReward
                   ? "border-white/14 bg-white/10 text-white/82"
                   : "border-slate-200 bg-white/80 text-slate-700",
@@ -1163,13 +1173,13 @@ function RewardCatalogCard({
               {dictionary.rewardsPage.catalog.previewBadge}
             </span>
             {isCompletedReward ? (
-              <span className="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-300/14 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-emerald-100">
+              <span className="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-300/14 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-emerald-100 sm:px-3 sm:text-[0.68rem] sm:tracking-[0.2em]">
                 {dictionary.rewardsPage.redemptionStatus.completed}
               </span>
             ) : null}
             <span
               className={cn(
-                "inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold tracking-[0.14em] sm:ml-auto",
+                "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.66rem] font-semibold tracking-[0.1em] sm:ml-auto sm:px-3 sm:text-[0.7rem] sm:tracking-[0.14em]",
                 statusClassName,
               )}
             >
@@ -1185,7 +1195,7 @@ function RewardCatalogCard({
 
           <h3
             className={cn(
-              "mt-1 break-keep text-xl font-semibold leading-[1.2] tracking-tight",
+              "break-keep text-lg font-semibold leading-[1.2] tracking-tight sm:mt-1 sm:text-xl",
               titleClassName,
             )}
           >
@@ -1193,7 +1203,7 @@ function RewardCatalogCard({
           </h3>
           <p
             className={cn(
-              "mt-3 break-keep text-sm leading-6",
+              "mt-1.5 break-keep text-xs leading-5 sm:mt-3 sm:text-sm sm:leading-6",
               descriptionClassName,
             )}
           >
@@ -1201,20 +1211,40 @@ function RewardCatalogCard({
           </p>
         </div>
 
-        <div className="mt-6 grid gap-3">
-          <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
-            <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-1 sm:gap-3">
+          <div
+            className={cn(
+              "rounded-[18px] border px-3 py-2.5 sm:rounded-[22px] sm:px-4 sm:py-3",
+              panelClassName,
+            )}
+          >
+            <p
+              className={cn(
+                "text-[0.62rem] uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.22em]",
+                metaLabelClassName,
+              )}
+            >
               {dictionary.rewardsPage.labels.rewardCost}
             </p>
-            <p className={cn("mt-2 text-sm font-semibold", costValueClassName)}>
+            <p className={cn("mt-1.5 text-sm font-semibold sm:mt-2", costValueClassName)}>
               {formatPoints(reward.costPoints, locale)}
             </p>
           </div>
-          <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
-            <p className={cn("text-xs uppercase tracking-[0.22em]", metaLabelClassName)}>
+          <div
+            className={cn(
+              "rounded-[18px] border px-3 py-2.5 sm:rounded-[22px] sm:px-4 sm:py-3",
+              panelClassName,
+            )}
+          >
+            <p
+              className={cn(
+                "text-[0.62rem] uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.22em]",
+                metaLabelClassName,
+              )}
+            >
               {dictionary.rewardsPage.labels.progress}
             </p>
-            <p className={cn("mt-2 text-sm font-semibold", costValueClassName)}>
+            <p className={cn("mt-1.5 text-sm font-semibold sm:mt-2", costValueClassName)}>
               {highlightCopy}
             </p>
             {!isCompletedReward && !hasRedemption ? (
@@ -1235,10 +1265,15 @@ function RewardCatalogCard({
             ) : null}
           </div>
           {isCompletedSilverClaim ? (
-            <div className={cn("rounded-[22px] border px-4 py-3", panelClassName)}>
+            <div
+              className={cn(
+                "col-span-2 rounded-[18px] border px-3 py-2.5 sm:col-span-1 sm:rounded-[22px] sm:px-4 sm:py-3",
+                panelClassName,
+              )}
+            >
               <p
                 className={cn(
-                  "text-xs uppercase tracking-[0.22em]",
+                  "text-[0.62rem] uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.22em]",
                   metaLabelClassName,
                 )}
               >
@@ -1269,11 +1304,11 @@ function RewardCatalogCard({
             </div>
           ) : null}
         </div>
-        <div className="mt-auto pt-6">
+        <div className="mt-auto pt-4 sm:pt-6">
           {shouldOpenSilverClaim ? (
             <Link
               className={cn(
-                "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition",
+                "inline-flex h-10 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition sm:h-11",
                 actionClassName,
               )}
               href={silverClaimHref}
@@ -1283,7 +1318,7 @@ function RewardCatalogCard({
           ) : (
             <button
               className={cn(
-                "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+                "inline-flex h-10 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 sm:h-11",
                 actionClassName,
               )}
               disabled={isActionDisabled}
