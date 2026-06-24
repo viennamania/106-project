@@ -255,6 +255,7 @@ function getActivationHubCopy(locale: Locale) {
         "가입, 추천 코드, 지갑, 포인트, 하위 회원 상태가 하나의 서비스 그래프로 연결됩니다.",
       contextLabel: "Context Graph",
       contextScore: "Context Score 8/10",
+      graphTitle: "서비스 그래프",
       description:
         "가입 완료, 내 추천 코드, 포인트, 지갑, 하위 회원 관리를 여기에서 시작합니다.",
       disconnected: "연결 필요",
@@ -293,6 +294,7 @@ function getActivationHubCopy(locale: Locale) {
       "Signup, referral code, wallet, points, and downline status connect into one service graph.",
     contextLabel: "Context Graph",
     contextScore: "Context Score 8/10",
+    graphTitle: "Service graph",
     description:
       "Start member activation, referral code, points, wallet, and downline management here.",
     disconnected: "Connection required",
@@ -2487,7 +2489,6 @@ function ActivationServiceHub({
   const totalPoints = referralDashboard.rewards.totalPoints;
   const totalReferrals = referralDashboard.totalReferrals;
   const isConnected = status === "connected";
-
   const membershipStatus = !hasThirdwebClientId
     ? copy.notReady
     : isSignupCompleted
@@ -2498,6 +2499,28 @@ function ActivationServiceHub({
           ? copy.pending
           : copy.disconnected;
   const walletStatus = isConnected ? copy.connected : copy.disconnected;
+  const serviceGraphSteps = [
+    {
+      detail: membershipStatus,
+      icon: <ShieldCheck className="size-4" />,
+      title: copy.membershipLabel,
+    },
+    {
+      detail: walletStatus,
+      icon: <WalletMinimal className="size-4" />,
+      title: copy.walletLabel,
+    },
+    {
+      detail: referralCode,
+      icon: <Share2 className="size-4" />,
+      title: copy.shareLabel,
+    },
+    {
+      detail: `${numberFormatter.format(totalPoints)}P`,
+      icon: <Sparkles className="size-4" />,
+      title: copy.pointsLabel,
+    },
+  ];
   const primaryLabel = !hasThirdwebClientId
     ? copy.primaryUnavailable
     : isSignupCompleted
@@ -2513,7 +2536,7 @@ function ActivationServiceHub({
         <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(245,195,77,0.2),transparent_68%)] blur-3xl" />
 
         <div className="relative grid gap-4 lg:grid-cols-[1.02fr_0.98fr]">
-          <div className="rounded-[26px] bg-[linear-gradient(145deg,#070b18_0%,#111827_56%,#241426_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:p-5">
+          <div className="rounded-[26px] bg-[linear-gradient(145deg,#06070a_0%,#111827_54%,#18120a_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:p-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/70">
                 {copy.hubLabel}
@@ -2532,7 +2555,7 @@ function ActivationServiceHub({
               </p>
             </div>
 
-            <div className="mt-5 grid gap-2.5 sm:grid-cols-3">
+            <div className="mt-5 grid gap-2.5 md:grid-cols-3">
               <div className="rounded-[20px] border border-white/10 bg-white/8 p-3">
                 <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/42">
                   {copy.membershipLabel}
@@ -2608,6 +2631,42 @@ function ActivationServiceHub({
               <p className="mt-3 text-sm leading-6 text-slate-600">
                 {copy.contextDescription}
               </p>
+            </div>
+
+            <div className="rounded-[24px] border border-slate-900/10 bg-white/92 p-4 shadow-[0_20px_55px_rgba(35,24,10,0.06)]">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  {copy.graphTitle}
+                </p>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                  {copy.contextScore}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 md:grid-cols-4">
+                {serviceGraphSteps.map((step, index) => (
+                  <div
+                    className="relative min-w-0 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3"
+                    key={`${step.title}-${index}`}
+                  >
+                    {index > 0 ? (
+                      <span className="absolute -left-2 top-1/2 hidden h-px w-4 bg-slate-300 md:block" />
+                    ) : null}
+                    <div className="flex items-start gap-2.5">
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                        {step.icon}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-950">
+                          {step.title}
+                        </p>
+                        <p className="mt-1 truncate text-xs font-medium text-slate-500">
+                          {step.detail}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid gap-2.5 sm:grid-cols-2">
