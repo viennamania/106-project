@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { ReferralsPage } from "@/components/referrals-page";
 import { getDictionary, hasLocale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
-import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+import {
+  buildServiceMetadata,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 export async function generateMetadata({
   params,
@@ -15,10 +18,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
   const dictionary = getDictionary(locale);
 
-  return {
+  return buildServiceMetadata({
     title: `${SERVICE_BRAND_NAME} ${dictionary.referralsPage.title}`,
     description: dictionary.referralsPage.description,
-  };
+    path: `/${locale}/referrals`,
+  });
 }
 
 export default async function LocalizedReferralsPage({

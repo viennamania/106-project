@@ -2,6 +2,8 @@ import { createThirdwebClient } from "thirdweb";
 import { bsc } from "thirdweb/chains";
 import { inAppWallet } from "thirdweb/wallets";
 
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+
 export const thirdwebClientId =
   process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID ?? "";
 export const hasThirdwebClientId = thirdwebClientId.length > 0;
@@ -14,7 +16,7 @@ export const smartWalletChain = bsc;
 
 export function getAppMetadata(description: string) {
   return {
-    name: "AIAVpark",
+    name: SERVICE_BRAND_NAME,
     description,
     url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     logoUrl: "/favicon.ico",
@@ -36,10 +38,10 @@ export const emailWallet = inAppWallet({
     smartAccount: smartWalletOptions,
   },
   metadata: {
-    name: "AIAVpark",
+    name: SERVICE_BRAND_NAME,
     image: {
       src: "/favicon.ico",
-      alt: "AIAVpark",
+      alt: SERVICE_BRAND_NAME,
       width: 96,
       height: 96,
     },

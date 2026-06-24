@@ -8,7 +8,10 @@ import {
   type Locale,
 } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
-import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+import {
+  buildServiceMetadata,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 import {
   getWalletUnlockCopy,
   normalizeWalletUnlockReturnTo,
@@ -23,10 +26,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
   const copy = getWalletUnlockCopy(locale);
 
-  return {
+  return buildServiceMetadata({
     title: `${SERVICE_BRAND_NAME} ${copy.unlockTitle}`,
     description: copy.unlockSubtitle,
-  };
+    path: `/${locale}/wallet/unlock`,
+  });
 }
 
 export default async function LocalizedWalletUnlockPage({

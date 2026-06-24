@@ -5,6 +5,10 @@ import { AnnouncementsPage } from "@/components/announcements-page";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
+import {
+  buildServiceMetadata,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 function sanitizeReturnTo(
   input: string | null | undefined,
@@ -33,10 +37,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
   const dictionary = getDictionary(locale);
 
-  return {
-    title: `${dictionary.announcementsPage.title} | ${dictionary.common.appName}`,
+  return buildServiceMetadata({
+    title: `${SERVICE_BRAND_NAME} ${dictionary.announcementsPage.title}`,
     description: dictionary.announcementsPage.description,
-  };
+    path: `/${locale}/announcements`,
+  });
 }
 
 export default async function LocalizedAnnouncementsPage({

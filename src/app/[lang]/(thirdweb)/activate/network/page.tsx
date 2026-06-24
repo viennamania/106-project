@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { ActivateNetworkPage } from "@/components/activate-network-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
-import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+import {
+  buildServiceMetadata,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 function normalizeReturnToPath(
   value: string | string[] | undefined,
@@ -34,10 +37,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
   const dictionary = getDictionary(locale);
 
-  return {
+  return buildServiceMetadata({
     title: `${SERVICE_BRAND_NAME} ${dictionary.activateNetworkPage.title}`,
     description: dictionary.activateNetworkPage.description,
-  };
+    path: `/${locale}/activate/network`,
+  });
 }
 
 export default async function LocalizedActivateNetworkPage({

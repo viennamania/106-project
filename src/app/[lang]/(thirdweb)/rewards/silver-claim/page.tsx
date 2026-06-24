@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { SilverRewardClaimPage } from "@/components/silver-reward-claim-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
-import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+import {
+  buildServiceMetadata,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 export async function generateMetadata({
   params,
@@ -15,10 +18,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
   const dictionary = getDictionary(locale);
 
-  return {
+  return buildServiceMetadata({
     title: `${SERVICE_BRAND_NAME} ${dictionary.rewardsPage.silverClaim.title}`,
     description: dictionary.rewardsPage.silverClaim.description,
-  };
+    path: `/${locale}/rewards/silver-claim`,
+  });
 }
 
 export default async function LocalizedSilverRewardClaimPage({

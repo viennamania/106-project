@@ -6,7 +6,11 @@ import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { getIncomingReferralState } from "@/lib/member-service";
 import { normalizeReferralCode } from "@/lib/member";
-import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
+import {
+  buildServiceMetadata,
+  getServiceActivateMetaDescription,
+  SERVICE_BRAND_NAME,
+} from "@/lib/service-branding";
 
 export async function generateMetadata({
   params,
@@ -15,12 +19,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale = hasLocale(lang) ? lang : "ko";
-  const dictionary = getDictionary(locale);
 
-  return {
+  return buildServiceMetadata({
     title: `${SERVICE_BRAND_NAME} Activate`,
-    description: dictionary.meta.description,
-  };
+    description: getServiceActivateMetaDescription(locale),
+    path: `/${locale}/activate`,
+  });
 }
 
 export default async function LocalizedActivatePage({
