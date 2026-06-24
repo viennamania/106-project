@@ -111,6 +111,28 @@ type WalletNotice = {
   href?: string;
 };
 
+function getSignupPaymentVerificationCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      action: "상태 다시 확인",
+      body:
+        "10 USDT 전송은 접수되었습니다. 시스템이 입금 기록을 확인해 가입 완료와 추천 코드 활성화를 자동 반영합니다. 이 상태에서는 중복 전송하지 마세요.",
+      checking: "입금 확인 중",
+      title: "가입 완료 반영 중",
+      transaction: "거래 보기",
+    };
+  }
+
+  return {
+    action: "Check status again",
+    body:
+      "The 10 USDT transfer was submitted. The system is verifying the deposit and will activate signup and the referral code automatically. Do not send another payment while this is pending.",
+    checking: "Verifying deposit",
+    title: "Finalizing signup",
+    transaction: "View transaction",
+  };
+}
+
 type MemberSyncState = {
   email: string | null;
   error: string | null;
@@ -414,6 +436,8 @@ export function SmartWalletApp({
   const [showCelebration, setShowCelebration] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [pendingSignupPaymentHash, setPendingSignupPaymentHash] =
+    useState<string | null>(null);
   const copiedTimeoutRef = useRef<number | null>(null);
   const celebrationTimeoutRef = useRef<number | null>(null);
   const syncInFlightRef = useRef(false);
@@ -541,6 +565,10 @@ export function SmartWalletApp({
     incomingReferralCode !== null &&
     memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
+  const signupPaymentVerificationCopy =
+    getSignupPaymentVerificationCopy(locale);
+  const isSignupPaymentVerificationPending =
+    !isSignupCompleted && pendingSignupPaymentHash !== null;
   const isServiceSuspended = Boolean(memberSync.member?.serviceSuspendedAt);
   const canManagePushAlerts =
     status === "connected" &&
@@ -561,6 +589,8 @@ export function SmartWalletApp({
     Boolean(memberSync.member);
   const paymentCtaLabel = isSignupCompleted
     ? dictionary.sponsored.completedCta
+    : isSignupPaymentVerificationPending
+      ? signupPaymentVerificationCopy.checking
     : dictionary.sponsored.cta.replace(
         "{amount}",
         MEMBER_SIGNUP_USDT_AMOUNT,
@@ -600,10 +630,12 @@ export function SmartWalletApp({
     !hasThirdwebClientId ||
     isSignupBalanceLoading ||
     isInsufficientUsdtBalance ||
+    isSignupPaymentVerificationPending ||
     !projectWallet ||
     isSignupCompleted;
 
   function handleSignupPaymentError(error: Error) {
+    setPendingSignupPaymentHash(null);
     setNotice({
       tone: "error",
       text: error.message,
@@ -611,6 +643,7 @@ export function SmartWalletApp({
   }
 
   function handleSignupPaymentConfirmed(receipt: { transactionHash: string }) {
+    setPendingSignupPaymentHash(receipt.transactionHash);
     setNotice({
       tone: "success",
       text: dictionary.sponsored.txConfirmed,
@@ -623,6 +656,7 @@ export function SmartWalletApp({
   }
 
   function handleSignupPaymentSent(result: { transactionHash: string }) {
+    setPendingSignupPaymentHash(result.transactionHash);
     setNotice({
       tone: "info",
       text: dictionary.sponsored.txSent,
@@ -632,6 +666,10 @@ export function SmartWalletApp({
     window.setTimeout(() => {
       void runMemberSync({ background: true });
     }, 4000);
+  }
+
+  function handleVerifySignupPaymentStatus() {
+    void runMemberSync();
   }
 
   function createSignupPaymentTransaction() {
@@ -887,6 +925,7 @@ export function SmartWalletApp({
       }
 
       if (syncedMember.status === "completed" && !syncedMember.serviceSuspendedAt) {
+        setPendingSignupPaymentHash(null);
         void loadReferralDashboard(syncedMember.email, {
           background: options?.background,
         });
@@ -1283,6 +1322,7 @@ export function SmartWalletApp({
     }
 
     if (status !== "connected" || !accountAddress || !hasThirdwebClientId) {
+      setPendingSignupPaymentHash(null);
       setMemberSync({
         email: null,
         error: null,
@@ -1377,7 +1417,7 @@ export function SmartWalletApp({
   ]);
 
   const pollForCompletedSignup = useEffectEvent(async () => {
-    await runMemberSync({ background: true, mode: "light" });
+    await runMemberSync({ background: true });
   });
 
   const openNotificationsPage = useCallback((mode: "push" | "replace" = "push") => {
@@ -2143,6 +2183,39 @@ export function SmartWalletApp({
                           </p>
                         ) : null}
 
+                        {isSignupPaymentVerificationPending ? (
+                          <div className="mt-4 rounded-[18px] border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm leading-6 text-emerald-50">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-white">
+                                  {signupPaymentVerificationCopy.title}
+                                </p>
+                                <p className="mt-1 text-white/70">
+                                  {signupPaymentVerificationCopy.body}
+                                </p>
+                              </div>
+                              <div className="flex shrink-0 flex-wrap gap-2">
+                                <a
+                                  className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/15"
+                                  href={`${BSC_EXPLORER}/tx/${pendingSignupPaymentHash}`}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  {signupPaymentVerificationCopy.transaction}
+                                </a>
+                                <button
+                                  className="inline-flex h-9 items-center justify-center rounded-full bg-white px-3 text-xs font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                  disabled={memberSync.status === "syncing"}
+                                  onClick={handleVerifySignupPaymentStatus}
+                                  type="button"
+                                >
+                                  {signupPaymentVerificationCopy.action}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+
                         <div className="mt-5 rounded-[22px] border border-white/10 bg-white/5 p-4">
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
@@ -2384,6 +2457,15 @@ export function SmartWalletApp({
                 >
                   {signupWalletUnlock.copy.unlockAction}
                 </WalletUnlockAction>
+              ) : isSignupPaymentVerificationPending ? (
+                <button
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70 min-[420px]:w-auto"
+                  disabled={memberSync.status === "syncing"}
+                  onClick={handleVerifySignupPaymentStatus}
+                  type="button"
+                >
+                  {signupPaymentVerificationCopy.action}
+                </button>
               ) : (
                 <TransactionButton
                   className="signup-payment-transaction-button inline-flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:!text-white disabled:opacity-100 min-[420px]:w-auto"
