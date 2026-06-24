@@ -4,7 +4,6 @@ import {
   Check,
   Download,
   Loader2,
-  Plus,
   Send,
   Shirt,
   Sparkles,
@@ -261,16 +260,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(
     null,
   );
-  const [starAvatars, setStarAvatars] = useState<{ url: string; label: string }[]>(
-    [],
-  );
   const [publicStars, setPublicStars] = useState<
     { id: string; name: string; images: string[] }[]
   >([]);
   const [selectedPublicStarId, setSelectedPublicStarId] = useState<string | null>(
     null,
   );
-  const [showStarUrl, setShowStarUrl] = useState(false);
+  const [selectedStarImageIndex, setSelectedStarImageIndex] = useState(0);
   const [showGarmentUrl, setShowGarmentUrl] = useState(false);
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<
@@ -556,8 +552,12 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   );
   const hasEnoughPoints = spendablePoints === null || spendablePoints >= cost;
 
+  const selectedStar =
+    publicStars.find((star) => star.id === selectedPublicStarId) ?? null;
+
   const canSubmit =
     Boolean(accountAddress) &&
+    Boolean(selectedPublicStarId) &&
     Boolean(starAvatarUrl.trim()) &&
     garmentImageUrls.length > 0 &&
     hasEnoughPoints &&
@@ -610,90 +610,6 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         .join("\n"),
     );
   }, []);
-
-  const handleStarFile = useCallback(
-    async (file: File | null) => {
-      if (!file) {
-        return;
-      }
-
-      setError(null);
-      setIsUploading(true);
-
-      try {
-        const url = await uploadImage(file);
-        setStarAvatarUrl(url);
-        setSelectedPublicStarId(null);
-        setStarAvatars((previous) =>
-          previous.some((item) => item.url === url)
-            ? previous
-            : [...previous, { url, label: String(previous.length + 1) }],
-        );
-      } catch (uploadFailure) {
-        setError(
-          uploadFailure instanceof Error
-            ? uploadFailure.message
-            : copy.uploadError,
-        );
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [copy.uploadError, uploadImage],
-  );
-
-  const handleUseMyStar = useCallback(async () => {
-    if (!accountAddress || !email) {
-      return;
-    }
-
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/content/profile?email=${encodeURIComponent(
-          email,
-        )}&walletAddress=${encodeURIComponent(accountAddress)}`,
-      );
-      const data = (await response.json().catch(() => null)) as {
-        profile?: {
-          avatarImageUrl?: string | null;
-          avatarImageSet?: Array<{ url?: string | null; label?: string | null }> | null;
-          displayName?: string | null;
-          characterPersona?: { name?: string | null } | null;
-        };
-        error?: string;
-      } | null;
-
-      if (!response.ok || !data?.profile?.avatarImageUrl) {
-        setError(data?.error ?? copy.noStar);
-        return;
-      }
-
-      const primaryUrl = data.profile.avatarImageUrl;
-      const candidateUrls = [
-        primaryUrl,
-        ...(data.profile.avatarImageSet ?? []).map((item) => item.url ?? ""),
-      ].filter(Boolean) as string[];
-      const uniqueUrls = Array.from(new Set(candidateUrls));
-
-      setStarAvatars(
-        uniqueUrls.map((url, index) => ({ url, label: `${index + 1}` })),
-      );
-      setStarAvatarUrl(primaryUrl);
-      setSelectedPublicStarId(null);
-      const resolvedName =
-        data.profile.characterPersona?.name ?? data.profile.displayName ?? "";
-
-      if (resolvedName) {
-        setStarName(resolvedName);
-      }
-    } catch (loadFailure) {
-      setError(
-        loadFailure instanceof Error ? loadFailure.message : copy.genericError,
-      );
-    }
-  }, [accountAddress, copy.genericError, copy.noStar, email]);
 
   useEffect(() => {
     void (async () => {
@@ -769,7 +685,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
           sceneBrief: sceneBrief.trim() || null,
           starAvatarUrl: starAvatarUrl.trim(),
           starId: selectedPublicStarId,
-          starImageIndex: 0,
+          starImageIndex: selectedStarImageIndex,
           starName: starName.trim() || null,
           walletAddress: accountAddress,
         }),
@@ -817,6 +733,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     resolution,
     sceneBrief,
     selectedPublicStarId,
+    selectedStarImageIndex,
     starAvatarUrl,
     starName,
   ]);
@@ -893,7 +810,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               sceneBrief: sceneBrief.trim() || null,
               starAvatarUrl: starAvatarUrl.trim(),
               starId: selectedPublicStarId,
-              starImageIndex: 0,
+              starImageIndex: selectedStarImageIndex,
               starName: starName.trim() || null,
               walletAddress: accountAddress,
             }),
@@ -959,6 +876,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     resolution,
     sceneBrief,
     selectedPublicStarId,
+    selectedStarImageIndex,
     starAvatarUrl,
     starName,
   ]);
@@ -1409,95 +1327,15 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
           {/* Star */}
           <section>
             <SectionLabel hint={copy.starHint}>{copy.starLabel}</SectionLabel>
-            <div className="flex flex-wrap items-center gap-2.5">
-              {starAvatars.map((avatar) => {
-                const active = starAvatarUrl === avatar.url;
-
-                return (
-                  <button
-                    className={`h-14 w-14 overflow-hidden rounded-full transition ${
-                      active
-                        ? "ring-2 ring-[#44f26e] ring-offset-2"
-                        : "ring-1 ring-black/10 hover:ring-black/25"
-                    }`}
-                    key={avatar.url}
-                    onClick={() => {
-                      setStarAvatarUrl(avatar.url);
-                      setSelectedPublicStarId(null);
-                    }}
-                    type="button"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt={`AI star ${avatar.label}`}
-                      className="h-full w-full object-cover"
-                      src={avatar.url}
-                    />
-                  </button>
-                );
-              })}
-              <label className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-dashed border-black/20 text-neutral-400 transition hover:border-[#44f26e] hover:text-[#16702e]">
-                {isUploading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Plus className="h-5 w-5" />
-                )}
-                <input
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  disabled={!accountAddress || isUploading}
-                  onChange={(event) => {
-                    void handleStarFile(event.target.files?.[0] ?? null);
-                    event.target.value = "";
-                  }}
-                  type="file"
-                />
-              </label>
-            </div>
-            <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs font-bold">
-              <button
-                className="text-[#16702e] disabled:opacity-40"
-                disabled={!accountAddress || !email}
-                onClick={handleUseMyStar}
-                type="button"
-              >
-                {copy.useMyStar}
-              </button>
-              <button
-                className="text-neutral-400 hover:text-neutral-600"
-                onClick={() => setShowStarUrl((value) => !value)}
-                type="button"
-              >
-                {copy.advanced}
-              </button>
-            </div>
-            {showStarUrl ? (
-              <input
-                className={`${FIELD_INPUT} mt-2`}
-                inputMode="url"
-                onChange={(event) => {
-                  setStarAvatarUrl(event.target.value);
-                  setSelectedPublicStarId(null);
-                }}
-                placeholder="https://…/star.png"
-                type="url"
-                value={starAvatarUrl}
-              />
-            ) : null}
-
             {publicStars.length > 0 ? (
-              <div className="mt-3 border-t border-black/5 pt-3">
-                <p className="mb-2 text-xs font-bold text-neutral-500">
-                  {locale === "en"
-                    ? "Or pick a public AI star"
-                    : "또는 공개 AI 스타에서 선택"}
-                </p>
-                <div className="flex flex-wrap gap-2">
+              <>
+                {/* Step 1 — pick a star */}
+                <div className="flex flex-wrap gap-2.5">
                   {publicStars.map((star) => {
                     const active = selectedPublicStarId === star.id;
                     return (
                       <button
-                        className={`h-12 w-12 overflow-hidden rounded-full transition ${
+                        className={`h-14 w-14 overflow-hidden rounded-full transition ${
                           active
                             ? "ring-2 ring-[#44f26e] ring-offset-2"
                             : "ring-1 ring-black/10 hover:ring-black/25"
@@ -1505,6 +1343,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                         key={star.id}
                         onClick={() => {
                           setSelectedPublicStarId(star.id);
+                          setSelectedStarImageIndex(0);
                           setStarAvatarUrl(star.images[0] ?? "");
                           setStarName(star.name);
                         }}
@@ -1521,15 +1360,61 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                     );
                   })}
                 </div>
-                {selectedPublicStarId ? (
-                  <p className="mt-1.5 text-[11px] text-neutral-400">
+
+                {/* Step 2 — pick one of the selected star's photos */}
+                {selectedStar ? (
+                  <div className="mt-3 border-t border-black/5 pt-3">
+                    <p className="mb-2 text-xs font-bold text-neutral-500">
+                      {locale === "en"
+                        ? `Pick a photo of ${selectedStar.name}`
+                        : `${selectedStar.name} 사진을 고르세요`}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedStar.images.map((url, index) => {
+                        const active = selectedStarImageIndex === index;
+                        return (
+                          <button
+                            className={`h-16 w-16 overflow-hidden rounded-xl transition ${
+                              active
+                                ? "ring-2 ring-[#44f26e] ring-offset-2"
+                                : "ring-1 ring-black/10 hover:ring-black/25"
+                            }`}
+                            key={url}
+                            onClick={() => {
+                              setSelectedStarImageIndex(index);
+                              setStarAvatarUrl(url);
+                            }}
+                            type="button"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              alt={`${selectedStar.name} ${index + 1}`}
+                              className="h-full w-full object-cover"
+                              src={url}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-neutral-400">
+                      {locale === "en"
+                        ? "The star's owner earns royalty points when you use it."
+                        : "이 스타를 사용하면 소유자가 포인트 로열티를 받습니다."}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-[11px] text-neutral-400">
                     {locale === "en"
-                      ? "Using a public star — the owner earns royalty points."
-                      : "공개 스타 사용 — 소유자가 포인트 로열티를 받습니다."}
+                      ? "Pick a star, then choose one of its photos."
+                      : "스타를 고르면 그 스타의 사진을 선택할 수 있어요."}
                   </p>
-                ) : null}
-              </div>
-            ) : null}
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-neutral-400">
+                {locale === "en" ? "Loading AI stars…" : "AI 스타를 불러오는 중…"}
+              </p>
+            )}
           </section>
 
           {/* Garment */}
