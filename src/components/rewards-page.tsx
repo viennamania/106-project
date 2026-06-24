@@ -679,29 +679,6 @@ export function RewardsPage({
                     label={dictionary.referralsPage.labels.referralCode}
                     value={activeMember?.referralCode ?? "-"}
                   />
-                  <MetricCard
-                    className="hidden sm:block"
-                    label={dictionary.rewardsPage.labels.pointTier}
-                    value={getTierLabel(state.summary.tier, dictionary)}
-                  />
-                  <MetricCard
-                    className="hidden sm:block"
-                    label={dictionary.rewardsPage.labels.membershipCard}
-                    value={getMembershipCardLabel(membershipCardTier, dictionary)}
-                  />
-                </div>
-
-                <div className="mt-4 hidden rounded-[24px] border border-slate-200 bg-white/80 px-4 py-3 sm:block">
-                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                    {dictionary.walletPage.labels.updatedAt}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-slate-900">
-                    {state.summary.updatedAt
-                      ? formatDateTime(state.summary.updatedAt, locale)
-                      : state.status === "loading"
-                        ? dictionary.rewardsPage.loading
-                        : "-"}
-                  </p>
                 </div>
 
                 {activeMember?.status !== "completed" ? (
@@ -732,35 +709,6 @@ export function RewardsPage({
               </section>
             </section>
 
-            <section className="hidden gap-3 md:grid md:grid-cols-2 xl:grid-cols-5">
-              <MetricStatCard
-                label={dictionary.rewardsPage.labels.spendablePoints}
-                value={formatPoints(state.summary.spendablePoints, locale)}
-              />
-              <MetricStatCard
-                label={dictionary.rewardsPage.labels.lifetimePoints}
-                value={formatPoints(state.summary.lifetimePoints, locale)}
-              />
-              <MetricStatCard
-                label={dictionary.rewardsPage.labels.pointTier}
-                value={getTierLabel(state.summary.tier, dictionary)}
-              />
-              <MetricStatCard
-                label={dictionary.rewardsPage.labels.membershipCard}
-                value={getMembershipCardLabel(membershipCardTier, dictionary)}
-              />
-              <MetricStatCard
-                label={dictionary.rewardsPage.labels.nextTier}
-                value={
-                  state.summary.nextTier
-                    ? formatTemplate(dictionary.rewardsPage.labels.pointsToNextTier, {
-                        points: formatNumber(state.summary.pointsToNextTier, locale),
-                      })
-                    : dictionary.rewardsPage.labels.maxTier
-                }
-              />
-            </section>
-
             <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1.5">
@@ -768,7 +716,7 @@ export function RewardsPage({
                   <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                     {dictionary.rewardsPage.labels.rewardCatalog}
                   </h2>
-                  <p className="text-xs leading-5 text-slate-600 sm:text-sm sm:leading-6">
+                  <p className="hidden text-sm leading-6 text-slate-600 sm:block">
                     {dictionary.rewardsPage.catalog.previewNote}
                   </p>
                 </div>
@@ -896,21 +844,6 @@ function MiniStat({
   );
 }
 
-function MetricStatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[26px] border border-zinc-200 bg-white px-4 py-4 shadow-[0_14px_34px_rgba(24,24,27,0.05)]">
-      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-2 text-base font-semibold text-slate-950">{value}</p>
-    </div>
-  );
-}
-
 function MetricCard({
   className,
   label,
@@ -968,6 +901,7 @@ function RewardCatalogCard({
   const isEligible = spendablePoints >= reward.costPoints;
   const hasRedemption = Boolean(redemption);
   const isCompletedReward = redemption?.status === "completed";
+  const presentsAsCompleted = isCompletedReward && !isRepeatableReward;
   const isProcessingReward =
     redemption?.status === "pending" || redemption?.status === "queued";
   const isSilverReward =
@@ -1054,34 +988,34 @@ function RewardCatalogCard({
       : reward.rewardType === "nft_claim"
         ? Ticket
         : Gift;
-  const surfaceClassName = isCompletedReward
+  const surfaceClassName = presentsAsCompleted
     ? theme.completedSurfaceClassName
     : theme.pendingSurfaceClassName;
-  const iconClassName = isCompletedReward
+  const iconClassName = presentsAsCompleted
     ? theme.completedIconClassName
     : theme.pendingIconClassName;
-  const toneLabelClassName = isCompletedReward
+  const toneLabelClassName = presentsAsCompleted
     ? theme.completedToneLabelClassName
     : theme.pendingToneLabelClassName;
-  const statusClassName = isCompletedReward
+  const statusClassName = presentsAsCompleted
     ? theme.completedStatusClassName
     : hasRedemption
       ? "border-blue-200 bg-blue-50 text-blue-900"
       : isEligible
         ? theme.readyStatusClassName
         : "border-slate-200 bg-slate-50 text-slate-700";
-  const panelClassName = isCompletedReward
+  const panelClassName = presentsAsCompleted
     ? "border-white/12 bg-white/10 text-white/88"
     : "border-slate-200 bg-white/90 text-slate-700";
-  const titleClassName = isCompletedReward ? "text-white" : "text-slate-950";
-  const descriptionClassName = isCompletedReward
+  const titleClassName = presentsAsCompleted ? "text-white" : "text-slate-950";
+  const descriptionClassName = presentsAsCompleted
     ? "text-white/72"
     : "text-slate-600";
-  const metaLabelClassName = isCompletedReward
+  const metaLabelClassName = presentsAsCompleted
     ? "text-white/55"
     : "text-slate-500";
-  const costValueClassName = isCompletedReward ? "text-white" : "text-slate-950";
-  const actionClassName = isCompletedReward
+  const costValueClassName = presentsAsCompleted ? "text-white" : "text-slate-950";
+  const actionClassName = presentsAsCompleted
     ? isActionDisabled
       ? "border border-white/14 bg-white/10 !text-white/75"
       : "bg-white !text-slate-950 hover:bg-slate-100"
@@ -1114,7 +1048,7 @@ function RewardCatalogCard({
     <article
       className={cn(
         "group relative overflow-hidden rounded-[24px] p-[1px] transition duration-300 sm:rounded-[30px]",
-        isCompletedReward
+        presentsAsCompleted
           ? theme.completedFrameClassName
           : theme.pendingFrameClassName,
       )}
@@ -1165,14 +1099,14 @@ function RewardCatalogCard({
             <span
               className={cn(
                 "inline-flex items-center rounded-full border px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] sm:px-3 sm:text-[0.68rem] sm:tracking-[0.2em]",
-                isCompletedReward
+                presentsAsCompleted
                   ? "border-white/14 bg-white/10 text-white/82"
                   : "border-slate-200 bg-white/80 text-slate-700",
               )}
             >
               {dictionary.rewardsPage.catalog.previewBadge}
             </span>
-            {isCompletedReward ? (
+            {presentsAsCompleted ? (
               <span className="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-300/14 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-emerald-100 sm:px-3 sm:text-[0.68rem] sm:tracking-[0.2em]">
                 {dictionary.rewardsPage.redemptionStatus.completed}
               </span>
@@ -1247,7 +1181,7 @@ function RewardCatalogCard({
             <p className={cn("mt-1.5 text-sm font-semibold sm:mt-2", costValueClassName)}>
               {highlightCopy}
             </p>
-            {!isCompletedReward && !hasRedemption ? (
+            {!presentsAsCompleted && !isEligible ? (
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200/80">
                 <div
                   className={cn("h-full rounded-full", theme.progressBarClassName)}
@@ -1287,7 +1221,7 @@ function RewardCatalogCard({
                   <Link
                     className={cn(
                       "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                      isCompletedReward
+                      presentsAsCompleted
                         ? "border-white/14 bg-white/8 text-white/82 hover:bg-white/12 hover:text-white"
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950",
                     )}
