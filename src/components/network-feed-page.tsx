@@ -1509,6 +1509,43 @@ function CreatorStoryButton({
   );
 }
 
+function AIStarMediaBadge({
+  avatarImageUrl,
+  locale,
+  name,
+}: {
+  avatarImageUrl: string | null;
+  locale: Locale;
+  name: string;
+}) {
+  return (
+    <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex max-w-[calc(100%-5.5rem)] items-center gap-2 rounded-full border border-white/30 bg-slate-950/68 py-1.5 pl-1.5 pr-3 text-white shadow-[0_14px_34px_rgba(15,23,42,0.32)] backdrop-blur-md">
+      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#a855f7,#ec4899,#38bdf8)] p-[2px]">
+        <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+          {avatarImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt=""
+              className="h-full w-full object-cover"
+              src={avatarImageUrl}
+            />
+          ) : (
+            getAvatarFallback(name)
+          )}
+        </span>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[0.56rem] font-bold uppercase tracking-[0.16em] text-violet-100">
+          AI STAR
+        </span>
+        <span className="block truncate text-xs font-semibold leading-4">
+          {name || (locale === "ko" ? "AI 스타" : "AI Star")}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 function SocialFeedPost({
   accountAddress,
   feedView,
@@ -1552,6 +1589,11 @@ function SocialFeedPost({
   const previewVideoUrl = resolveFeedPreviewVideo(item);
   const displayName = getFeedActorDisplayName(item);
   const avatarImageUrl = getFeedActorAvatarImageUrl(item);
+  const aiStarDisplayName =
+    item.authorProfile?.displayName?.trim() ||
+    item.authorEmail.split("@")[0] ||
+    (locale === "ko" ? "AI 스타" : "AI Star");
+  const aiStarAvatarImageUrl = item.authorProfile?.avatarImageUrl ?? null;
   const isPaidContent = item.priceType === "paid";
   const accessLabel = isPaidContent
     ? locale === "ko"
@@ -1716,6 +1758,10 @@ function SocialFeedPost({
     social.paidBuyerCount > 0 || Number(social.paidTotalUsdt) > 0;
   const shouldUsePaidUnlockCta = isPaidContent && !item.canAccess;
   const shouldShowFullPostCta = !shouldUsePaidUnlockCta;
+  const shouldShowAIStarMediaBadge = Boolean(
+    item.authorProfile &&
+      (previewImageUrl || previewVideoUrl || showLockedMediaPlaceholder),
+  );
 
   const clearMediaOpenTimeout = useCallback(() => {
     if (mediaOpenTimeoutRef.current === null) {
@@ -2412,6 +2458,13 @@ function SocialFeedPost({
             </div>
           </div>
         )}
+        {shouldShowAIStarMediaBadge ? (
+          <AIStarMediaBadge
+            avatarImageUrl={aiStarAvatarImageUrl}
+            locale={locale}
+            name={aiStarDisplayName}
+          />
+        ) : null}
         {likeBursts.map((burst) => (
           <Heart
             className="pointer-events-none absolute size-20 -translate-x-1/2 -translate-y-1/2 fill-white text-white drop-shadow-[0_12px_28px_rgba(15,23,42,0.42)] motion-safe:animate-ping"
@@ -2426,7 +2479,7 @@ function SocialFeedPost({
           <Maximize2 className="size-4" />
         </span>
         {isPaidContent ? (
-          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-slate-950/72 px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] backdrop-blur-md">
+          <span className="pointer-events-none absolute right-3 top-3 inline-flex max-w-[calc(100%-11rem)] items-center gap-1.5 rounded-full border border-white/40 bg-slate-950/72 px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] backdrop-blur-md">
             {accessLabel}
             <span className="h-1 w-1 rounded-full bg-white/55" />
             {priceLabel}
