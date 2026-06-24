@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-const supportedLandingLocales = ["ko", "en", "ja", "zh", "vi", "id"] as const;
+const supportedLandingLanguages = ["ko", "en", "ja", "zh", "vn", "id", "km"] as const;
 
-type LandingLocale = (typeof supportedLandingLocales)[number];
+type LandingLanguage = (typeof supportedLandingLanguages)[number];
+
+const activationLocaleByLandingLanguage: Record<LandingLanguage, string> = {
+  ko: "ko",
+  en: "en",
+  ja: "ja",
+  zh: "zh",
+  vn: "vi",
+  id: "id",
+  km: "en",
+};
 
 export const metadata: Metadata = {
   title: "1066friend+ | 새로운 소셜 패러다임",
@@ -15,17 +25,21 @@ function readSingleValue(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function normalizeLandingLocale(value?: string | string[]): LandingLocale {
+function normalizeLandingLanguage(value?: string | string[]): LandingLanguage {
   const candidate = readSingleValue(value)?.trim().toLowerCase();
 
-  if (candidate === "vn") {
-    return "vi";
+  if (candidate === "vi") {
+    return "vn";
+  }
+
+  if (candidate === "zh-cn") {
+    return "zh";
   }
 
   if (
-    supportedLandingLocales.includes(candidate as LandingLocale)
+    supportedLandingLanguages.includes(candidate as LandingLanguage)
   ) {
-    return candidate as LandingLocale;
+    return candidate as LandingLanguage;
   }
 
   return "ko";
@@ -42,8 +56,9 @@ export default async function Home({
 }) {
   const query = await searchParams;
   const referralCode = readSingleValue(query.ref);
-  const locale = normalizeLandingLocale(query.lang ?? query.locale);
-  const iframeParams = new URLSearchParams({ lang: locale });
+  const landingLanguage = normalizeLandingLanguage(query.lang ?? query.locale);
+  const activationLocale = activationLocaleByLandingLanguage[landingLanguage];
+  const iframeParams = new URLSearchParams({ lang: landingLanguage });
 
   if (referralCode) {
     iframeParams.set("ref", referralCode);
@@ -60,7 +75,7 @@ export default async function Home({
       />
       <Link
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
-        href={`/${locale}/activate`}
+        href={`/${activationLocale}/activate`}
       >
         1066friend+ 서비스 시작하기
       </Link>

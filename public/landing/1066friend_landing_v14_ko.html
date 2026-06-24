@@ -7,7 +7,7 @@
 <title>1066friend+ | A New Paradigm of Social Media</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Outfit:wght@300;400;500;600;700;800&amp;family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Outfit:wght@300;400;500;600;700;800&amp;family=Noto+Sans+KR:wght@300;400;500;700&amp;family=Noto+Sans+Khmer:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
 /* -- TOKENS ───────────────────────────────────── */
 :root{
@@ -44,9 +44,9 @@ img{max-width:100%}
 
 /* -- LANG ───────────────────────────────────────── */
 .t-vn,.t-id,.t-en,.t-ko,.t-zh,.t-ja,.t-th,.t-ms,.t-my,.t-km{display:none}
-.lang-vn .t-vn,.lang-id .t-id,.lang-en .t-en,.lang-ko .t-ko,
-.lang-vn .bp-vn,.lang-id .bp-id,.lang-en .bp-en,.lang-ko .bp-ko{display:block}
-.bp-vn,.bp-id,.bp-en,.bp-ko{display:none}
+.lang-vn .t-vn,.lang-id .t-id,.lang-en .t-en,.lang-ko .t-ko,.lang-km .t-km,
+.lang-vn .bp-vn,.lang-id .bp-id,.lang-en .bp-en,.lang-ko .bp-ko,.lang-km .bp-km{display:block}
+.bp-vn,.bp-id,.bp-en,.bp-ko,.bp-km{display:none}
 
 /* Language fonts */
 .lang-zh{font-family:'Noto Sans SC',sans-serif}
@@ -702,6 +702,9 @@ footer{
 /* -- RESPONSIVE ─────────────────────────────────── */
 @media(max-width:900px){
   nav{padding:14px 20px}
+  .nav-right{gap:10px;justify-content:flex-end}
+  .lang-bar{flex-wrap:wrap;justify-content:flex-end;max-width:210px}
+  .lb{padding:5px 9px;font-size:10px;letter-spacing:.8px}
   .why-grid,.how-steps,.earn-grid,.trust-grid{grid-template-columns:1fr}
   .sns-feature-grid{grid-template-columns:1fr;gap:16px;margin-top:36px}
   .sns-feature-card{padding:22px 20px;gap:14px;align-items:flex-start}
@@ -727,6 +730,7 @@ footer{
 <button class="lb" data-lang="id" onclick="setLang('id')">IND</button>
 <button class="lb" data-lang="en" onclick="setLang('en')">EN</button>
 <button class="lb" data-lang="ko" onclick="setLang('ko')">KO</button>
+<button class="lb" data-lang="km" onclick="setLang('km')">ខ្មែរ</button>
 </div>
 <button class="nav-cta" onclick="goStart()">
 <span class="t-vn">Tham gia ngay</span>
@@ -1398,6 +1402,9 @@ function goStart(path){
 // -- language switch
 function setLang(l){
   document.body.className='lang-'+l;
+  document.querySelectorAll('.lb').forEach(b=>b.classList.remove('on'));
+  const barButton = document.querySelector('.lb[data-lang="'+l+'"]');
+  if(barButton) barButton.classList.add('on');
   const opt = document.querySelector('.lang-opt[data-lang="'+l+'"]');
   document.querySelectorAll('.lang-opt').forEach(b=>b.classList.remove('active'));
   if(opt){
