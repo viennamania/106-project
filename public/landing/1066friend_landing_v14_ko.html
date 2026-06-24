@@ -728,7 +728,7 @@ footer{
 <button class="lb" data-lang="en" onclick="setLang('en')">EN</button>
 <button class="lb" data-lang="ko" onclick="setLang('ko')">KO</button>
 </div>
-<button class="nav-cta" onclick="goStart('/ko/activate')">
+<button class="nav-cta" onclick="goStart()">
 <span class="t-vn">Tham gia ngay</span>
 <span class="t-id">Bergabung</span>
 <span class="t-zh">立即参与</span><span class="t-ja">今すぐ参加</span><span class="t-ms">Sertai Sekarang</span><span class="t-th">เข้าร่วมตอนนี้</span><span class="t-my">ယခုပင်ပါဝင်ပါ</span><span class="t-km">ចូលរួមឥឡូវ</span><span class="t-en">Join Now</span><span class="t-ko">지금 가입</span>
@@ -766,7 +766,7 @@ Media Sosial</span><span class="t-th">กระบวนทัศน์ใหม
 <span class="t-zh">仅需参与，积分自动累积。</span><span class="t-ja">参加するだけでポイントが貯まります。</span><span class="t-ms">Sekadar menyertai pun mata terkumpul.</span><span class="t-th">แค่เข้าร่วม แต้มก็สะสมได้</span><span class="t-my">ပါဝင်ရုံဖြင့် point များ အလိုအလျောက် စုဆောင်းသည်။</span><span class="t-km">គ្រាន់តែចូលរួម ពិន្ទុក៏ប្រមូលផ្តុំដែរ។</span><span class="t-en">Just participate, and points accumulate.</span><span class="t-ko">참여하기만 해도 포인트가 쌓입니다.</span>
 </p>
 <div class="hero-cta-wrap reveal rd3">
-<button class="btn-primary" onclick="goStart('/ko/activate')">
+<button class="btn-primary" onclick="goStart()">
 
 <span class="t-vn">Tham gia ngay →</span>
 <span class="t-id">Bergabung sekarang →</span>
@@ -1298,7 +1298,7 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 <span class="t-id">Saat bergabung, buka halaman pribadi Anda. Mungkin Anda akan terkejut.</span>
 <span class="t-zh">加入后，打开你的个人页面。</span><span class="t-ja">参加後、個人ページを開いてみよう。</span><span class="t-ms">Selepas sertai, buka halaman peribadi anda.</span><span class="t-th">หลังจากเข้าร่วม ลองเปิดหน้าส่วนตัวของคุณ</span><span class="t-my">ပါဝင်ပြီးနောက် ကိုယ်ပိုင်စာမျက်နှာ ဖွင့်ကြည့်ပါ</span><span class="t-km">បន្ទាប់ពីចូលរួម សូមបើកទំព័រផ្ទាល់ខ្លួនរបស់អ្នក</span><span class="t-en">When you join, open your personal page. You might be surprised.</span><span class="t-ko">가입 후, 내 개인 페이지를 열어보세요. 놀랄지도 모릅니다.</span>
 </p>
-<button class="cta-btn reveal rd2" onclick="goStart('/ko/activate')">
+<button class="cta-btn reveal rd2" onclick="goStart()">
 <span class="t-vn">Bắt đầu ngay →</span>
 <span class="t-id">Mulai sekarang →</span>
 <span class="t-zh">立即开始 →</span><span class="t-ja">今すぐ始める →</span><span class="t-ms">Mulakan Sekarang →</span><span class="t-th">เริ่มเลย →</span><span class="t-my">ယခုစတင်ပါ →</span><span class="t-km">ចាប់ផ្ដើមឥឡូវ →</span><span class="t-en">Get Started →</span><span class="t-ko">시작하기 →</span>
@@ -1348,10 +1348,50 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 </p>
 </footer>
 <script>
+function getSelectedLocale(){
+  const match = document.body.className.match(/(?:^|\s)lang-([a-z-]+)/);
+  const locale = match ? match[1] : "ko";
+  const supportedLocales = {
+    ko: "ko",
+    en: "en",
+    ja: "ja",
+    zh: "zh",
+    vn: "vi",
+    id: "id",
+    ms: "en",
+    th: "en",
+    my: "en",
+    km: "en"
+  };
+  return supportedLocales[locale] || "ko";
+}
+function normalizeLandingLanguage(value){
+  const candidate = String(value || "").trim().toLowerCase();
+  const landingLanguages = {
+    ko: "ko",
+    en: "en",
+    ja: "ja",
+    zh: "zh",
+    "zh-cn": "zh",
+    vi: "vn",
+    vn: "vn",
+    id: "id",
+    ms: "ms",
+    th: "th",
+    my: "my",
+    km: "km"
+  };
+  return landingLanguages[candidate] || "ko";
+}
+function buildLocalizedPath(path){
+  const normalizedPath = path || "/activate";
+  const cleanPath = normalizedPath.replace(/^\/(?:ko|en|ja|zh|vi|id)(?=\/)/, "");
+  return "/" + getSelectedLocale() + cleanPath;
+}
 function goStart(path){
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
-  const url = new URL(path, window.location.origin);
+  const url = new URL(buildLocalizedPath(path), window.location.origin);
   if(ref) url.searchParams.set('ref', ref);
   window.top.location.href = url.toString();
 }
@@ -1379,6 +1419,9 @@ document.addEventListener('click',function(e){
   if(dropdown && !e.target.closest('#langDropdown'))
     dropdown.classList.remove('open');
 });
+
+const initialLangParams = new URLSearchParams(window.location.search);
+setLang(normalizeLandingLanguage(initialLangParams.get("lang") || initialLangParams.get("locale")));
 
 
 (function(){
