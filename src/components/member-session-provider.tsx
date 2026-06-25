@@ -396,7 +396,13 @@ export function MemberSessionProvider({ children }: { children: ReactNode }) {
       (status === "disconnected" && !isResolving) ||
       !hasThirdwebClientId
     ) {
-      if (accountAddress && status === "disconnected" && !isResolving) {
+      // Clear the server session whenever we had one and the wallet is now
+      // disconnected — including a full disconnect where accountAddress is null.
+      // The previous `accountAddress && ...` guard skipped that null case, so the
+      // httpOnly member_session cookie lingered (the page kept serving member
+      // data even though the header showed "signed out"). serverSessionKeyRef is
+      // reset right after, so this runs once per disconnect (no request loop).
+      if (serverSessionKeyRef.current && !isResolving) {
         clearCachedMemberSession(accountAddress);
         serverSessionKeyRef.current = null;
         void clearServerMemberSession();
