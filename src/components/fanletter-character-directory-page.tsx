@@ -459,9 +459,6 @@ function CharacterCard({
             <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
               {item.character.name}
             </h2>
-            <p className="mt-1 truncate text-xs font-semibold text-black/42">
-              {copy.labels.founderPath} · {item.referralCode}
-            </p>
           </div>
         </div>
 
