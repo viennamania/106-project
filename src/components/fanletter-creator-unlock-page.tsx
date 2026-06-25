@@ -24,6 +24,7 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
@@ -4210,7 +4211,8 @@ export function FanletterCreatorUnlockPage({
         />
       ) : null}
       <div className="mx-auto w-full min-w-0 max-w-[92rem]">
-        <div className="flex items-center justify-between gap-3">
+        <FanletterPrimaryHeader locale={locale} referralCode={null} />
+        <div className="mt-4 flex items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 min-w-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             href={view === "hub" ? `/${locale}/fanletter#creator-unlock` : creatorUnlockHubHref}
