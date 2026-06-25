@@ -339,7 +339,7 @@ function CharacterVisual({
   const shouldBlur = isNsfw && !nsfwOptInEnabled;
 
   return (
-    <div className="relative aspect-[4/5] overflow-hidden bg-[#07100b]">
+    <div className="relative aspect-[4/5] overflow-hidden bg-[linear-gradient(150deg,#0c1f14_0%,#0a1510_100%)]">
       {imageUrl ? (
         <>
           <Image
@@ -604,7 +604,7 @@ export function FanletterCharacterDirectoryPage({
           referralCode={referralCode}
           routePath={directoryRoutePath}
         />
-        <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-7 pt-7 sm:px-6 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-7 pt-7 sm:px-6 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:px-8">
           <div className="min-w-0">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
               {copy.hero.eyebrow}
