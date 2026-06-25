@@ -1,13 +1,9 @@
 import Link from "next/link";
-import {
-  ArrowLeft,
-  GitBranch,
-  Share2,
-  UserRoundCheck,
-} from "lucide-react";
+import { Share2, UserRoundCheck } from "lucide-react";
 
 import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -264,19 +260,10 @@ export function FanletterScoutPage({
     <main className="min-h-screen bg-white pb-24 text-zinc-950">
       <section className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
         <h1 className="sr-only">{pageTitle}</h1>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:text-black"
-            href={`/${locale}/fanletter`}
-          >
-            <ArrowLeft className="size-4" />
-            {copy.back}
-          </Link>
-          <span className="inline-flex min-h-9 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-600">
-            <GitBranch className="size-4" />
-            {hasShareLoop ? copy.liveData : copy.mockData}
-          </span>
-        </div>
+        <FanletterPrimaryHeader
+          locale={locale}
+          referralCode={scoutLoop.referralCode}
+        />
 
         <FanletterActionGuide
           className="mt-5"
