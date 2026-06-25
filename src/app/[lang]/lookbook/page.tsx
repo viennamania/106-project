@@ -22,5 +22,7 @@ export default async function LocalizedSellerLookbookPage({
   const { lang } = await params;
   const locale = hasLocale(lang) ? lang : defaultLocale;
 
-  redirect(`/${locale}/fanletter/studio/lookbook`);
+  // Cold visitors land on the lookbook-framed onboarding (email start + AI star
+  // preview); it routes signed-in members straight to the studio.
+  redirect(`/${locale}/fanletter/studio/lookbook/start`);
 }
