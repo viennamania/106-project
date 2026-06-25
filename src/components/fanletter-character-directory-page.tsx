@@ -655,19 +655,6 @@ export function FanletterCharacterDirectoryPage({
             routePath={directoryRoutePath}
           />
 
-          {shouldShowNsfwControl ? (
-            <FanletterNsfwOptInControl
-              className="mb-5 sm:mb-6"
-              compact
-              disabledBody={copy.nsfw.disabledBody}
-              disabledTitle={copy.nsfw.disabledTitle}
-              enabled={data.nsfwOptInEnabled}
-              hiddenCount={data.hiddenNsfwCount}
-              hiddenCountText={copy.nsfw.hiddenCountText(formattedHiddenCount)}
-              locale={locale}
-            />
-          ) : null}
-
           {data.items.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {data.items.map((item) => (
@@ -701,6 +688,19 @@ export function FanletterCharacterDirectoryPage({
               </Link>
             </div>
           )}
+
+          {shouldShowNsfwControl ? (
+            <FanletterNsfwOptInControl
+              className="mt-6 sm:mt-8"
+              compact
+              disabledBody={copy.nsfw.disabledBody}
+              disabledTitle={copy.nsfw.disabledTitle}
+              enabled={data.nsfwOptInEnabled}
+              hiddenCount={data.hiddenNsfwCount}
+              hiddenCountText={copy.nsfw.hiddenCountText(formattedHiddenCount)}
+              locale={locale}
+            />
+          ) : null}
 
           <DirectoryPagination
             data={data}
