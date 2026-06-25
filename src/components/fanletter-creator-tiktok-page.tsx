@@ -98,10 +98,10 @@ function getCopy(locale: Locale) {
       continueJourney: "크리에이터 여정 계속",
       connectedEvent: "TikTok 채널 연결 기록",
       contextAssetBody:
-        "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 활동 기록을 하나의 검증 가능한 Context Asset으로 묶습니다.",
+        "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 활동 기록을 하나의 검증 가능한 맥락 자산으로 묶습니다.",
       contextAssetMetric: "축적 자산",
       contextAssetPending: "AI 스타 선택 대기",
-      contextAssetTitle: "Context Asset",
+      contextAssetTitle: "맥락 자산",
       contextGraphPath: "회원 -> AI 스타 -> TikTok 채널 -> AgentRank",
       contextGraphMetric: "그래프 강화",
       contextGraphPending: "회원 -> AI 스타 준비",
@@ -109,7 +109,7 @@ function getCopy(locale: Locale) {
       contextMoatMetric: "복제 난이도",
       contextMoatPending: "권한 확인 필요",
       contextMoatReady: "공식 채널 + 운영자 권한 + 서버 기록",
-      contextScoreLabel: "Context Score",
+      contextScoreLabel: "맥락 점수",
       contextSignals: [
         "운영자 권한",
         "공식 채널 연결",

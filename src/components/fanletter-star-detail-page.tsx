@@ -682,7 +682,7 @@ function StarViewerRelationshipCard({
               : "계정 연결 필요",
         guidance:
           "크리에이터는 AI 스타를 운영하는 권한이고, 파운더는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
-        contextAssetLabel: "생성 Context",
+        contextAssetLabel: "생성 맥락",
         contextGraphLabel: "관계 그래프",
         contextMoatFounder: "추천 코드 + 참여 역할",
         contextMoatLabel: "복제 난이도",

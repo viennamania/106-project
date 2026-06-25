@@ -42,16 +42,16 @@ function getCopy(locale: Locale) {
       connect: "TikTok 연결하기",
       connected: "TikTok 연결됨",
       contextAssetBody:
-        "TikTok 연결은 채널 기능이 아니라 AI 스타 운영 증거를 쌓는 컨텍스트 자산입니다.",
+        "TikTok 연결은 채널 기능이 아니라 AI 스타 운영 증거를 쌓는 맥락 자산입니다.",
       contextAssetMetric: "축적 자산",
       contextAssetPending: "연결 대기",
       contextAssetReady: "AI 스타 운영 증거",
-      contextAssetTitle: "Context Asset",
+      contextAssetTitle: "맥락 자산",
       contextGraphMetric: "그래프 강화",
       contextGraphPath: "회원 → AI 스타 → TikTok → 활동 기록",
       contextMoatMetric: "복제 난이도",
       contextMoatValue: "운영 권한 + 공식 채널 + 서버 기록",
-      contextScoreLabel: "Context Score",
+      contextScoreLabel: "맥락 점수",
       contextSignals: [
         {
           detail: "누가 이 AI 스타를 운영하는지",
