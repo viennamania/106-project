@@ -29,7 +29,10 @@ import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterAgentRankEventQuickPanel } from "@/components/fanletter-agentrank-event-quick-panel";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
-import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
+import {
+  getAgentRankEventTypeLabel,
+  getAgentRankIntentLabel,
+} from "@/lib/agentrank/event-labels";
 import {
   isAgentRankCoverageMockEvent,
   type AgentRankEventMockScope,
@@ -1787,7 +1790,9 @@ function EventCard({
               {getEventTypeLabel(event.type, locale)}
             </p>
             <p className="mt-1 truncate text-xs font-semibold text-slate-500">
-              {event.context.intent ?? event.sourceId}
+              {typeof event.context.intent === "string"
+                ? getAgentRankIntentLabel(event.context.intent, locale)
+                : event.sourceId}
             </p>
           </div>
         </div>

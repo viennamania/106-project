@@ -24,7 +24,10 @@ import {
 
 import type { AgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
-import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
+import {
+  getAgentRankEventTypeLabel,
+  getAgentRankIntentLabel,
+} from "@/lib/agentrank/event-labels";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
@@ -2421,7 +2424,7 @@ function EventFactoryPanel({
                     </span>
                     {intent ? (
                       <span className="max-w-full break-all rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-500">
-                        {intent}
+                        {getAgentRankIntentLabel(intent, locale)}
                       </span>
                     ) : null}
                   </div>
