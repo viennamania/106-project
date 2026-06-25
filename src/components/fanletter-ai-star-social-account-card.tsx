@@ -1175,7 +1175,7 @@ export function FanletterAIStarSocialAccountCard({
         id="tiktok-channel"
       >
       <div className="grid min-w-0 gap-0 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-        <div className="min-w-0 border-b border-zinc-200 bg-zinc-950 p-4 text-white sm:border-b-0 sm:border-r sm:border-zinc-800">
+        <div className="min-w-0 self-start rounded-t-lg border-b border-zinc-200 bg-zinc-950 p-4 text-white sm:rounded-l-lg sm:rounded-tr-none sm:border-b-0 sm:border-r sm:border-zinc-800">
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={joinClasses(
@@ -1622,11 +1622,6 @@ export function FanletterAIStarSocialAccountCard({
                       </span>
                     </div>
                     <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
-                      <span className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 font-mono text-[0.62rem] font-semibold text-zinc-600">
-                        <span className="min-w-0 truncate">
-                          {capability.endpoint}
-                        </span>
-                      </span>
                       <span
                         className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 text-[0.62rem] font-semibold text-zinc-600"
                         title={capability.agentRankEventType}
