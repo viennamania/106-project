@@ -6172,14 +6172,6 @@ export function FanletterFeedPage({
             referralCode={referralCode}
           />
 
-          <FanletterNsfwOptInControl
-            className="mb-4 sm:mb-6"
-            compact
-            enabled={nsfwOptInEnabled}
-            hiddenCount={hiddenNsfwCount}
-            locale={locale}
-          />
-
           {featuredItem ? (
             <div
               className="mb-10 grid min-w-0 max-w-full scroll-mt-36 gap-5 sm:scroll-mt-24 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-stretch"
@@ -6345,6 +6337,14 @@ export function FanletterFeedPage({
             locale={locale}
             referralCode={referralCode}
             variant="desktop"
+          />
+
+          <FanletterNsfwOptInControl
+            className="mt-6 mb-4 sm:mt-8 sm:mb-6"
+            compact
+            enabled={nsfwOptInEnabled}
+            hiddenCount={hiddenNsfwCount}
+            locale={locale}
           />
 
           <FanletterFeedFanOnlyPreviewStrip
