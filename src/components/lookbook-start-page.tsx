@@ -181,6 +181,21 @@ export function LookbookStartPage({
           : "이메일 로그인만 — 크립토 지갑이 필요 없습니다."}
       </p>
 
+      {!accountAddress ? (
+        <p className="mt-4 text-center text-[11px] text-neutral-400">
+          <a
+            className="underline hover:text-neutral-600"
+            href={`/${locale}/fanletter/onboarding?returnTo=${encodeURIComponent(
+              studioHref,
+            )}`}
+          >
+            {en
+              ? "Trouble signing in? Use the standard sign-in"
+              : "로그인이 안 되나요? 기존 방식으로 시작"}
+          </a>
+        </p>
+      ) : null}
+
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => setIsLoginOpen(false)}
