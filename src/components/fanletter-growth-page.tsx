@@ -50,7 +50,7 @@ function getCopy(locale: Locale) {
       heroEyebrow: "성장 허브",
       heroTitle: "다음 행동을 선택하세요",
       metrics: {
-        cp: "CP",
+        cp: "기여 포인트",
         creatorStars: "운영 AI 스타",
         creatorProgress: "크리에이터 진행",
         founderNetworks: "참여 네트워크",
@@ -99,7 +99,7 @@ function getCopy(locale: Locale) {
     heroEyebrow: "Growth Hub",
     heroTitle: "Choose your next action",
     metrics: {
-      cp: "CP",
+      cp: "Contribution Points",
       creatorStars: "Creator AI Stars",
       creatorProgress: "Creator Progress",
       founderNetworks: "Founder Networks",
