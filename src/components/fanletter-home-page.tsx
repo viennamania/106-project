@@ -906,6 +906,35 @@ function FanletterProductHomeDashboard({
                   <p className="mt-3 hidden max-w-2xl break-words text-sm font-medium leading-6 text-zinc-600 [overflow-wrap:anywhere] sm:block sm:text-base sm:[word-break:keep-all]">
                     {productCopy.subhead}
                   </p>
+                  {starList.length > 0 ? (
+                    <Link
+                      className="group mt-4 inline-flex items-center gap-3 self-start rounded-full border border-zinc-200 bg-white py-1.5 pl-1.5 pr-4 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition hover:border-zinc-300 hover:shadow-[0_8px_20px_rgba(15,23,42,0.09)]"
+                      href={topGrowingStarsHref}
+                    >
+                      <span className="flex -space-x-2.5">
+                        {starList.slice(0, 5).map((star) => (
+                          <span
+                            aria-hidden="true"
+                            className="size-9 shrink-0 rounded-full border-2 border-white bg-cover bg-center"
+                            key={star.id}
+                            style={
+                              star.portraitImageUrl
+                                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                                : {
+                                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                                  }
+                            }
+                          />
+                        ))}
+                      </span>
+                      <span className="text-sm font-semibold text-zinc-800">
+                        {isKo
+                          ? "지금 성장 중인 AI 스타 둘러보기"
+                          : "Browse the AI stars growing now"}
+                      </span>
+                      <ArrowRight className="size-4 shrink-0 text-zinc-500 transition group-hover:translate-x-0.5" />
+                    </Link>
+                  ) : null}
                 </div>
                 <FanletterActionGuide
                   currentLabel={productCopy.today}
