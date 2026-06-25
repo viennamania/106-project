@@ -14,6 +14,7 @@ import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
+import { FanletterSignedOutGate } from "@/components/fanletter-signed-out-gate";
 import type { Locale } from "@/lib/i18n";
 import {
   buildFanletterAIStarSocialAccountViewModel,
@@ -323,6 +324,30 @@ export function FanletterMyAIPage({
         primaryFallback,
       )}`
     : copy.routeLabel;
+
+  if (!isSignedIn) {
+    return (
+      <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
+          <FanletterPrimaryHeader
+            current="my-ai"
+            locale={locale}
+            referralCode={null}
+          />
+          <FanletterSignedOutGate
+            description={
+              locale === "ko"
+                ? "AI 스타에 참여하거나 운영하면 여기에서 한 화면으로 관리합니다. 먼저 AI 스타를 발견해 시작하세요."
+                : "Join or operate an AI Star and manage it all here. Start by discovering an AI Star."
+            }
+            locale={locale}
+            referralCode={null}
+            title={locale === "ko" ? "내 AI 스타를 시작하세요" : "Start your AI Star"}
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">

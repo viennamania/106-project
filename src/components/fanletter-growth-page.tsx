@@ -12,6 +12,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
+import { FanletterSignedOutGate } from "@/components/fanletter-signed-out-gate";
 import { FounderRoleBadge } from "@/components/fanletter-founder-club-v2";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -271,6 +272,35 @@ export function FanletterGrowthPage({
   const creatorProgress = `${resolvedPortfolio.creatorEligibilityPercent}%`;
   const primaryStar = resolvedPortfolio.roles[0];
   const pageTitle = copy.heroTitle;
+
+  if (!isSignedIn) {
+    return (
+      <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 pb-28 text-black sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+          <h1 className="sr-only">{pageTitle}</h1>
+          <FanletterPrimaryHeader
+            current="growth"
+            locale={locale}
+            referralCode={null}
+          />
+          <FanletterSignedOutGate
+            description={
+              locale === "ko"
+                ? "AI 스타에 참여하면 파운더·크리에이터로 성장하는 과정이 활동 기록으로 쌓입니다. 먼저 마음에 드는 AI 스타를 찾아보세요."
+                : "Join an AI Star and your founder-to-creator journey builds here as activity records. Start by finding an AI Star you like."
+            }
+            locale={locale}
+            referralCode={null}
+            title={
+              locale === "ko"
+                ? "성장 단계가 여기에 쌓여요"
+                : "Your growth journey lives here"
+            }
+          />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 pb-28 text-black sm:px-6 lg:px-8">
