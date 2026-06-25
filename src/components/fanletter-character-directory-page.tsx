@@ -357,8 +357,11 @@ function CharacterVisual({
           ) : null}
         </>
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#122318)] text-[#44f26e]">
-          <Sparkles className="size-16" />
+        <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[linear-gradient(150deg,#0c1f14_0%,#17331f_55%,#0a1510_100%)] text-[#44f26e]">
+          <span className="text-6xl font-bold leading-none tracking-tight text-[#8df3ad]">
+            {item.character.name.trim().slice(0, 1) || "AI"}
+          </span>
+          <Sparkles className="size-7 opacity-70" />
         </div>
       )}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
