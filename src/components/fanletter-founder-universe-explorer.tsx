@@ -1485,7 +1485,7 @@ function FounderNetworkContextGraphCard({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-600">
               <CircleDot className="size-3.5" />
-              Context Asset
+              {isKorean ? "맥락 자산" : "Context Asset"}
             </span>
             <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
               {isKorean ? "복제 어려운 관계 데이터" : "Hard-to-copy graph"}
@@ -1505,7 +1505,7 @@ function FounderNetworkContextGraphCard({
 
         <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
-            Context Score
+            {isKorean ? "맥락 점수" : "Context Score"}
           </p>
           <div className="mt-2 flex items-end gap-1">
             <span className="text-3xl font-semibold">{contextScore}</span>
@@ -1568,7 +1568,7 @@ function FounderNetworkContextGraphCard({
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-3">
             <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKorean ? "Context Moat" : "Context moat"}
+              {isKorean ? "맥락 해자" : "Context moat"}
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
               {isKorean ? "누적 관계/행동 증거" : "Accumulated evidence"}

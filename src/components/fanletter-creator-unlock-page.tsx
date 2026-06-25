@@ -2740,13 +2740,13 @@ function CreatorJourneyContextGraphCard({
   );
   const labels = isKorean
     ? {
-        asset: "축적되는 Context 자산",
+        asset: "축적되는 맥락 자산",
         condition: "조건 평가",
-        graph: "Context Graph",
+        graph: "맥락 그래프",
         mockLaunch: "생성 미리보기",
         moat:
           "조건, 출처 AI 스타 유니버스, TikTok 채널, mock 생성 기록이 한 회원/AI 스타 관계에 누적됩니다.",
-        score: "Context Score",
+        score: "맥락 점수",
         source: "출처 AI 스타",
         tiktok: "TikTok 채널",
         title: "Creator Journey가 활동 맥락을 만듭니다",
@@ -2917,7 +2917,7 @@ function CreatorTikTokContextBridgeCard({
         moatWaiting: "연결 후 서버 기록과 공식 채널 증거 생성",
         primary: "콘텐츠 동기화 준비",
         primaryWaiting: "TikTok 연결하기",
-        score: "Context Score",
+        score: "맥락 점수",
         subtitle:
           "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 활동 기록으로 만드는 입력원이 됩니다.",
         subtitleWaiting:
@@ -3053,7 +3053,7 @@ function CreatorTikTokContextBridgeCard({
         <div className="flex min-w-0 flex-col justify-between border-t border-zinc-200 bg-zinc-950 p-4 text-white lg:border-l lg:border-t-0 sm:p-5">
           <div>
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/46">
-              {isKorean ? "다음 Context" : "Next Context"}
+              {isKorean ? "다음 맥락" : "Next Context"}
             </p>
             <p className="mt-2 break-words text-lg font-semibold leading-tight [word-break:keep-all]">
               {labels.bridge}
@@ -3116,7 +3116,7 @@ function CreatorJourneyStepLinks({
         ? `${completedConditionCount}/${unlock.conditions.length} 조건 완료`
         : `${completedConditionCount}/${unlock.conditions.length} conditions met`,
       contextAsset: isKorean
-        ? "권한 조건 Context"
+        ? "권한 조건 맥락"
         : "Permission condition context",
       eventType: "creator_unlock_evaluated",
       href: conditionsHref,
@@ -3131,7 +3131,7 @@ function CreatorJourneyStepLinks({
         ? "어느 AI 스타 성과로 창업할지 선택"
         : "Choose which AI Star performance powers launch",
       contextAsset: isKorean
-        ? "출처 AI 스타 Context"
+        ? "출처 AI 스타 맥락"
         : "Source AI Star context",
       eventType: "source_universe_selected",
       href: sourceHref,
@@ -3146,7 +3146,7 @@ function CreatorJourneyStepLinks({
         ? "AI 스타 공식 TikTok 채널 연결"
         : "Connect the AI Star TikTok channel",
       contextAsset: isKorean
-        ? "공식 채널 Context"
+        ? "공식 채널 맥락"
         : "Official channel context",
       eventType: "creator_social_connected",
       href: tiktokChannelHref,
@@ -3161,7 +3161,7 @@ function CreatorJourneyStepLinks({
         ? "실제 결제 없이 10 USDT 의도만 기록"
         : "Record a 10 USDT mock intent only",
       contextAsset: isKorean
-        ? "생성 의도 Context"
+        ? "생성 의도 맥락"
         : "Launch intent context",
       eventType: "x402_mock_payment_intent",
       href: launchHref,
