@@ -114,7 +114,8 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     membersOnly: "가입을 완료한 회원만 사용할 수 있습니다.",
     needAvatar: "AI 스타를 선택하거나 이미지를 올리세요.",
     needGarment: "옷 사진을 최소 1장 올리세요.",
-    genericError: "룩북 생성에 실패했습니다.",
+    genericError:
+      "룩북 생성에 일시적으로 실패했어요. 포인트는 환불되었으니 잠시 후 다시 시도해 주세요.",
     uploadError: "이미지 업로드에 실패했습니다.",
     noStar: "등록된 AI 스타 이미지가 없습니다.",
     costLabel: "필요 포인트",
@@ -161,7 +162,8 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     membersOnly: "Only completed members can use this studio.",
     needAvatar: "Pick an AI star or upload an image.",
     needGarment: "Add at least one garment photo.",
-    genericError: "Failed to generate the lookbook.",
+    genericError:
+      "Couldn't generate the lookbook right now. Your points were refunded — please try again shortly.",
     uploadError: "Failed to upload the image.",
     noStar: "No AI star image found.",
     costLabel: "Cost",
@@ -722,7 +724,10 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         | null;
 
       if (!response.ok || !data?.images) {
-        setError(data?.error ?? copy.genericError);
+        // Show a friendly, localized message — never leak raw server/AI errors.
+        setError(
+          response.status === 402 ? copy.insufficientPoints : copy.genericError,
+        );
         return;
       }
 
@@ -733,10 +738,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       }
 
       void loadHistory();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error ? submitError.message : copy.genericError,
-      );
+    } catch {
+      setError(copy.genericError);
     } finally {
       setIsSubmitting(false);
     }
@@ -744,6 +747,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     accountAddress,
     aspectRatio,
     copy.genericError,
+    copy.insufficientPoints,
     copy.needAvatar,
     copy.needGarment,
     email,
