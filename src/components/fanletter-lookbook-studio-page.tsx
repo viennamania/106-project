@@ -1719,6 +1719,16 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             {error}
           </p>
         ) : null}
+        {accountAddress &&
+        Boolean(starAvatarUrl.trim()) &&
+        garmentImageUrls.length === 0 &&
+        !isSubmitting ? (
+          <p className="rounded-xl border border-[#44f26e]/40 bg-[#44f26e]/10 px-3 py-2.5 text-sm font-semibold text-[#16702e]">
+            {locale === "en"
+              ? "👆 Upload a garment photo to create your lookbook."
+              : "👆 옷 사진을 올리면 룩북을 만들 수 있어요."}
+          </p>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <div className="text-sm text-neutral-500">
