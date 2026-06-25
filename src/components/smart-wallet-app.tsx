@@ -281,8 +281,9 @@ function getActivationHubCopy(locale: Locale) {
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       disconnectedMessage: "이메일로 시작하면 가입 상태와 추천 코드를 확인할 수 있습니다.",
-      feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
-      feedLabel: "활동 피드",
+      feedDescription: "회원들이 공개한 콘텐츠를 봅니다.",
+      feedLabel: "콘텐츠 보기",
+      feedMetric: "보기",
       hubLabel: "1066FRIEND+",
       menuLockedDescription: "이메일로 시작하면 추천 코드, 포인트, 지갑 메뉴를 이어서 사용할 수 있습니다.",
       menuLockedTitle: "먼저 이메일로 시작하세요",
@@ -328,8 +329,9 @@ function getActivationHubCopy(locale: Locale) {
       "Check your status and the next action first.",
     disconnected: "Connection required",
     disconnectedMessage: "Start with email to check signup status and referral code.",
-    feedDescription: "Review the latest signup and reward activity.",
-    feedLabel: "Activity feed",
+    feedDescription: "Browse public content from members.",
+    feedLabel: "Browse content",
+    feedMetric: "View",
     hubLabel: "1066FRIEND+",
     menuLockedDescription: "Start with email to open referral code, points, and wallet menus.",
     menuLockedTitle: "Start with email first",
@@ -2621,7 +2623,7 @@ function ActivationServiceHub({
     {
       description: copy.feedDescription,
       href: networkFeedHref,
-      metric: copy.ready,
+      metric: copy.feedMetric,
       title: copy.feedLabel,
     },
   ];
@@ -2815,7 +2817,7 @@ function ServiceHubCard({
             {metric}
           </span>
         </span>
-        <span className="mt-0.5 hidden text-xs leading-5 text-zinc-500 sm:line-clamp-1 sm:block">
+        <span className="mt-0.5 line-clamp-1 text-[0.72rem] leading-5 text-zinc-500 sm:text-xs">
           {description}
         </span>
       </span>
