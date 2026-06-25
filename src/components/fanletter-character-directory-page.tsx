@@ -327,11 +327,13 @@ function CharacterVisual({
   item,
   locale,
   nsfwOptInEnabled,
+  priority,
 }: {
   copy: CharacterDirectoryCopy;
   item: FanletterCharacterDirectoryItem;
   locale: Locale;
   nsfwOptInEnabled: boolean;
+  priority?: boolean;
 }) {
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const imageUrl = item.latestCoverImageUrl ?? item.avatarImageUrl;
@@ -349,6 +351,7 @@ function CharacterVisual({
               shouldBlur && "scale-[1.04] blur-lg brightness-[0.72] saturate-[0.86]",
             )}
             fill
+            priority={priority}
             sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
             src={imageUrl}
           />
@@ -390,12 +393,14 @@ function CharacterCard({
   item,
   locale,
   nsfwOptInEnabled,
+  priority,
   referralCode,
 }: {
   copy: CharacterDirectoryCopy;
   item: FanletterCharacterDirectoryItem;
   locale: Locale;
   nsfwOptInEnabled: boolean;
+  priority?: boolean;
   referralCode: string | null;
 }) {
   const channelHref = buildPathWithReferral(
@@ -436,6 +441,7 @@ function CharacterCard({
         item={item}
         locale={locale}
         nsfwOptInEnabled={nsfwOptInEnabled}
+        priority={priority}
       />
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start gap-3">
@@ -654,13 +660,14 @@ export function FanletterCharacterDirectoryPage({
 
           {data.items.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {data.items.map((item) => (
+              {data.items.map((item, index) => (
                 <CharacterCard
                   copy={copy}
                   item={item}
                   key={item.referralCode}
                   locale={locale}
                   nsfwOptInEnabled={data.nsfwOptInEnabled}
+                  priority={index < 4}
                   referralCode={referralCode}
                 />
               ))}
