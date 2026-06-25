@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Crown,
@@ -12,6 +11,7 @@ import {
 import { useMemo } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
@@ -739,22 +739,7 @@ export function FanletterFounderClubPage({
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 text-black sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/68 transition hover:border-black/20 hover:text-black"
-            href={`/${locale}/fanletter`}
-          >
-            <ArrowLeft className="size-4" />
-            {copy.back}
-          </Link>
-          <Link
-            className="hidden min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold !text-black/58 transition hover:!text-black sm:inline-flex"
-            href={creatorJourneyHref}
-          >
-            <Sparkles className="size-4" />
-            {copy.creatorUnlock}
-          </Link>
-        </div>
+        <FanletterPrimaryHeader locale={locale} referralCode={null} />
 
         <section className="mt-6 rounded-lg border border-black/10 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-6">
           <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
