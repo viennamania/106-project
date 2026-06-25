@@ -1346,7 +1346,7 @@ export default async function Home({
             aria-label="1066FRIEND+ legal links"
             className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-bold text-white/58"
           >
-            <Link className="transition hover:text-white" href={`/${activationLocale}/lookbook/terms`}>
+            <Link className="transition hover:text-white" href={`/${activationLocale}/disclaimer`}>
               {footerCopy.terms}
             </Link>
             <Link className="transition hover:text-white" href={`/${activationLocale}/disclaimer`}>
