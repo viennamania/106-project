@@ -267,6 +267,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     null,
   );
   const [selectedStarImageIndex, setSelectedStarImageIndex] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<
     {
@@ -625,6 +626,19 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       }
     })();
   }, []);
+
+  // Pre-select the first star so the model is ready on arrival — the user only
+  // needs to add a garment and generate (they can still change the star).
+  useEffect(() => {
+    if (publicStars.length === 0 || selectedPublicStarId) {
+      return;
+    }
+    const first = publicStars[0];
+    setSelectedPublicStarId(first.id);
+    setSelectedStarImageIndex(0);
+    setStarAvatarUrl(first.images[0] ?? "");
+    setStarName(first.name);
+  }, [publicStars, selectedPublicStarId]);
 
   const loadHistory = useCallback(async () => {
     if (!accountAddress || !email) {
@@ -1470,86 +1484,105 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             </div>
           </section>
 
-          {/* Star name */}
-          <section>
-            <SectionLabel>{copy.starNameLabel}</SectionLabel>
-            <input
-              className={FIELD_INPUT}
-              onChange={(event) => setStarName(event.target.value)}
-              placeholder={copy.starNamePlaceholder}
-              type="text"
-              value={starName}
-            />
-          </section>
+          {/* Advanced options — hidden by default to keep the first run simple */}
+          <button
+            className="text-xs font-bold text-neutral-400 transition hover:text-neutral-600"
+            onClick={() => setShowAdvanced((value) => !value)}
+            type="button"
+          >
+            {showAdvanced
+              ? locale === "en"
+                ? "− Hide options"
+                : "− 옵션 접기"
+              : locale === "en"
+                ? "+ More options (background, ratio, shots)"
+                : "+ 옵션 더보기 (배경·비율·컷수)"}
+          </button>
 
-          {/* Scene */}
-          <section>
-            <SectionLabel>{copy.sceneLabel}</SectionLabel>
-            <input
-              className={FIELD_INPUT}
-              onChange={(event) => setSceneBrief(event.target.value)}
-              placeholder={copy.scenePlaceholder}
-              type="text"
-              value={sceneBrief}
-            />
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {SCENE_PRESETS.map((preset) => {
-                const active = sceneBrief === preset.brief;
+          {showAdvanced ? (
+            <>
+              {/* Star name */}
+              <section>
+                <SectionLabel>{copy.starNameLabel}</SectionLabel>
+                <input
+                  className={FIELD_INPUT}
+                  onChange={(event) => setStarName(event.target.value)}
+                  placeholder={copy.starNamePlaceholder}
+                  type="text"
+                  value={starName}
+                />
+              </section>
 
-                return (
-                  <button
-                    className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
-                      active
-                        ? "bg-[#44f26e] text-[#07100b]"
-                        : "border border-black/10 bg-white text-neutral-600 hover:border-black/25"
-                    }`}
-                    key={preset.id}
-                    onClick={() => setSceneBrief(active ? "" : preset.brief)}
-                    type="button"
+              {/* Scene */}
+              <section>
+                <SectionLabel>{copy.sceneLabel}</SectionLabel>
+                <input
+                  className={FIELD_INPUT}
+                  onChange={(event) => setSceneBrief(event.target.value)}
+                  placeholder={copy.scenePlaceholder}
+                  type="text"
+                  value={sceneBrief}
+                />
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {SCENE_PRESETS.map((preset) => {
+                    const active = sceneBrief === preset.brief;
+
+                    return (
+                      <button
+                        className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                          active
+                            ? "bg-[#44f26e] text-[#07100b]"
+                            : "border border-black/10 bg-white text-neutral-600 hover:border-black/25"
+                        }`}
+                        key={preset.id}
+                        onClick={() => setSceneBrief(active ? "" : preset.brief)}
+                        type="button"
+                      >
+                        {locale === "en" ? preset.en : preset.ko}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Aspect + count */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <SectionLabel>{copy.aspectLabel}</SectionLabel>
+                  <select
+                    className={FIELD_INPUT}
+                    onChange={(event) =>
+                      setAspectRatio(event.target.value as LookbookAspectRatio)
+                    }
+                    value={aspectRatio}
                   >
-                    {locale === "en" ? preset.en : preset.ko}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Aspect + count */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <SectionLabel>{copy.aspectLabel}</SectionLabel>
-              <select
-                className={FIELD_INPUT}
-                onChange={(event) =>
-                  setAspectRatio(event.target.value as LookbookAspectRatio)
-                }
-                value={aspectRatio}
-              >
-                {ASPECT_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <SectionLabel>{copy.countLabel}</SectionLabel>
-              <select
-                className={FIELD_INPUT}
-                onChange={(event) => setNumImages(Number(event.target.value))}
-                value={numImages}
-              >
-                {COUNT_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <p className="text-[11px] leading-relaxed text-neutral-400">
-            {copy.setHint}
-          </p>
+                    {ASPECT_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <SectionLabel>{copy.countLabel}</SectionLabel>
+                  <select
+                    className={FIELD_INPUT}
+                    onChange={(event) => setNumImages(Number(event.target.value))}
+                    value={numImages}
+                  >
+                    {COUNT_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="text-[11px] leading-relaxed text-neutral-400">
+                {copy.setHint}
+              </p>
+            </>
+          ) : null}
         </div>
 
         {/* Preview */}
@@ -1734,7 +1767,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
           </button>
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+        {showAdvanced ? (
+          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <div className="mb-1 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#16702e]" />
             <span className="text-xs font-bold text-neutral-700">
@@ -1887,7 +1921,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               ))}
             </div>
           ) : null}
-        </div>
+          </div>
+        ) : null}
 
         {history.length > 0 ? (
           <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
