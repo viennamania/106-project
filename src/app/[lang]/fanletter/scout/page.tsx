@@ -30,8 +30,8 @@ function getScoutMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AI 스타별 추천 링크를 공유하고 Founder 참여, 보상, 평판 기록 흐름을 확인하세요.",
-      title: "스카우트 센터 | FanLetter Founder Club",
+        "AI 스타별 추천 링크를 공유하고 Founder 참여, 보상, 활동 기록 흐름을 확인하세요.",
+      title: "친구 초대 센터 | FanLetter Founder Club",
     };
   }
 
