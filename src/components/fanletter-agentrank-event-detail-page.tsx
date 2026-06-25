@@ -25,7 +25,10 @@ import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-a
 import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanletter-agentrank-social-connection-evidence";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
-import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
+import {
+  getAgentRankEventTypeLabel,
+  getAgentRankIntentLabel,
+} from "@/lib/agentrank/event-labels";
 import {
   isAgentRankEventIncludedInMockScope,
   isAgentRankCoverageMockEvent,
@@ -2643,7 +2646,9 @@ export function FanletterAgentRankEventDetailPage({
               </div>
             </div>
             <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[#11132d]">
-              {event.context.intent ?? event.type}
+              {typeof event.context.intent === "string"
+                ? getAgentRankIntentLabel(event.context.intent, locale)
+                : getEventTypeLabel(event.type, locale)}
             </span>
             <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[#11132d]">
               {copy.eventScope} · {eventScopeLabel}

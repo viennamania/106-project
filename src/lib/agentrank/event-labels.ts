@@ -81,6 +81,37 @@ export function getAgentRankEventTypeLabel(
   return enEventTypeLabels[type];
 }
 
+export function getAgentRankIntentLabel(intent: string, locale: Locale) {
+  const known: Record<string, { ko: string; ja: string; en: string }> = {
+    creator_unlock_evaluation_pending: {
+      ko: "크리에이터 권한 평가 대기",
+      ja: "クリエイター権限の評価待ち",
+      en: "Creator unlock pending",
+    },
+    creator_unlock_evaluation_passed: {
+      ko: "크리에이터 권한 평가 통과",
+      ja: "クリエイター権限の評価通過",
+      en: "Creator unlock passed",
+    },
+  };
+
+  const match = known[intent];
+  if (match) {
+    if (locale === "ko") {
+      return match.ko;
+    }
+    if (locale === "ja") {
+      return match.ja;
+    }
+    return match.en;
+  }
+
+  // Fallback: surface a readable label instead of a raw snake_case identifier.
+  return intent
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 export function getAgentRankRecordsLabel(locale: Locale) {
   if (locale === "ko") {
     return "평판 기록";
