@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
     localPatterns: [
       {
         pathname: "/landing/**",
-        search: "?v=20260415",
       },
     ],
     remotePatterns: [

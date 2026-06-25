@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clapperboard,
+  Coins,
+  Gift,
+  Globe2,
+  Network,
+  ShieldCheck,
+  Sparkles,
+  UserRoundPlus,
+  WalletCards,
+} from "lucide-react";
 
 const supportedLandingLanguages = ["ko", "en", "ja", "zh", "vn", "id", "km"] as const;
 
@@ -481,6 +495,309 @@ const serviceLandingCopy: Record<
   },
 };
 
+const serviceIconComponents = [
+  Globe2,
+  Network,
+  Coins,
+  WalletCards,
+  Clapperboard,
+  Sparkles,
+] as const;
+
+const landingStoryCopy: Record<
+  LandingLanguage,
+  {
+    oldTag: string;
+    oldTitle: string;
+    oldItems: string[];
+    newTag: string;
+    newTitle: string;
+    newItems: string[];
+    universeEyebrow: string;
+    universeTitle: string;
+    universeBody: string;
+    universeChips: string[];
+    earnTitle: string;
+    earnCards: Array<{ title: string; body: string; badge: string }>;
+    pointsTitle: string;
+    pointsBody: string;
+    pointsOptions: Array<{ title: string; body: string }>;
+    trustTitle: string;
+    trustBody: string;
+    trustCards: Array<{ title: string; body: string }>;
+    finalTitle: string;
+    finalBody: string;
+    footerTagline: string;
+  }
+> = {
+  ko: {
+    oldTag: "기존 SNS",
+    oldTitle: "사용자가 가치를 만들고 플랫폼이 가져갑니다.",
+    oldItems: ["콘텐츠를 봐도 기록이 남지 않음", "추천 관계가 사라짐", "포인트와 지갑이 분리됨"],
+    newTag: "1066FRIEND+",
+    newTitle: "참여하는 순간, 행동이 포인트와 성장 기록이 됩니다.",
+    newItems: ["추천 코드가 네트워크 Context가 됨", "콘텐츠 사용이 포인트 흐름으로 연결", "지갑과 리워드가 한 화면에서 관리"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "전 세계 사용자가 하나의 참여 네트워크로 연결됩니다.",
+    universeBody:
+      "1066FRIEND+는 가입, 추천, 콘텐츠 소비, 포인트 사용을 분리하지 않고 하나의 서비스 흐름으로 연결합니다.",
+    universeChips: ["추천 코드", "글로벌 피드", "포인트", "지갑", "콘텐츠"],
+    earnTitle: "무엇을 하든, 포인트 흐름이 남습니다.",
+    earnCards: [
+      {
+        title: "콘텐츠 보기",
+        body: "공개 피드에서 콘텐츠를 보고 활동 Context를 남깁니다.",
+        badge: "참여 기록",
+      },
+      {
+        title: "추천 성장",
+        body: "내 코드로 들어온 회원과 6단계 네트워크를 확인합니다.",
+        badge: "성장 기록",
+      },
+      {
+        title: "리워드 교환",
+        body: "쌓인 포인트로 리워드를 교환하고 사용 흐름을 남깁니다.",
+        badge: "사용 기록",
+      },
+    ],
+    pointsTitle: "포인트는 사용자의 행동에서 만들어집니다.",
+    pointsBody:
+      "콘텐츠를 열람하고, 추천 네트워크를 키우고, 리워드를 교환하는 모든 흐름이 개인 서비스 Context로 축적됩니다.",
+    pointsOptions: [
+      { title: "콘텐츠 구매", body: "포인트로 글로벌 콘텐츠를 열람합니다." },
+      { title: "리워드 교환", body: "Silver 카드처럼 반복 가능한 리워드로 확장됩니다." },
+      { title: "네트워크 성장", body: "내 코드 기반 참여 기록이 쌓입니다." },
+    ],
+    trustTitle: "서비스 이용료와 보상 흐름은 분리해서 보여줍니다.",
+    trustBody:
+      "10 USDT는 디지털 서비스 이용료이며 투자 상품이 아닙니다. 포인트와 리워드는 서비스 활동 결과로 관리됩니다.",
+    trustCards: [
+      {
+        title: "지갑 기반",
+        body: "USDT, BNB, 지갑 연결 상태를 서비스 허브에서 확인합니다.",
+      },
+      {
+        title: "활동 기반",
+        body: "추천, 콘텐츠 이용, 리워드 교환이 각각 기록으로 남습니다.",
+      },
+    ],
+    finalTitle: "지금 시작하고 내 서비스 흐름을 확인하세요.",
+    finalBody:
+      "가입 상태, 추천 코드, 포인트, 지갑, 콘텐츠 흐름을 한 번에 확인할 수 있습니다.",
+    footerTagline: "새로운 소셜 패러다임 — 참여가 Context를 만듭니다.",
+  },
+  en: {
+    oldTag: "Traditional SNS",
+    oldTitle: "Users create value, but platforms keep the context.",
+    oldItems: ["Viewing rarely becomes your record", "Referral relationships disappear", "Points and wallet are separated"],
+    newTag: "1066FRIEND+",
+    newTitle: "Participation becomes points, growth, and service context.",
+    newItems: ["Referral codes become network context", "Content usage connects to points", "Wallet and rewards stay in one flow"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "Global users connect through one participation network.",
+    universeBody:
+      "1066FRIEND+ connects joining, referral, content usage, and points into a single service flow.",
+    universeChips: ["Referral code", "Global feed", "Points", "Wallet", "Content"],
+    earnTitle: "Every action leaves a points flow.",
+    earnCards: [
+      { title: "Watch content", body: "Use the public feed and leave activity context.", badge: "Activity" },
+      { title: "Grow referrals", body: "Review members and the six-level network from your code.", badge: "Growth" },
+      { title: "Redeem rewards", body: "Use points for rewards and keep usage context.", badge: "Utility" },
+    ],
+    pointsTitle: "Points are created from user actions.",
+    pointsBody:
+      "Content access, referral growth, and reward redemption accumulate as personal service context.",
+    pointsOptions: [
+      { title: "Content access", body: "Open global content with points." },
+      { title: "Reward exchange", body: "Extend into repeatable rewards like Silver cards." },
+      { title: "Network growth", body: "Build records around your referral code." },
+    ],
+    trustTitle: "Service fee and reward flow are shown separately.",
+    trustBody:
+      "10 USDT is a digital service fee, not an investment product. Points and rewards are managed as service activity results.",
+    trustCards: [
+      { title: "Wallet based", body: "Check USDT, BNB, and wallet status in the service hub." },
+      { title: "Activity based", body: "Referral, content usage, and rewards each become records." },
+    ],
+    finalTitle: "Start now and review your service flow.",
+    finalBody: "Check activation status, referral code, points, wallet, and content flow in one place.",
+    footerTagline: "A new social paradigm — participation creates Context.",
+  },
+  ja: {
+    oldTag: "従来のSNS",
+    oldTitle: "ユーザーが価値を作り、文脈はプラットフォームに残ります。",
+    oldItems: ["閲覧が自分の記録になりにくい", "紹介関係が消えやすい", "ポイントとウォレットが分離"],
+    newTag: "1066FRIEND+",
+    newTitle: "参加がポイント、成長、サービス文脈になります。",
+    newItems: ["紹介コードがネットワーク文脈に", "コンテンツ利用がポイントへ接続", "ウォレットとリワードを一つの流れで管理"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "世界のユーザーが一つの参加ネットワークにつながります。",
+    universeBody:
+      "1066FRIEND+は参加、紹介、コンテンツ利用、ポイントを一つのサービスフローに接続します。",
+    universeChips: ["紹介コード", "グローバルフィード", "ポイント", "ウォレット", "コンテンツ"],
+    earnTitle: "すべての行動がポイントの流れとして残ります。",
+    earnCards: [
+      { title: "コンテンツを見る", body: "公開フィードで活動文脈を残します。", badge: "活動記録" },
+      { title: "紹介を伸ばす", body: "紹介コードの会員と6段階ネットワークを確認します。", badge: "成長記録" },
+      { title: "リワード交換", body: "ポイントでリワードを交換し利用文脈を残します。", badge: "利用記録" },
+    ],
+    pointsTitle: "ポイントはユーザーの行動から作られます。",
+    pointsBody:
+      "コンテンツ利用、紹介成長、リワード交換が個人のサービス文脈として蓄積されます。",
+    pointsOptions: [
+      { title: "コンテンツ利用", body: "ポイントでグローバルコンテンツを開きます。" },
+      { title: "リワード交換", body: "Silverカードのような反復リワードに拡張します。" },
+      { title: "ネットワーク成長", body: "紹介コード中心の参加記録が残ります。" },
+    ],
+    trustTitle: "サービス利用料とリワードの流れを分けて表示します。",
+    trustBody:
+      "10 USDTはデジタルサービス利用料であり、投資商品ではありません。ポイントとリワードは活動結果として管理されます。",
+    trustCards: [
+      { title: "ウォレット基盤", body: "USDT、BNB、ウォレット状態をサービスハブで確認します。" },
+      { title: "活動基盤", body: "紹介、コンテンツ利用、リワード交換が記録になります。" },
+    ],
+    finalTitle: "今すぐ始めてサービスフローを確認しましょう。",
+    finalBody: "参加状態、紹介コード、ポイント、ウォレット、コンテンツの流れを一つの画面で確認できます。",
+    footerTagline: "新しいソーシャルパラダイム — 参加がContextを作ります。",
+  },
+  zh: {
+    oldTag: "传统SNS",
+    oldTitle: "用户创造价值，平台保留上下文。",
+    oldItems: ["浏览很少成为自己的记录", "推荐关系容易消失", "积分和钱包分离"],
+    newTag: "1066FRIEND+",
+    newTitle: "参与会变成积分、成长和服务上下文。",
+    newItems: ["推荐码成为网络上下文", "内容使用连接积分", "钱包和奖励在同一流程管理"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "全球用户通过一个参与网络连接。",
+    universeBody: "1066FRIEND+ 把加入、推荐、内容使用和积分连接成一个服务流程。",
+    universeChips: ["推荐码", "全球内容流", "积分", "钱包", "内容"],
+    earnTitle: "每个行为都会留下积分流。",
+    earnCards: [
+      { title: "查看内容", body: "在公开内容流中留下活动上下文。", badge: "活动记录" },
+      { title: "推荐成长", body: "查看通过代码加入的成员和六级网络。", badge: "成长记录" },
+      { title: "兑换奖励", body: "用积分兑换奖励并留下使用上下文。", badge: "使用记录" },
+    ],
+    pointsTitle: "积分来自用户行为。",
+    pointsBody: "内容使用、推荐成长和奖励兑换会积累为个人服务上下文。",
+    pointsOptions: [
+      { title: "内容购买", body: "用积分打开全球内容。" },
+      { title: "奖励兑换", body: "扩展为 Silver 卡等可重复奖励。" },
+      { title: "网络成长", body: "围绕推荐码积累参与记录。" },
+    ],
+    trustTitle: "服务费和奖励流分开显示。",
+    trustBody: "10 USDT 是数字服务费，不是投资产品。积分和奖励按服务活动结果管理。",
+    trustCards: [
+      { title: "钱包基础", body: "在服务中心查看 USDT、BNB 和钱包状态。" },
+      { title: "活动基础", body: "推荐、内容使用、奖励兑换分别成为记录。" },
+    ],
+    finalTitle: "现在开始并查看你的服务流程。",
+    finalBody: "在一个地方查看激活状态、推荐码、积分、钱包和内容流。",
+    footerTagline: "新的社交范式 — 参与创造 Context。",
+  },
+  vn: {
+    oldTag: "SNS truyền thống",
+    oldTitle: "Người dùng tạo giá trị, nhưng nền tảng giữ bối cảnh.",
+    oldItems: ["Xem nội dung hiếm khi thành hồ sơ của bạn", "Quan hệ giới thiệu biến mất", "Điểm và ví bị tách rời"],
+    newTag: "1066FRIEND+",
+    newTitle: "Tham gia trở thành điểm, tăng trưởng và bối cảnh dịch vụ.",
+    newItems: ["Mã giới thiệu thành bối cảnh mạng", "Nội dung kết nối với điểm", "Ví và thưởng trong một luồng"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "Người dùng toàn cầu kết nối qua một mạng tham gia.",
+    universeBody: "1066FRIEND+ kết nối đăng ký, giới thiệu, nội dung và điểm trong một luồng dịch vụ.",
+    universeChips: ["Mã giới thiệu", "Feed toàn cầu", "Điểm", "Ví", "Nội dung"],
+    earnTitle: "Mỗi hành động để lại luồng điểm.",
+    earnCards: [
+      { title: "Xem nội dung", body: "Dùng feed công khai và để lại bối cảnh hoạt động.", badge: "Hoạt động" },
+      { title: "Tăng giới thiệu", body: "Xem thành viên và mạng 6 cấp từ mã của bạn.", badge: "Tăng trưởng" },
+      { title: "Đổi thưởng", body: "Dùng điểm đổi thưởng và lưu bối cảnh sử dụng.", badge: "Sử dụng" },
+    ],
+    pointsTitle: "Điểm được tạo từ hành động người dùng.",
+    pointsBody: "Truy cập nội dung, tăng trưởng giới thiệu và đổi thưởng tích lũy thành bối cảnh dịch vụ cá nhân.",
+    pointsOptions: [
+      { title: "Mở nội dung", body: "Dùng điểm để mở nội dung toàn cầu." },
+      { title: "Đổi thưởng", body: "Mở rộng thành phần thưởng lặp lại như thẻ Silver." },
+      { title: "Tăng mạng", body: "Tích lũy hồ sơ quanh mã giới thiệu." },
+    ],
+    trustTitle: "Phí dịch vụ và luồng thưởng được tách rõ.",
+    trustBody: "10 USDT là phí dịch vụ kỹ thuật số, không phải sản phẩm đầu tư. Điểm và thưởng là kết quả hoạt động.",
+    trustCards: [
+      { title: "Dựa trên ví", body: "Kiểm tra USDT, BNB và trạng thái ví trong hub." },
+      { title: "Dựa trên hoạt động", body: "Giới thiệu, nội dung và thưởng đều thành hồ sơ." },
+    ],
+    finalTitle: "Bắt đầu và xem luồng dịch vụ của bạn.",
+    finalBody: "Kiểm tra trạng thái, mã giới thiệu, điểm, ví và nội dung ở một nơi.",
+    footerTagline: "Mô hình xã hội mới — tham gia tạo Context.",
+  },
+  id: {
+    oldTag: "SNS biasa",
+    oldTitle: "Pengguna membuat nilai, platform menyimpan konteks.",
+    oldItems: ["Menonton jarang menjadi catatan Anda", "Relasi referral hilang", "Poin dan wallet terpisah"],
+    newTag: "1066FRIEND+",
+    newTitle: "Partisipasi menjadi poin, pertumbuhan, dan konteks layanan.",
+    newItems: ["Kode referral menjadi konteks jaringan", "Konten terhubung ke poin", "Wallet dan reward dalam satu alur"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "Pengguna global terhubung lewat satu jaringan partisipasi.",
+    universeBody: "1066FRIEND+ menghubungkan pendaftaran, referral, konten, dan poin dalam satu alur layanan.",
+    universeChips: ["Kode referral", "Feed global", "Poin", "Wallet", "Konten"],
+    earnTitle: "Setiap aksi meninggalkan alur poin.",
+    earnCards: [
+      { title: "Lihat konten", body: "Gunakan feed publik dan tinggalkan konteks aktivitas.", badge: "Aktivitas" },
+      { title: "Referral tumbuh", body: "Lihat member dan jaringan 6 level dari kode Anda.", badge: "Growth" },
+      { title: "Tukar reward", body: "Pakai poin untuk reward dan simpan konteks penggunaan.", badge: "Utility" },
+    ],
+    pointsTitle: "Poin dibuat dari aksi pengguna.",
+    pointsBody: "Akses konten, referral, dan penukaran reward menjadi konteks layanan pribadi.",
+    pointsOptions: [
+      { title: "Akses konten", body: "Buka konten global dengan poin." },
+      { title: "Tukar reward", body: "Berkembang menjadi reward berulang seperti Silver card." },
+      { title: "Jaringan tumbuh", body: "Catatan partisipasi terkumpul di sekitar kode Anda." },
+    ],
+    trustTitle: "Biaya layanan dan reward ditampilkan terpisah.",
+    trustBody: "10 USDT adalah biaya layanan digital, bukan produk investasi. Poin dan reward dikelola sebagai hasil aktivitas.",
+    trustCards: [
+      { title: "Berbasis wallet", body: "Cek USDT, BNB, dan status wallet di hub layanan." },
+      { title: "Berbasis aktivitas", body: "Referral, konten, dan reward masing-masing menjadi catatan." },
+    ],
+    finalTitle: "Mulai dan lihat alur layanan Anda.",
+    finalBody: "Cek status, kode referral, poin, wallet, dan konten di satu tempat.",
+    footerTagline: "Paradigma sosial baru — partisipasi membuat Context.",
+  },
+  km: {
+    oldTag: "SNS ធម្មតា",
+    oldTitle: "អ្នកប្រើបង្កើតតម្លៃ ប៉ុន្តែវេទិការក្សាទុកបរិបទ។",
+    oldItems: ["ការមើលមាតិកាមិនក្លាយជាកំណត់ត្រារបស់អ្នក", "ទំនាក់ទំនងណែនាំងាយបាត់", "ពិន្ទុ និងកាបូបបែកគ្នា"],
+    newTag: "1066FRIEND+",
+    newTitle: "ការចូលរួមក្លាយជាពិន្ទុ កំណើន និងបរិបទសេវា។",
+    newItems: ["កូដណែនាំក្លាយជាបរិបទបណ្ដាញ", "មាតិកាភ្ជាប់ទៅពិន្ទុ", "កាបូប និងរង្វាន់នៅក្នុងលំហូរតែមួយ"],
+    universeEyebrow: "GLOBAL RANDOM LINK",
+    universeTitle: "អ្នកប្រើពិភពលោកភ្ជាប់តាមបណ្ដាញចូលរួមតែមួយ។",
+    universeBody: "1066FRIEND+ ភ្ជាប់ការចុះឈ្មោះ ការណែនាំ មាតិកា និងពិន្ទុក្នុងលំហូរសេវាតែមួយ។",
+    universeChips: ["កូដណែនាំ", "Feed ពិភពលោក", "ពិន្ទុ", "កាបូប", "មាតិកា"],
+    earnTitle: "សកម្មភាពនីមួយៗទុកលំហូរពិន្ទុ។",
+    earnCards: [
+      { title: "មើលមាតិកា", body: "ប្រើ feed សាធារណៈ និងទុកបរិបទសកម្មភាព។", badge: "សកម្មភាព" },
+      { title: "កំណើនណែនាំ", body: "ពិនិត្យសមាជិក និងបណ្ដាញ 6 កម្រិតពីកូដរបស់អ្នក។", badge: "កំណើន" },
+      { title: "ប្តូររង្វាន់", body: "ប្រើពិន្ទុសម្រាប់រង្វាន់ និងរក្សាបរិបទប្រើប្រាស់។", badge: "ប្រើប្រាស់" },
+    ],
+    pointsTitle: "ពិន្ទុបង្កើតពីសកម្មភាពអ្នកប្រើ។",
+    pointsBody: "ការបើកមាតិកា កំណើនណែនាំ និងការប្តូររង្វាន់ត្រូវបានសន្សំជាបរិបទសេវាផ្ទាល់ខ្លួន។",
+    pointsOptions: [
+      { title: "បើកមាតិកា", body: "ប្រើពិន្ទុដើម្បីបើកមាតិកាពិភពលោក។" },
+      { title: "ប្តូររង្វាន់", body: "ពង្រីកទៅរង្វាន់ដែលអាចធ្វើម្តងហើយម្តងទៀត។" },
+      { title: "កំណើនបណ្ដាញ", body: "កំណត់ត្រាចូលរួមសន្សំជុំវិញកូដរបស់អ្នក។" },
+    ],
+    trustTitle: "ថ្លៃសេវា និងលំហូររង្វាន់បង្ហាញដាច់ដោយឡែក។",
+    trustBody: "10 USDT គឺជាថ្លៃសេវាឌីជីថល មិនមែនផលិតផលវិនិយោគ។ ពិន្ទុ និងរង្វាន់គ្រប់គ្រងតាមសកម្មភាព។",
+    trustCards: [
+      { title: "ផ្អែកលើកាបូប", body: "ពិនិត្យ USDT, BNB និងស្ថានភាពកាបូបនៅក្នុង hub។" },
+      { title: "ផ្អែកលើសកម្មភាព", body: "ការណែនាំ មាតិកា និងរង្វាន់ក្លាយជាកំណត់ត្រា។" },
+    ],
+    finalTitle: "ចាប់ផ្តើម និងពិនិត្យលំហូរសេវារបស់អ្នក។",
+    finalBody: "ពិនិត្យស្ថានភាព កូដណែនាំ ពិន្ទុ កាបូប និងមាតិកានៅកន្លែងតែមួយ។",
+    footerTagline: "គំរូសង្គមថ្មី — ការចូលរួមបង្កើត Context។",
+  },
+};
+
 function readSingleValue(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -538,6 +855,7 @@ export default async function Home({
   const activationLocale = activationLocaleByLandingLanguage[landingLanguage];
   const copy = landingCopy[landingLanguage];
   const serviceCopy = serviceLandingCopy[landingLanguage];
+  const storyCopy = landingStoryCopy[landingLanguage];
   const activationHref = buildActivationHref({
     activationLocale,
     landingLanguage,
@@ -555,190 +873,410 @@ export default async function Home({
   };
 
   return (
-    <main className="relative min-h-dvh overflow-x-hidden bg-[#fff7fb] text-[#1b1231]">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_22%,rgba(236,72,153,0.14),transparent_28%),radial-gradient(circle_at_78%_12%,rgba(126,34,206,0.12),transparent_26%),linear-gradient(180deg,#fff_0%,#fff7fb_58%,#fff_100%)]" />
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
-        <Link className="text-2xl font-black tracking-[-0.06em] text-[#15183b]" href="/">
-          1066<span className="text-[#d41462]">+</span>
-          <span className="block text-base tracking-[-0.04em]">friend+</span>
-        </Link>
-        <nav className="flex flex-wrap items-center justify-end gap-2" aria-label="Language">
+    <main className="relative min-h-dvh overflow-x-hidden bg-[#FDFAFE] text-[#1A0A2E]">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(139,92,246,0.12),transparent_58%),radial-gradient(circle_at_82%_78%,rgba(232,24,90,0.10),transparent_34%),linear-gradient(180deg,#fff_0%,#fff7fb_52%,#fff_100%)]" />
+
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-[#8b5cf6]/10 bg-white/82 px-4 py-3 backdrop-blur-xl sm:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+          <Link className="leading-none text-[#15183b]" href={languageHref(landingLanguage)}>
+            <span className="block text-3xl font-black tracking-[-0.08em]">
+              1066<span className="text-[#e8185a]">+</span>
+            </span>
+            <span className="block -mt-1 text-lg font-black tracking-[-0.055em]">
+              friend<span className="text-[#e8185a]">+</span>
+            </span>
+          </Link>
+          <nav
+            className="flex max-w-[66vw] flex-wrap items-center justify-end gap-2 sm:max-w-none"
+            aria-label="Language"
+          >
           {supportedLandingLanguages.map((language) => (
             <Link
-              className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 text-xs font-bold transition sm:px-4 ${
+              className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-[0.68rem] font-black tracking-[0.12em] transition sm:px-4 ${
                 language === landingLanguage
-                  ? "border-[#9b0f62] bg-[#9b0f62] text-white shadow-[0_14px_32px_rgba(155,15,98,0.22)]"
-                  : "border-[#f2b5d4] bg-white/70 text-[#9b4773] hover:border-[#d41462]"
+                  ? "border-transparent bg-[linear-gradient(135deg,#1E0B5E,#8B1A6B,#E8185A)] text-white shadow-[0_10px_28px_rgba(194,24,91,0.22)]"
+                  : "border-[#f8bbd9] bg-white/70 text-[#9b6080] hover:border-[#e8185a] hover:bg-[#fde8f2]"
               }`}
               href={languageHref(language)}
               key={language}
+              style={{ color: language === landingLanguage ? "#ffffff" : "#9b6080" }}
             >
               {languageLabels[language]}
             </Link>
           ))}
-        </nav>
+          </nav>
+        </div>
       </header>
 
-      <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-5 pb-12 pt-8 sm:px-8 lg:min-h-[calc(100dvh-92px)] lg:grid-cols-[1fr_0.92fr]">
-        <div className="max-w-2xl">
-          <p className="inline-flex items-center gap-2 rounded-full border border-[#f2b5d4] bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#d41462] shadow-[0_14px_38px_rgba(212,20,98,0.08)]">
-            <span className="size-2 rounded-full bg-[#d41462]" />
+      <section className="relative isolate flex min-h-dvh items-center justify-center overflow-hidden px-5 pb-16 pt-32 text-center sm:px-8">
+        <div className="pointer-events-none absolute -right-28 top-8 size-[360px] rounded-full bg-[radial-gradient(circle,#e8185a,transparent_68%)] opacity-25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-24 bottom-4 size-[300px] rounded-full bg-[radial-gradient(circle,#8b1a6b,transparent_68%)] opacity-20 blur-3xl" />
+        {[
+          ["left-[8%] top-[26%]", "size-1", "opacity-50"],
+          ["right-[10%] top-[30%]", "size-1.5", "opacity-40"],
+          ["left-[18%] bottom-[18%]", "size-1.5", "opacity-35"],
+          ["right-[22%] bottom-[14%]", "size-1", "opacity-45"],
+          ["left-[48%] top-[16%]", "size-1", "opacity-30"],
+          ["right-[42%] bottom-[28%]", "size-1.5", "opacity-35"],
+        ].map(([position, size, opacity], index) => (
+          <span
+            aria-hidden="true"
+            className={`absolute rounded-full bg-[#c2185b] ${position} ${size} ${opacity} animate-pulse`}
+            key={index}
+          />
+        ))}
+
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#f8bbd9] bg-[#fde8f2]/70 px-5 py-2 text-xs font-black uppercase tracking-[0.2em] text-[#c2185b] shadow-[0_18px_60px_rgba(232,24,90,0.09)]">
+            <span className="size-2 rounded-full bg-[linear-gradient(135deg,#1E0B5E,#E8185A)] shadow-[0_0_12px_rgba(232,24,90,0.45)]" />
             {copy.eyebrow}
           </p>
-          <h1 className="mt-7 break-keep text-5xl font-black leading-[1.02] tracking-[-0.07em] text-[#160b2d] [word-break:keep-all] sm:text-6xl lg:text-7xl">
+          <h1 className="mx-auto mt-8 max-w-3xl break-keep text-5xl font-black leading-[1.02] tracking-[-0.075em] text-[#1A0A2E] [word-break:keep-all] sm:text-7xl lg:text-8xl">
             {copy.headline}
           </h1>
-          <p className="mt-5 max-w-xl break-keep text-lg font-semibold leading-8 text-[#70415d] [word-break:keep-all]">
+          <p className="mx-auto mt-6 max-w-2xl break-keep text-lg font-semibold leading-8 text-[#5A2A4A] [word-break:keep-all] sm:text-xl">
             {copy.subhead}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              className="inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#43106d,#d41462)] px-7 text-base font-black text-white shadow-[0_20px_45px_rgba(212,20,98,0.24)] transition hover:scale-[1.01]"
+              className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#1E0B5E,#8B1A6B,#E8185A)] px-8 text-base font-black !text-white shadow-[0_14px_40px_rgba(194,24,91,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_54px_rgba(194,24,91,0.34)] sm:w-auto"
               href={activationHref}
+              style={{ color: "#ffffff" }}
             >
               {copy.primaryCta}
-              <span className="ml-2">→</span>
+              <ArrowRight className="ml-2 size-4" />
             </Link>
             <a
-              className="inline-flex min-h-14 items-center justify-center rounded-full border border-[#f2b5d4] bg-white/62 px-7 text-base font-bold text-[#8a1456] transition hover:border-[#d41462] hover:bg-white"
+              className="inline-flex min-h-14 w-full items-center justify-center rounded-full border-2 border-[#f8bbd9] bg-white/70 px-8 text-base font-black text-[#8b1a6b] transition hover:border-[#e8185a] hover:bg-white sm:w-auto"
               href="#service"
+              style={{ color: "#8b1a6b" }}
             >
               {copy.secondaryCta}
             </a>
           </div>
-          <p className="mt-5 inline-flex rounded-full border border-[#ead9f2] bg-white/70 px-4 py-2 text-sm font-bold text-[#9b4773]">
+          <p className="mt-8 inline-flex rounded-full border border-[#ead9f2] bg-white/70 px-5 py-2 text-sm font-bold text-[#9b6080] shadow-[0_14px_36px_rgba(91,42,74,0.06)]">
             {copy.feeNote}
           </p>
         </div>
+      </section>
 
-        <div className="rounded-[32px] border border-white/80 bg-white/78 p-4 shadow-[0_30px_90px_rgba(91,23,71,0.14)] backdrop-blur">
-          <div className="rounded-[26px] bg-[#160b2d] p-5 text-white">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-white/52">
-                {serviceCopy.loopTitle}
-              </p>
-              <span className="rounded-full bg-emerald-300/16 px-3 py-1 text-xs font-bold text-emerald-100">
-                {serviceCopy.statusLabel}
-              </span>
-            </div>
-            <div className="mt-6 grid gap-3">
-              {copy.steps.map((step, index) => (
-                <div
-                  className="flex items-start gap-3 rounded-[20px] border border-white/10 bg-white/[0.06] p-4"
-                  key={step.title}
-                >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black text-[#160b2d]">
-                    {index + 1}
-                  </span>
-                  <span>
-                    <span className="block text-base font-black">{step.title}</span>
-                    <span className="mt-1 block break-keep text-sm leading-6 text-white/62 [word-break:keep-all]">
-                      {step.body}
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </div>
+      <section className="bg-white px-5 py-20 sm:px-8 lg:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#c2185b]">
+              1066FRIEND+
+            </p>
+            <h2 className="mt-4 break-keep text-3xl font-black leading-tight tracking-[-0.055em] text-[#1A0A2E] [word-break:keep-all] sm:text-5xl">
+              {storyCopy.oldTag} vs {storyCopy.newTag}
+            </h2>
+            <p className="mt-4 break-keep text-base font-semibold leading-7 text-[#5A2A4A] [word-break:keep-all]">
+              {serviceCopy.description}
+            </p>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {copy.proof.map((item) => (
-              <div
-                className="rounded-[20px] border border-[#f2e5ed] bg-white px-3 py-4 text-center"
-                key={item.label}
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-2">
+            {[
+              {
+                tag: storyCopy.oldTag,
+                title: storyCopy.oldTitle,
+                items: storyCopy.oldItems,
+                tone: "border-[#ffe4e4] bg-[#fff8f8] text-[#c53030]",
+              },
+              {
+                tag: storyCopy.newTag,
+                title: storyCopy.newTitle,
+                items: storyCopy.newItems,
+                tone: "border-[#f8bbd9] bg-[#fde8f2] text-[#8b1a6b] shadow-[0_0_80px_rgba(232,24,90,0.13)]",
+              },
+            ].map((card) => (
+              <article
+                className={`rounded-[28px] border-2 p-6 sm:p-10 ${card.tone}`}
+                key={card.tag}
               >
-                <p className="truncate text-[0.65rem] font-black uppercase tracking-[0.12em] text-[#9b4773]">
-                  {item.label}
-                </p>
-                <p className="mt-1 truncate text-sm font-black text-[#160b2d]">
-                  {item.value}
-                </p>
-              </div>
+                <span className="inline-flex rounded-full bg-white/76 px-4 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.18em]">
+                  {card.tag}
+                </span>
+                <h3 className="mt-6 break-keep text-2xl font-black leading-tight tracking-[-0.04em] text-[#1A0A2E] [word-break:keep-all] sm:text-3xl">
+                  {card.title}
+                </h3>
+                <ul className="mt-7 grid gap-3">
+                  {card.items.map((item) => (
+                    <li
+                      className="flex items-start gap-3 rounded-2xl bg-white/72 p-4 text-sm font-bold leading-6 text-[#5A2A4A]"
+                      key={item}
+                    >
+                      <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#c2185b]" />
+                      <span className="break-keep [word-break:keep-all]">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
       <section
-        className="mx-auto w-full max-w-6xl px-5 pb-24 pt-4 sm:px-8 lg:pt-8"
+        className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 lg:py-28"
         id="service"
       >
-        <div className="rounded-[36px] border border-[#f3d4e5] bg-white/82 p-5 shadow-[0_34px_100px_rgba(91,23,71,0.12)] backdrop-blur sm:p-8">
-          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
-            <div className="min-w-0">
-              <p className="inline-flex rounded-full border border-[#f2b5d4] bg-[#fff7fb] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-[#b31363]">
-                {serviceCopy.eyebrow}
-              </p>
-              <h2 className="mt-5 max-w-xl break-keep text-3xl font-black leading-[1.08] tracking-[-0.055em] text-[#160b2d] [word-break:keep-all] sm:text-5xl">
-                {serviceCopy.title}
-              </h2>
-              <p className="mt-4 max-w-xl break-keep text-base font-semibold leading-7 text-[#70415d] [word-break:keep-all]">
-                {serviceCopy.description}
-              </p>
+        <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#c2185b]">
+              {serviceCopy.eyebrow}
+            </p>
+            <h2 className="mt-4 break-keep text-4xl font-black leading-[1.05] tracking-[-0.06em] text-[#1A0A2E] [word-break:keep-all] sm:text-6xl">
+              {serviceCopy.title}
+            </h2>
+            <p className="mt-5 break-keep text-base font-semibold leading-8 text-[#5A2A4A] [word-break:keep-all]">
+              {serviceCopy.description}
+            </p>
 
-              <div className="mt-7 rounded-[28px] bg-[#160b2d] p-4 text-white sm:p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-white/50">
-                    {serviceCopy.loopTitle}
-                  </p>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/74">
-                    1066FRIEND+
-                  </span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {serviceCopy.loopSteps.map((step, index) => (
-                    <span
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-3 text-xs font-bold text-white/82"
-                      key={step}
-                    >
-                      <span className="flex size-6 items-center justify-center rounded-full bg-white text-[0.68rem] font-black text-[#160b2d]">
-                        {index + 1}
-                      </span>
-                      {step}
+            <div className="mt-8 rounded-[28px] bg-[#160b2d] p-5 text-white shadow-[0_28px_70px_rgba(30,11,94,0.20)]">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-white/54">
+                  {serviceCopy.loopTitle}
+                </p>
+                <span className="rounded-full bg-emerald-300/14 px-3 py-1 text-xs font-black text-emerald-100">
+                  {serviceCopy.statusLabel}
+                </span>
+              </div>
+              <div className="mt-5 grid gap-3">
+                {copy.steps.map((step, index) => (
+                  <div
+                    className="flex items-start gap-3 rounded-[20px] border border-white/10 bg-white/[0.07] p-4"
+                    key={step.title}
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black text-[#160b2d]">
+                      {index + 1}
                     </span>
-                  ))}
-                </div>
+                    <span>
+                      <span className="block font-black">{step.title}</span>
+                      <span className="mt-1 block break-keep text-sm leading-6 text-white/64 [word-break:keep-all]">
+                        {step.body}
+                      </span>
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-              {serviceCopy.cards.map((card, index) => (
+          <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+            {serviceCopy.cards.map((card, index) => {
+              const Icon = serviceIconComponents[index % serviceIconComponents.length];
+
+              return (
                 <article
-                  className="group rounded-[28px] border border-[#f2e5ed] bg-white p-4 shadow-[0_20px_55px_rgba(91,23,71,0.07)] transition hover:-translate-y-0.5 hover:border-[#efb3d2] hover:shadow-[0_24px_70px_rgba(91,23,71,0.12)] sm:p-5"
+                  className="rounded-[28px] border-2 border-[#f8bbd9] bg-white p-5 shadow-[0_18px_52px_rgba(139,26,107,0.08)] transition hover:-translate-y-1 hover:border-[#e8185a] hover:shadow-[0_24px_72px_rgba(194,24,91,0.14)]"
                   key={card.title}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#fff0f7] text-sm font-black text-[#b31363] ring-1 ring-[#f2b5d4]">
-                      {index + 1}
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-[18px] bg-[#fde8f2] text-[#c2185b] ring-1 ring-[#f8bbd9]">
+                      <Icon className="size-6" />
                     </span>
-                    <span className="rounded-full border border-[#f2e5ed] px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9b4773]">
+                    <span className="rounded-full border border-[#f8bbd9] px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#8b1a6b]">
                       {card.label}
                     </span>
                   </div>
-                  <h3 className="mt-4 break-keep text-xl font-black tracking-[-0.035em] text-[#160b2d] [word-break:keep-all]">
+                  <h3 className="mt-5 break-keep text-xl font-black tracking-[-0.04em] text-[#1A0A2E] [word-break:keep-all]">
                     {card.title}
                   </h3>
-                  <p className="mt-2 break-keep text-sm font-semibold leading-6 text-[#70415d] [word-break:keep-all]">
+                  <p className="mt-2 break-keep text-sm font-semibold leading-6 text-[#5A2A4A] [word-break:keep-all]">
                     {card.body}
                   </p>
                 </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[linear-gradient(150deg,#0D0520_0%,#1E0B5E_34%,#8B1A6B_72%,#C2185B_100%)] px-5 py-20 text-white sm:px-8 lg:py-28">
+        <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1.5px),radial-gradient(circle_at_75%_40%,white_1px,transparent_1.5px)] [background-size:90px_90px,130px_130px]" />
+        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#f8bbd9]">
+              {storyCopy.universeEyebrow}
+            </p>
+            <h2 className="mt-4 break-keep text-4xl font-black leading-[1.08] tracking-[-0.06em] [word-break:keep-all] sm:text-6xl">
+              {storyCopy.universeTitle}
+            </h2>
+            <p className="mt-5 break-keep text-lg font-semibold leading-8 text-white/76 [word-break:keep-all]">
+              {storyCopy.universeBody}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {storyCopy.universeChips.map((chip) => (
+                <span
+                  className="rounded-full border border-white/22 bg-white/12 px-4 py-2 text-sm font-black text-white backdrop-blur"
+                  key={chip}
+                >
+                  {chip}
+                </span>
               ))}
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 border-t border-[#f2e5ed] pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="break-keep text-sm font-bold leading-6 text-[#8b6378] [word-break:keep-all]">
-              {serviceCopy.notice}
-            </p>
-            <Link
-              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-[#160b2d] px-5 text-sm font-black text-white transition hover:bg-[#2b1b47]"
-              href={activationHref}
-            >
-              {copy.primaryCta}
-              <span className="ml-2">→</span>
-            </Link>
+          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[34px] border border-white/18 bg-white/10 p-3 shadow-[0_34px_90px_rgba(0,0,0,0.28)] backdrop-blur">
+            <Image
+              alt="1066FRIEND+ global network map"
+              className="aspect-[3/4] w-full rounded-[26px] object-cover object-center"
+              height={960}
+              src="/landing/global-network-map.png?v=20260415"
+              width={720}
+            />
+            <div className="absolute inset-x-6 bottom-6 rounded-[24px] border border-white/18 bg-[#0D0520]/72 p-4 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f8bbd9]">
+                {serviceCopy.loopTitle}
+              </p>
+              <p className="mt-1 text-lg font-black">
+                {storyCopy.universeChips.join(" · ")}
+              </p>
+            </div>
           </div>
         </div>
       </section>
+
+      <section className="bg-white px-5 py-20 sm:px-8 lg:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#c2185b]">
+              POINTS FLOW
+            </p>
+            <h2 className="mt-4 break-keep text-4xl font-black leading-tight tracking-[-0.055em] text-[#1A0A2E] [word-break:keep-all] sm:text-6xl">
+              {storyCopy.earnTitle}
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-3">
+            {storyCopy.earnCards.map((card, index) => {
+              const icons = [Clapperboard, UserRoundPlus, Gift] as const;
+              const Icon = icons[index % icons.length];
+
+              return (
+                <article
+                  className="rounded-[28px] border-2 border-[#f8bbd9] bg-[#fde8f2] p-6 text-center transition hover:-translate-y-1 hover:border-[#c2185b] hover:bg-white hover:shadow-[0_22px_60px_rgba(194,24,91,0.12)] sm:p-8"
+                  key={card.title}
+                >
+                  <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1E0B5E,#8B1A6B,#E8185A)] text-white shadow-[0_12px_28px_rgba(194,24,91,0.24)]">
+                    <Icon className="size-7" />
+                  </span>
+                  <h3 className="mt-5 break-keep text-2xl font-black tracking-[-0.04em] text-[#1A0A2E] [word-break:keep-all]">
+                    {card.title}
+                  </h3>
+                  <p className="mt-3 break-keep text-sm font-semibold leading-6 text-[#5A2A4A] [word-break:keep-all]">
+                    {card.body}
+                  </p>
+                  <span className="mt-5 inline-flex rounded-full bg-[linear-gradient(135deg,#1E0B5E,#8B1A6B,#E8185A)] px-4 py-1.5 text-[0.7rem] font-black uppercase tracking-[0.12em] text-white">
+                    {card.badge}
+                  </span>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#FDF5F8] px-5 py-20 text-center sm:px-8 lg:py-28">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mx-auto max-w-3xl break-keep text-4xl font-black leading-tight tracking-[-0.06em] text-[#1A0A2E] [word-break:keep-all] sm:text-6xl">
+            {storyCopy.pointsTitle}
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl break-keep text-lg font-semibold leading-8 text-[#5A2A4A] [word-break:keep-all]">
+            {storyCopy.pointsBody}
+          </p>
+          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            {storyCopy.pointsOptions.map((option, index) => (
+              <article
+                className="rounded-[28px] border-2 border-[#f8bbd9] bg-white p-6 shadow-[0_18px_48px_rgba(139,26,107,0.08)]"
+                key={option.title}
+              >
+                <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[#fde8f2] text-lg font-black text-[#c2185b] ring-1 ring-[#f8bbd9]">
+                  {index + 1}
+                </span>
+                <h3 className="mt-5 text-xl font-black tracking-[-0.035em] text-[#1A0A2E]">
+                  {option.title}
+                </h3>
+                <p className="mt-2 break-keep text-sm font-semibold leading-6 text-[#5A2A4A] [word-break:keep-all]">
+                  {option.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-5 py-20 sm:px-8 lg:py-28">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.86fr_1.14fr]">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#c2185b]">
+              TRUST
+            </p>
+            <h2 className="mt-4 break-keep text-4xl font-black leading-tight tracking-[-0.055em] text-[#1A0A2E] [word-break:keep-all] sm:text-6xl">
+              {storyCopy.trustTitle}
+            </h2>
+            <p className="mt-5 break-keep text-base font-semibold leading-8 text-[#5A2A4A] [word-break:keep-all]">
+              {storyCopy.trustBody}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {storyCopy.trustCards.map((card, index) => {
+              const Icon = index === 0 ? WalletCards : ShieldCheck;
+
+              return (
+                <article
+                  className="rounded-[28px] border-2 border-[#f8bbd9] bg-[#fde8f2] p-6 transition hover:border-[#e8185a] hover:bg-white hover:shadow-[0_22px_60px_rgba(194,24,91,0.10)]"
+                  key={card.title}
+                >
+                  <span className="flex size-12 items-center justify-center rounded-2xl bg-white text-[#c2185b] ring-1 ring-[#f8bbd9]">
+                    <Icon className="size-6" />
+                  </span>
+                  <h3 className="mt-5 break-keep text-2xl font-black tracking-[-0.04em] text-[#1A0A2E] [word-break:keep-all]">
+                    {card.title}
+                  </h3>
+                  <p className="mt-3 break-keep text-sm font-semibold leading-6 text-[#5A2A4A] [word-break:keep-all]">
+                    {card.body}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#0D0520,#1E0B5E,#8B1A6B,#C2185B)] px-5 py-20 text-center text-white sm:px-8 lg:py-28">
+        <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_18%_30%,white_1px,transparent_1.5px),radial-gradient(circle_at_70%_60%,white_1px,transparent_1.5px)] [background-size:100px_100px,150px_150px]" />
+        <div className="relative z-10 mx-auto max-w-3xl">
+          <h2 className="break-keep text-4xl font-black leading-tight tracking-[-0.055em] [word-break:keep-all] sm:text-6xl">
+            {storyCopy.finalTitle}
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl break-keep text-lg font-semibold leading-8 text-white/74 [word-break:keep-all]">
+            {storyCopy.finalBody}
+          </p>
+          <Link
+            className="mt-9 inline-flex min-h-14 items-center justify-center rounded-full bg-white px-8 text-base font-black text-[#1E0B5E] shadow-[0_16px_42px_rgba(0,0,0,0.26)] transition hover:-translate-y-0.5"
+            href={activationHref}
+            style={{ color: "#1E0B5E" }}
+          >
+            {copy.primaryCta}
+            <ArrowRight className="ml-2 size-4" />
+          </Link>
+          <p className="mt-6 break-keep text-xs font-semibold leading-6 text-white/50 [word-break:keep-all]">
+            {serviceCopy.notice}
+          </p>
+        </div>
+      </section>
+
+      <footer className="bg-[#0D0520] px-5 py-10 text-white sm:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Link className="text-2xl font-black tracking-[-0.06em]" href={languageHref(landingLanguage)}>
+            1066<span className="text-[#e8185a]">friend+</span>
+          </Link>
+          <p className="break-keep text-sm font-semibold text-white/48 [word-break:keep-all]">
+            {storyCopy.footerTagline}
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
