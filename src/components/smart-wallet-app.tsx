@@ -3001,7 +3001,7 @@ function ActivationSeparationCard({
         variant === "compact" ? "p-3.5 sm:p-4" : "p-4 sm:p-5",
       )}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/85 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-emerald-900">
             <ShieldCheck className="size-3.5" />
@@ -3015,7 +3015,7 @@ function ActivationSeparationCard({
           </p>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-3 lg:w-[430px] lg:shrink-0">
+        <div className="grid gap-2 sm:grid-cols-3">
           {copy.separationPoints.map((point, index) => {
             const Icon =
               index === 0 ? WalletMinimal : index === 1 ? Sparkles : Users;
