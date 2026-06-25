@@ -234,6 +234,13 @@ const COUNT_OPTIONS = [1, 2, 3, 4];
 const MAX_GARMENTS = 4;
 const BATCH_MAX = 8;
 
+// Hosted sample garments so a first-timer can try without their own photo.
+const SAMPLE_GARMENTS = [
+  "https://t0gqytzvlsa2lapo.public.blob.vercel-storage.com/lookbook-samples/blush-top-VMy5f0i7U0eaV6LkSqU8oF29lVMBZG.png",
+  "https://t0gqytzvlsa2lapo.public.blob.vercel-storage.com/lookbook-samples/navy-dress-mkLjCwuVpBsjdD6z1thQptyQzH4N08.png",
+  "https://t0gqytzvlsa2lapo.public.blob.vercel-storage.com/lookbook-samples/olive-knit-QPwBtiULILpVyzOF9dENpO9Bd5hXWo.png",
+];
+
 const FIELD_INPUT =
   "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#44f26e]";
 
@@ -1480,6 +1487,32 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 {garmentImageUrls.length}/{MAX_GARMENTS}
               </span>
             </div>
+            {garmentImageUrls.length === 0 ? (
+              <div className="mt-3 border-t border-black/5 pt-3">
+                <p className="mb-2 text-[11px] font-bold text-neutral-400">
+                  {locale === "en"
+                    ? "No photo yet? Try with a sample"
+                    : "사진이 없나요? 샘플 옷으로 해보기"}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SAMPLE_GARMENTS.map((url) => (
+                    <button
+                      className="h-16 w-12 overflow-hidden rounded-xl ring-1 ring-black/10 transition hover:ring-2 hover:ring-[#44f26e]"
+                      key={url}
+                      onClick={() => setGarmentText(url)}
+                      type="button"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt="sample garment"
+                        className="h-full w-full object-cover"
+                        src={url}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </section>
 
           {/* Advanced options — hidden by default to keep the first run simple */}
