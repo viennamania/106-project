@@ -168,7 +168,7 @@ function getCopy(locale: Locale) {
       syncApiSaving: "동기화 중",
       syncApiTitle: "최근 TikTok 영상",
       syncContextPacketBody:
-        "최근 영상 성과가 AI 스타 콘텐츠 Context로 저장되고 AgentRank 활동 기록으로 이어집니다.",
+        "최근 영상 성과가 AI 스타 콘텐츠 맥락으로 저장되고 AgentRank 활동 기록으로 이어집니다.",
       syncContextPacketTitle: "콘텐츠 Context 패킷",
       syncResult: "활동 기록 생성됨",
       syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
