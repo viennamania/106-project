@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Clapperboard,
@@ -10,8 +9,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
-import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { FanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import type { Locale } from "@/lib/i18n";
@@ -83,10 +81,6 @@ export function FanletterAIStarChannelPage({
   const latestItem = data.items[0] ?? null;
   const heroImageUrl = latestItem?.coverImageUrl ?? avatarUrl;
   const effectiveReferralCode = referralCode ?? profile.referralCode;
-  const discoveryHref = buildPathWithReferral(
-    `/${locale}/fanletter/discovery`,
-    effectiveReferralCode,
-  );
   const universeHref = buildPathWithReferral(
     `/${locale}/fanletter/${profile.referralCode}`,
     effectiveReferralCode,
@@ -116,36 +110,12 @@ export function FanletterAIStarChannelPage({
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-zinc-950 sm:pb-0">
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <Link
-          className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-950 shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
-          href={discoveryHref}
-        >
-          <ArrowLeft className="size-4 shrink-0" />
-          <span className="truncate">{copy.back}</span>
-        </Link>
-        <div className="flex min-w-0 items-center gap-2">
-          <FanletterGlobalLanguageSwitcher
-            className="inline-flex sm:hidden"
-            compact
-            locale={locale}
-            surface="light"
-            tight
-          />
-          <FanletterGlobalLanguageSwitcher
-            className="hidden sm:inline-flex"
-            compact
-            locale={locale}
-            surface="light"
-          />
-          <FanletterAccountStatusLink
-            className="max-w-[8.5rem] sm:max-w-[14rem]"
-            locale={locale}
-            referralCode={effectiveReferralCode}
-            surface="light"
-          />
-        </div>
-      </header>
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+        <FanletterPrimaryHeader
+          locale={locale}
+          referralCode={effectiveReferralCode}
+        />
+      </div>
 
       <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:px-8">
         <div className="relative min-h-[25rem] overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-[linear-gradient(150deg,#0c1f14_0%,#0a1510_100%)] shadow-[0_24px_72px_rgba(15,23,42,0.16)]">
