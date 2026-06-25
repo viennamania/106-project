@@ -39,7 +39,7 @@ const enCopy: TerminologyCopy = {
       title: "AI Star Universe",
     },
     {
-      body: "6-level invite and CP structure",
+      body: "6-level invite and Contribution Points structure",
       Icon: Network,
       title: "Founder Network",
     },
@@ -65,7 +65,7 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
         title: "AI 스타 유니버스",
       },
       {
-        body: "6단계 초대/CP 구조",
+        body: "6단계 초대/기여 포인트 구조",
         Icon: Network,
         title: "파운더 네트워크",
       },

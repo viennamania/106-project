@@ -23,13 +23,13 @@ function getGenealogyCopy(locale: Locale) {
     return {
       aiStar: "AI STAR",
       backfilled: "계보 백필",
-      backfilledCp: "CP 보상 백필",
+      backfilledCp: "기여 포인트 보상 백필",
       childStars: "파생 스타",
       depth: "Depth",
       edgeCount: "연결",
       generated: "Live genealogy",
       heroSubtitle:
-        "기존 회원 Universe 관계를 기준으로 AI 스타 부모-자식 계보와 CP Pool 보상 흐름을 연결했습니다.",
+        "기존 회원 Universe 관계를 기준으로 AI 스타 부모-자식 계보와 기여 포인트 풀 보상 흐름을 연결했습니다.",
       heroTitle: "AI 스타 계보 맵",
       lineage: "대표 계보",
       owner: "Creator ID",
@@ -47,13 +47,13 @@ function getGenealogyCopy(locale: Locale) {
   return {
     aiStar: "AI STAR",
     backfilled: "Genealogy Backfill",
-    backfilledCp: "CP Reward Backfill",
+    backfilledCp: "Contribution Point Reward Backfill",
     childStars: "Spawned Stars",
     depth: "Depth",
     edgeCount: "Links",
     generated: "Live genealogy",
     heroSubtitle:
-      "AI Star parent-child lineage and CP Pool rewards are connected from existing Founder Network data.",
+      "AI Star parent-child lineage and Contribution Point Pool rewards are connected from existing Founder Network data.",
     heroTitle: "AI Star Genealogy Map",
     lineage: "Featured Lineage",
     owner: "Creator ID",

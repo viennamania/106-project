@@ -654,7 +654,7 @@ function FanletterAgentRankHomeCard({
   const isKo = locale === "ko";
   const copy = isKo
     ? {
-        body: "발견, 참여, 초대, CP 보상이 활동 기록으로 쌓입니다.",
+        body: "발견, 참여, 초대, 기여 포인트 보상이 활동 기록으로 쌓입니다.",
         cta: "AgentRank 보기",
         events: "활동 기록",
         network: "네트워크",
@@ -662,7 +662,7 @@ function FanletterAgentRankHomeCard({
       }
     : {
         body:
-          "Discovery, joins, invites, and CP rewards are recorded as AgentRank reputation events.",
+          "Discovery, joins, invites, and Contribution Point rewards are recorded as AgentRank reputation events.",
         cta: "View AgentRank",
         events: "Reputation Events",
         network: "Network",
@@ -681,7 +681,7 @@ function FanletterAgentRankHomeCard({
       value: snapshot.ers.summary.networkEdges,
     },
     {
-      label: "CP",
+      label: isKo ? "기여 포인트" : "Contribution Points",
       value: snapshot.ers.summary.cpTotal,
     },
   ];
@@ -808,7 +808,7 @@ function FanletterProductHomeDashboard({
       suffix: isKo ? "명" : "",
     },
     {
-      label: "CP",
+      label: isKo ? "기여 포인트" : "Contribution Points",
       value: memberPortfolio?.cpBalance ?? 0,
       suffix: "",
     },
@@ -881,7 +881,7 @@ function FanletterProductHomeDashboard({
         actionResult: "Open detail to join",
         aiStarBadge: "AI STAR",
         eventResult: "AI Star Discovery event",
-        resultDetail: "Discovery signal is saved as a reputation record.",
+        resultDetail: "Discovery signal is saved as a activity record.",
         unlocked: "Unlocked",
         universeMap: "AI Star Universe Map",
       };
@@ -946,7 +946,7 @@ function FanletterProductHomeDashboard({
                   subtitle={
                     isKo
                       ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 활동 기록으로 쌓입니다."
-                      : "Start by choosing a growing AI Star. Discovery and joins become reputation records."
+                      : "Start by choosing a growing AI Star. Discovery and joins become activity records."
                   }
                   title={
                     isKo
@@ -1418,7 +1418,7 @@ export function FanletterHomePage({
           kicker: "Next paths",
           mockPayment: "No real payment",
           myAi: "My AI",
-          reputation: "Actions become reputation records",
+          reputation: "Actions become activity records",
           title: "Where to next?",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";

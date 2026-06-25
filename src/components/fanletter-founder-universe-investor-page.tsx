@@ -45,9 +45,9 @@ function getInvestorCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       benefits: [
-        "AI 스타 탄생 기여 → CP 획득",
-        "파운더 네트워크 성장 기여 → 추가 CP",
-        "CP로 보상과 권한 사용 가능",
+        "AI 스타 탄생 기여 → 기여 포인트 획득",
+        "파운더 네트워크 성장 기여 → 추가 기여 포인트",
+        "기여 포인트로 보상과 권한 사용 가능",
         "더 많은 AI 스타 탄생 → 더 큰 보상 기회",
       ],
       benefitsTitle: "회원 혜택 요약",
@@ -59,15 +59,15 @@ function getInvestorCopy(locale: Locale) {
         { cp: 10000, label: "실물 굿즈 교환" },
         { cp: 2000, label: "이벤트 VIP 초대권" },
       ],
-      cpUseTitle: "CP 사용처 예시",
+      cpUseTitle: "기여 포인트 사용처 예시",
       generated: "Live data",
       globalTitle: "플랫폼 라이브 지표",
       heroSubtitle:
         "AI 스타의 탄생부터 성장까지, 파운더와 함께 만드는 가치 생태계",
       heroTitle: "파운더 네트워크 AI 스타 인큐베이터 모델",
       modelPill1: "현금 분배 NO",
-      modelPill1Body: "모든 보상은 CP로 지급",
-      modelPill2: "기여도 보상 CP",
+      modelPill1Body: "모든 보상은 기여 포인트로 지급",
+      modelPill2: "기여도 보상 기여 포인트",
       modelPill2Body: "성장과 신규 스타 탄생 기여 보상",
       modelPill3: "AI 스타 유니버스 확장",
       modelPill3Body: "새 AI 스타가 탄생할수록 가치 확장",
@@ -83,7 +83,7 @@ function getInvestorCopy(locale: Locale) {
       spawnedPreviewNote: "실제 spawned 0개 · live AI 스타 유니버스 데이터 기반",
       cpPoolTitle: "CP 보상 풀 생성 및 분배",
       cpPoolBody:
-        "신규 AI 스타 생성 시 CP Pool이 생성되어 상위 네트워크 기여도에 따라 분배",
+        "신규 AI 스타 생성 시 Contribution Point Pool이 생성되어 상위 네트워크 기여도에 따라 분배",
       newStarTitle: "새로운 AI 스타 탄생",
       memberCreates: "회원이 새로운 AI 스타를 창업",
       more: "더보기",
@@ -104,16 +104,16 @@ function getInvestorCopy(locale: Locale) {
       growth: "성장",
       founderCount: "파운더",
       allocatedCp: "분배 완료",
-      cpPoolGenerated: "CP Pool 생성",
+      cpPoolGenerated: "Contribution Point Pool 생성",
       topUniverses: "Top AI 스타 유니버스",
     };
   }
 
   return {
     benefits: [
-      "Contribute to AI Star launch → earn CP",
-      "Grow an AI Star Universe → earn additional CP",
-      "Use CP for rewards and privileges",
+      "Contribute to AI Star launch → earn Contribution Points",
+      "Grow an AI Star Universe → earn additional Contribution Points",
+      "Use Contribution Points for rewards and privileges",
       "More AI Stars → more reward opportunities",
     ],
     benefitsTitle: "Member Benefit Summary",
@@ -125,14 +125,14 @@ function getInvestorCopy(locale: Locale) {
       { cp: 10000, label: "Physical goods" },
       { cp: 2000, label: "Event VIP invite" },
     ],
-    cpUseTitle: "Example CP Uses",
+    cpUseTitle: "Example Contribution Point Uses",
     generated: "Live data",
     globalTitle: "Platform Live Metrics",
     heroSubtitle:
       "A value ecosystem where Founders help AI Stars launch and grow",
     heroTitle: "Founder Network AI Star Incubation Model",
     modelPill1: "No Cash Distribution",
-    modelPill1Body: "Rewards are paid as CP",
+    modelPill1Body: "Rewards are paid as Contribution Points",
     modelPill2: "Contribution CP",
     modelPill2Body: "Rewarding growth and new AI Star creation",
     modelPill3: "AI Star Universe Expansion",
@@ -147,9 +147,9 @@ function getInvestorCopy(locale: Locale) {
     spawnedLiveBadge: "LIVE spawned",
     spawnedPreviewBadge: "Expansion preview",
     spawnedPreviewNote: "No live spawned stars yet · based on live AI Star Universe data",
-    cpPoolTitle: "CP Pool Generation and Distribution",
+    cpPoolTitle: "Contribution Point Pool Generation and Distribution",
     cpPoolBody:
-      "When a new AI Star launches, a CP Pool is generated and distributed to the upline network by contribution.",
+      "When a new AI Star launches, a Contribution Point Pool is generated and distributed to the upline network by contribution.",
     newStarTitle: "New AI Star Launch",
     memberCreates: "Member launches a new AI Star",
     more: "More",
@@ -170,7 +170,7 @@ function getInvestorCopy(locale: Locale) {
     growth: "Growth",
     founderCount: "Founder",
     allocatedCp: "allocated",
-    cpPoolGenerated: "CP Pool Generated",
+    cpPoolGenerated: "Contribution Point Pool Generated",
     topUniverses: "Top Universe",
   };
 }

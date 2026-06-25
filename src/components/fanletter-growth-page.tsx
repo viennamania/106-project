@@ -43,7 +43,7 @@ function getCopy(locale: Locale) {
       eventBody: "참여, 추천, TikTok 연결, 출시 의도가 AgentRank 기록으로 쌓입니다.",
       eventCta: "활동 기록 보기",
       founder: "파운더 네트워크",
-      founderBody: "참여 중인 AI 스타 유니버스 안에서 추천 링크와 CP를 관리합니다.",
+      founderBody: "참여 중인 AI 스타 유니버스 안에서 추천 링크와 기여 포인트를 관리합니다.",
       founderCta: "참여 네트워크 보기",
       heroBody:
         "성장은 파운더 참여, 추천 공유, 크리에이터 권한 활성화, 활동 기록으로 이어지는 하나의 흐름입니다.",
@@ -92,10 +92,10 @@ function getCopy(locale: Locale) {
     eventCta: "View Reputation Records",
     founder: "Founder Network",
     founderBody:
-      "Manage referral links and CP inside the AI Star Universes you joined.",
+      "Manage referral links and Contribution Points inside the AI Star Universes you joined.",
     founderCta: "View Joined Networks",
     heroBody:
-      "Growth connects Founder participation, referral sharing, Creator permission activation, and reputation records.",
+      "Growth connects Founder participation, referral sharing, Creator permission activation, and activity records.",
     heroEyebrow: "Growth Hub",
     heroTitle: "Choose your next action",
     metrics: {

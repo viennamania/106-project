@@ -95,7 +95,7 @@ function getCopy(locale: Locale) {
       terminologyPill: "AI 스타 유니버스 / 파운더 네트워크",
       universeCta: "AI 스타 유니버스 보기",
       metrics: {
-        cp: "CP",
+        cp: "기여 포인트",
         creatorStars: "운영 AI 스타",
         eligibility: "크리에이터 진행률",
         founderNetworks: "참여 네트워크",
@@ -158,7 +158,7 @@ function getCopy(locale: Locale) {
       mockMembershipTitle: "Mock Founder join reflected",
       myAiEntry: {
         body:
-          "You entered from My AI. Review TikTok, content, and reputation record status first.",
+          "You entered from My AI. Review TikTok, content, and activity record status first.",
         pill: "My AI entry",
         title: "Manage operated AI Stars",
       },
@@ -175,7 +175,7 @@ function getCopy(locale: Locale) {
     terminologyPill: "AI Star Universe / Founder Network",
     universeCta: "View AI Star Universe",
     metrics: {
-      cp: "CP",
+      cp: "Contribution Points",
       creatorStars: "Creator AI Stars",
       eligibility: "Creator Progress",
       founderNetworks: "Founder Networks",
@@ -486,8 +486,8 @@ function MockFounderMembershipSummary({
                 </span>
                 <span className="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[0.62rem] font-semibold text-emerald-800">
                   {locale === "ko"
-                    ? "CP +100 · 영향력 +5 · 크리에이터 +2%"
-                    : "CP +100 · Influence +5 · Creator +2%"}
+                    ? "기여 포인트 +100 · 영향력 +5 · 크리에이터 +2%"
+                    : "Contribution Points +100 · Influence +5 · Creator +2%"}
                 </span>
               </span>
               <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-emerald-700 px-3 text-xs font-semibold text-white">

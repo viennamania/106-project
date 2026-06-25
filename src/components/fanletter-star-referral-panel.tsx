@@ -173,7 +173,7 @@ function ReferralShareOutcomeCard({
   }`;
   const labels = isKorean
     ? {
-        cp: "CP 보상",
+        cp: "기여 포인트 보상",
         creator: "크리에이터 진행",
         creatorCta: "크리에이터 여정",
         event: "활동 기록",
@@ -186,24 +186,24 @@ function ReferralShareOutcomeCard({
           "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
         readyBody:
-          "새 파운더가 이 링크로 참여하면 CP와 크리에이터 진행률이 이어집니다.",
+          "새 파운더가 이 링크로 참여하면 기여 포인트와 크리에이터 진행률이 이어집니다.",
         readyTitle: "추천 공유 기록 생성됨",
       }
     : {
-        cp: "CP reward",
+        cp: "Contribution Point reward",
         creator: "Creator progress",
         creatorCta: "Creator Journey",
         event: "Activity record",
         influence: "Influence",
         ledgerCta: "View records",
         nextBody:
-          "The share record feeds referral rewards, Creator progress, and reputation records.",
+          "The share record feeds referral rewards, Creator progress, and activity records.",
         nextTitle: "Next actions",
         pendingBody:
           "Copy the link or share to SNS to create a referral share record.",
         pendingTitle: "Share pending",
         readyBody:
-          "When a new Founder joins through this link, CP and Creator progress continue.",
+          "When a new Founder joins through this link, Contribution Points and Creator progress continue.",
         readyTitle: "Referral share recorded",
       };
 
@@ -272,8 +272,8 @@ function ReferralShareOutcomeCard({
 
       <p className="mt-3 rounded-lg bg-white/78 px-3 py-2 text-[0.68rem] font-semibold leading-4 text-zinc-600 [word-break:keep-all]">
         {isKorean
-          ? "추천 공유 → CP 보상 → Creator 조건 반영"
-          : "Referral share → CP reward → Creator condition update"}
+          ? "추천 공유 → 기여 포인트 보상 → Creator 조건 반영"
+          : "Referral share → Contribution Point reward → Creator condition update"}
       </p>
 
       {hasSharedReferral ? (

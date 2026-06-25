@@ -750,7 +750,7 @@ export function MemberPortfolio({
         contentReady: "콘텐츠 준비",
         contentSurface: "콘텐츠",
         founderBody:
-          "AI 스타 유니버스 안에서 내가 가진 초대, CP, 파운더 네트워크 역할입니다.",
+          "AI 스타 유니버스 안에서 내가 가진 초대, 기여 포인트, 파운더 네트워크 역할입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "참여 역할",
         founderTitle: "참여 중인 파운더 네트워크",
@@ -772,7 +772,7 @@ export function MemberPortfolio({
         contentReady: "Content ready",
         contentSurface: "Content",
         founderBody:
-          "Invitation, CP, and Founder Network roles held inside AI Star Universes.",
+          "Invitation, Contribution Points, and Founder Network roles held inside AI Star Universes.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
         founderEyebrow: "Participation roles",
         founderTitle: "Founder Networks I joined",

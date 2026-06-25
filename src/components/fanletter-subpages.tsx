@@ -10360,13 +10360,13 @@ export function FanletterOnboardingPage({
               "계정 연결 후 Founder 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
             asideTitle: "Founder 참여 준비",
             completeBody:
-              "계정 연결, Founder 귀속 확인, 추천 링크 공유까지 이어지면 CP와 영향력 적립 흐름을 확인할 수 있습니다.",
+              "계정 연결, Founder 귀속 확인, 추천 링크 공유까지 이어지면 기여 포인트와 영향력 적립 흐름을 확인할 수 있습니다.",
             completeTitle: "Founder 참여 체크리스트",
             description: `${founderUniverseName} Founder 참여, 추천 코드 생성, SNS 공유까지 한 흐름으로 이어가세요.`,
             eyebrow: "Founder Club 온보딩",
             feedCta: "Founder Club 보기",
             helper:
-              "Founder Club에서 내 역할, 추천 링크, CP, 영향력, Creator 진행률을 관리합니다.",
+              "Founder Club에서 내 역할, 추천 링크, 기여 포인트, 영향력, Creator 진행률을 관리합니다.",
             homeCta: "AI 스타 유니버스 보기",
             primaryCta: "계정 연결",
             progress: "Founder 진행",
@@ -10417,13 +10417,13 @@ export function FanletterOnboardingPage({
               "Connect the account, confirm Founder attribution, then create and share the referral link from the Star detail page.",
             asideTitle: "Founder join setup",
             completeBody:
-              "After account connection, Founder attribution, and referral sharing, the CP and influence reward flow is ready to preview.",
+              "After account connection, Founder attribution, and referral sharing, the Contribution Points and influence reward flow is ready to preview.",
             completeTitle: "Founder join checklist",
             description: `Continue through ${founderUniverseName} Founder join, referral code creation, and SNS sharing.`,
             eyebrow: "Founder Club Onboarding",
             feedCta: "View Founder Club",
             helper:
-              "Manage your roles, referral links, CP, influence, and Creator progress in Founder Club.",
+              "Manage your roles, referral links, Contribution Points, influence, and Creator progress in Founder Club.",
             homeCta: "View AI Star Universe",
             primaryCta: "Connect and join",
             progress: "Founder progress",

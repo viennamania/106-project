@@ -24,7 +24,7 @@ function getCopy(locale: Locale) {
         "계정 연결이 확인되었습니다. 파운더 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
       connectedTitle: "파운더 참여 확정 대기",
       completedBody:
-        "이미 이 AI 스타 유니버스의 파운더입니다. 내 추천 링크로 새 파운더를 초대하면 CP와 영향력이 누적됩니다.",
+        "이미 이 AI 스타 유니버스의 파운더입니다. 내 추천 링크로 새 파운더를 초대하면 기여 포인트와 영향력이 누적됩니다.",
       completedTitle: "파운더 가입 완료",
       founderBadge: "파운더",
       founderClubLabel: "파운더 클럽 2.0",
@@ -40,7 +40,7 @@ function getCopy(locale: Locale) {
       title: "파운더 참여 귀속",
       universeCta: "AI 스타 유니버스 보기",
       rewards: {
-        cp: "CP",
+        cp: "기여 포인트",
         creatorProgress: "크리에이터 진행률",
         influence: "영향력",
         title: "적립 보상",
@@ -56,7 +56,7 @@ function getCopy(locale: Locale) {
       "Your account is connected. Confirm Founder join to save membership and referral code for this AI Star Universe.",
     connectedTitle: "Founder join pending",
     completedBody:
-      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow CP and influence.",
+      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow Contribution Points and influence.",
     completedTitle: "Founder join complete",
     founderBadge: "FOUNDER",
     founderClubLabel: "Founder Club 2.0",
@@ -72,7 +72,7 @@ function getCopy(locale: Locale) {
     title: "Founder join attribution",
     universeCta: "View AI Star Universe",
     rewards: {
-      cp: "CP",
+      cp: "Contribution Points",
       creatorProgress: "Creator Progress",
       influence: "Influence",
       title: "Earned Rewards",

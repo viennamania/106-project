@@ -151,7 +151,7 @@ function getLaunchPageCopy(locale: Locale) {
       heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
       loginNoticeBody:
-        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 파운더 역할, CP, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
+        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 파운더 역할, 기여 포인트, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
       loginNoticeTitle: "내 크리에이터 권한 상태를 보려면 계정 연결이 필요합니다",
       mockActivation: "미리보기 활성화",
       mockNotice:
@@ -179,9 +179,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "이 브라우저의 미리보기 파운더 참여 내역을 크리에이터 권한 조건에 반영했습니다.",
       sourceSelectBody:
-        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP 풀은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
+        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. 기여 포인트 풀은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
       sourceSelectTitle: "창업 출처 AI 스타 유니버스 선택",
-      sourcePool: "CP 풀 분배 기준",
+      sourcePool: "기여 포인트 풀 분배 기준",
       source: "출처 AI 스타 유니버스",
       submit: "미리보기 생성 준비 완료",
       subtitle: "실제 결제 전",
@@ -209,7 +209,7 @@ function getLaunchPageCopy(locale: Locale) {
       heroTitle: "Founders grow into Creators who launch new AI Stars",
       loginCta: "Connect account to view my data",
       loginNoticeBody:
-        "This screen is sample data. Connect your email account to switch to your Founder roles, CP, invites, and launchable AI Stars.",
+        "This screen is sample data. Connect your email account to switch to your Founder roles, Contribution Points, invites, and launchable AI Stars.",
       loginNoticeTitle: "Connect an account to view your Creator Unlock status",
       mockActivation: "Mock activation",
       mockNotice:
@@ -237,9 +237,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
       sourceSelectBody:
-        "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected AI Star Universe upline.",
+        "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
       sourceSelectTitle: "Select launch source AI Star Universe",
-      sourcePool: "CP Pool basis",
+      sourcePool: "Contribution Point Pool basis",
       source: "Source AI Star Universe",
       submit: "Mock launch ready",
       subtitle: "Before real payment",
@@ -266,7 +266,7 @@ function getLaunchPageCopy(locale: Locale) {
     heroTitle: "Creator unlock status",
     loginCta: "Connect account to view my data",
     loginNoticeBody:
-      "This screen is sample data. Connect your email account to switch to your Founder roles, CP, invites, and launchable AI Stars.",
+      "This screen is sample data. Connect your email account to switch to your Founder roles, Contribution Points, invites, and launchable AI Stars.",
     loginNoticeTitle: "Connect an account to view your Creator Unlock status",
     mockActivation: "Mock activation",
     mockNotice:
@@ -294,9 +294,9 @@ function getLaunchPageCopy(locale: Locale) {
     rewardBody:
       "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
     sourceSelectBody:
-      "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected AI Star Universe upline.",
+      "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
     sourceSelectTitle: "Select launch source AI Star Universe",
-    sourcePool: "CP Pool basis",
+    sourcePool: "Contribution Point Pool basis",
     source: "Source AI Star Universe",
     submit: "Mock launch ready",
     subtitle: "Before real payment",
@@ -1627,7 +1627,7 @@ function MockLaunchEventReceiptCard({
   const labels = isKorean
     ? {
         amount: "10 USDT 미리보기",
-        cpPool: "CP 풀 출처",
+        cpPool: "기여 포인트 풀 출처",
         draft: "생성된 초안",
         event: hasLaunch ? "생성된 활동 기록" : "생성될 활동 기록",
         payment: "실제 결제 없음",
@@ -1637,9 +1637,9 @@ function MockLaunchEventReceiptCard({
       }
     : {
         amount: "10 USDT mock",
-        cpPool: "CP Pool source",
+        cpPool: "Contribution Point Pool source",
         draft: "Created draft",
-        event: hasLaunch ? "Activity records" : "Pending reputation records",
+        event: hasLaunch ? "Activity records" : "Pending activity records",
         payment: "No real payment",
         pendingName: "AI Star draft pending",
         source: "Launch source",
@@ -1696,7 +1696,7 @@ function MockLaunchEventReceiptCard({
           {[
             getCreatorJourneyReputationLabel("x402_mock_payment_intent", locale),
             getCreatorJourneyReputationLabel("ai_star_spawned", locale),
-            isKorean ? "CP 풀 생성 기록" : "CP pool generated",
+            isKorean ? "기여 포인트 풀 생성 기록" : "Contribution Point pool generated",
           ].map((eventLabel) => (
             <span
               className="min-w-0 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center text-[0.66rem] font-semibold leading-tight text-zinc-700 [word-break:keep-all]"
@@ -1754,7 +1754,7 @@ function LaunchReadinessSignpost({
       }
     : {
         body:
-          "Confirm the launch source AI Star Universe, 10 USDT mock intent, and reputation records.",
+          "Confirm the launch source AI Star Universe, 10 USDT mock intent, and activity records.",
         cta: requiresSourceUniverse
           ? copy.noSourcePrimary
           : isPreviewMode
@@ -2204,7 +2204,7 @@ function CreatorFounderRelationshipGuide({
         creatorEmpty: "운영 중인 AI 스타 없음",
         creatorEyebrow: "크리에이터 / 운영자 관계",
         creatorTitle: "내가 운영하는 AI 스타",
-        founderBody: "선택한 AI 스타 유니버스 안의 6단계 초대/역할/CP 기준입니다.",
+        founderBody: "선택한 AI 스타 유니버스 안의 6단계 초대/역할/기여 포인트 기준입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "파운더 네트워크 관계",
         founderTitle: "창업 출처 역할",
@@ -2220,7 +2220,7 @@ function CreatorFounderRelationshipGuide({
         creatorEyebrow: "Creator / Owner relationship",
         creatorTitle: "AI Stars I operate",
         founderBody:
-          "The 6-tier invite, role, and CP structure inside the selected AI Star Universe.",
+          "The 6-tier invite, role, and Contribution Points structure inside the selected AI Star Universe.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
         founderEyebrow: "Founder Network relationship",
         founderTitle: "Launch source role",
@@ -2556,7 +2556,7 @@ function CreatorJourneyEventPath({
         source: "Source",
         subtitle:
           "The selected AI Star Universe becomes the source of the new AI Star creation record.",
-        title: "How actions become reputation records",
+        title: "How actions become activity records",
       };
   const steps = [
     {
@@ -2944,7 +2944,7 @@ function CreatorTikTokContextBridgeCard({
           subtitle:
             "TikTokチャンネルはCreator Journey条件を超えて、コンテンツ成果をAgentRank評判記録に変える入力元になります。",
           subtitleWaiting:
-            "Connect the selected AI Star official channel, not a personal member account, so content performance can become reputation records.",
+            "Connect the selected AI Star official channel, not a personal member account, so content performance can become activity records.",
           title: "TikTok connection expands into content context",
           titleWaiting: "TikTok connection starts content context",
         }
@@ -2966,7 +2966,7 @@ function CreatorTikTokContextBridgeCard({
           subtitle:
             "The TikTok channel now becomes an input source for turning content performance into AgentRank Reputation Records.",
           subtitleWaiting:
-            "Connect the selected AI Star's official channel, not a personal member account, so content performance can become reputation records.",
+            "Connect the selected AI Star's official channel, not a personal member account, so content performance can become activity records.",
           title: "TikTok connection expands into content context",
           titleWaiting: "TikTok connection starts content context",
         };
@@ -4066,8 +4066,8 @@ export function FanletterCreatorUnlockPage({
       ]}
       subtitle={
         locale === "ko"
-          ? "선택한 AI 스타 유니버스가 창업 출처로 저장되고, 이후 CP 풀과 활동 기록으로 이어집니다."
-          : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and reputation records."
+          ? "선택한 AI 스타 유니버스가 창업 출처로 저장되고, 이후 기여 포인트 풀과 활동 기록으로 이어집니다."
+          : "A new AI Star records the selected AI Star Universe as its launch source, then feeds the Contribution Point Pool and activity records."
       }
       title={
         creatorUnlockNextTitle
