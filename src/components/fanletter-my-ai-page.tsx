@@ -400,7 +400,21 @@ export function FanletterMyAIPage({
         />
 
         {ownedStars.length > 0 ? (
-          <section className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <section className="min-w-0">
+            <div className="mb-3 flex min-w-0 items-start gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950 ring-1 ring-zinc-200">
+                <Bot className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  {copy.creator}
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
+                  {copy.heroTitle}
+                </h2>
+              </div>
+            </div>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             {sortedOwnedStars.map((ownedStar) => {
               const star = starsById.get(ownedStar.id);
               const account = resolveSocialAccount(ownedStar.id);
@@ -519,6 +533,7 @@ export function FanletterMyAIPage({
                 </article>
               );
             })}
+            </div>
           </section>
         ) : (
           <section className="rounded-[1.2rem] border border-dashed border-zinc-300 bg-zinc-50 p-5">
