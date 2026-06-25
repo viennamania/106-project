@@ -37,7 +37,7 @@ export function buildServiceMetadata({
 export function getServiceActivateMetaDescription(locale: Locale) {
   switch (locale) {
     case "ko":
-      return "1066FRIEND+에서 회원 활성화, 내 추천 코드, 하위 회원 네트워크, 포인트, 지갑 상태를 확인하는 서비스 시작 허브입니다.";
+      return "1066FRIEND+에서 가입 완료 상태, 내 추천 코드, 하위 회원 네트워크, 포인트, 지갑 상태를 확인하는 서비스 시작 허브입니다.";
     case "ja":
       return "1066FRIEND+で会員有効化、紹介コード、下位メンバーネットワーク、ポイント、ウォレット状態を確認するサービス開始ハブです。";
     case "zh":
@@ -47,7 +47,7 @@ export function getServiceActivateMetaDescription(locale: Locale) {
     case "id":
       return "Hub mulai 1066FRIEND+ untuk memeriksa aktivasi anggota, kode referral, jaringan downline, poin, dan status wallet.";
     default:
-      return "The 1066FRIEND+ service start hub for member activation, referral codes, downline network, points, and wallet status.";
+      return "The 1066FRIEND+ service start hub for signup status, referral codes, downline network, points, and wallet status.";
   }
 }
 

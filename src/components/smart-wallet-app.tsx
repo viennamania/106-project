@@ -197,13 +197,13 @@ function getActivationSeparationCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       activationDescription:
-        "이 화면은 로그인한 회원의 지갑, 가입 결제, 서비스 이용 준비 상태를 확인하는 회원 활성화 허브입니다. 추천 가입과 포인트 보상은 아래 성장 리워드 프로그램으로 분리했습니다.",
-      activationEyebrow: "member activation",
-      activationTitle: "회원 활성화가 완료되었습니다",
+        "이 화면은 로그인한 회원의 가입 완료, 10 USDT 결제 확인, 지갑 준비 상태를 확인하는 서비스 시작 허브입니다. 추천 가입과 포인트 보상은 아래 성장 리워드 프로그램으로 분리했습니다.",
+      activationEyebrow: "signup status",
+      activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "10 USDT 가입 확인으로 계정이 활성화되었습니다. 브이로거, 팬 리포터, 뉴스 소비 활동은 각 서비스 허브에서 이어집니다.",
-      coreStatusTitle: "기본 활성화",
+        "10 USDT 결제가 확인되어 서비스 이용 상태가 완료되었습니다. 브이로거, 팬 리포터, 뉴스 소비 활동은 각 서비스 허브에서 이어집니다.",
+      coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입과 포인트는 브이로거 자격 조건이 아니라 채널 성장 활동을 기록하는 선택형 보상 영역입니다.",
       growthDirectLabel: "성장 참여",
@@ -217,29 +217,29 @@ function getActivationSeparationCopy(locale: Locale) {
       growthNetworkLabel: "성장 네트워크",
       growthTitle: "성장 리워드 프로그램",
       memberPanelDescription:
-        "회원 정보에는 가입과 지갑 활성화 상태만 표시합니다. 배치, 하위 회원, 포인트 보상은 성장 리워드 영역에서 따로 확인합니다.",
-      memberPanelTitle: "회원 활성화 상태",
+        "회원 정보에는 가입 완료와 지갑 연결 상태만 표시합니다. 배치, 하위 회원, 포인트 보상은 성장 리워드 영역에서 따로 확인합니다.",
+      memberPanelTitle: "가입 상태",
       separationDescription:
         "가입 상태, 콘텐츠 준비, 추천 보상을 각각 따로 관리해 현재 상태와 다음 행동을 분명하게 보여줍니다.",
       separationLabel: "운영 원칙",
       separationPoints: [
-        "가입/지갑 활성화",
+        "가입 완료와 지갑 연결",
         "콘텐츠 제작 자격",
         "추천 성장 리워드",
       ],
-      separationTitle: "활성화 상태를 분리해 관리합니다",
+      separationTitle: "가입 상태와 보상을 분리해 관리합니다",
     };
   }
 
   return {
     activationDescription:
-      "This screen is the member activation hub for wallet status, signup payment, and service readiness. Referral signups and points are separated into the Growth Rewards program below.",
-    activationEyebrow: "member activation",
-    activationTitle: "Member activation is complete",
+      "This screen is the service start hub for signup completion, 10 USDT payment verification, wallet status, and service readiness. Referral signups and points are separated into the Growth Rewards program below.",
+    activationEyebrow: "signup status",
+    activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "The account is active after the 10 USDT signup confirmation. Vlogger, fan reporter, and news consumption flows continue in their own service hubs.",
-    coreStatusTitle: "Core activation",
+      "The 10 USDT payment has been verified and the service account is ready. Vlogger, fan reporter, and news consumption flows continue in their own service hubs.",
+    coreStatusTitle: "Signup complete",
     growthDescription:
       "Referral signups and points are optional growth rewards, not the qualification rule for becoming a vlogger.",
     growthDirectLabel: "Growth signups",
@@ -253,17 +253,17 @@ function getActivationSeparationCopy(locale: Locale) {
     growthNetworkLabel: "Growth network",
     growthTitle: "Growth Rewards Program",
     memberPanelDescription:
-      "Member information shows signup and wallet activation only. Placement, downline members, and point rewards are handled in the growth area.",
-    memberPanelTitle: "Member activation status",
+      "Member information shows signup completion and wallet connection only. Placement, downline members, and point rewards are handled in the growth area.",
+    memberPanelTitle: "Signup status",
     separationDescription:
       "Signup status, content readiness, and referral rewards are tracked separately so the current state and next action stay clear.",
     separationLabel: "Operating rule",
     separationPoints: [
-      "Signup and wallet activation",
+      "Signup completion and wallet connection",
       "Content creator qualification",
       "Referral growth rewards",
     ],
-    separationTitle: "Activation status is managed separately",
+    separationTitle: "Signup status and rewards are managed separately",
   };
 }
 
@@ -284,18 +284,18 @@ function getActivationHubCopy(locale: Locale) {
       feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
       feedLabel: "활동 피드",
       hubLabel: "1066FRIEND+",
-      membershipDescription: "이메일 로그인, 지갑 연결, 서비스 이용료 확인을 완료합니다.",
-      membershipLabel: "회원 활성화",
+      membershipDescription: "이메일 로그인, 지갑 연결, 10 USDT 서비스 이용료 확인을 완료합니다.",
+      membershipLabel: "가입 상태",
       nextStepTitle: "필요한 것만 먼저",
       networkDescription: "내 코드로 가입한 회원과 6단계 네트워크를 관리합니다.",
       networkLabel: "추천 회원 관리",
       notReady: "설정 필요",
-      pending: "진행 중",
+      pending: "결제 확인 필요",
       pointsDescription: "추천 활동으로 쌓인 포인트와 보상 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
       primaryCompleted: "추천 링크 공유하기",
       primaryDisconnected: "이메일로 시작하기",
-      primaryPending: "회원 활성화 완료하기",
+      primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
       secondaryLabel: "내 서비스",
@@ -325,17 +325,17 @@ function getActivationHubCopy(locale: Locale) {
     hubLabel: "1066FRIEND+",
     membershipDescription:
       "Complete email login, wallet connection, and service fee confirmation.",
-    membershipLabel: "Member activation",
+    membershipLabel: "Signup status",
     nextStepTitle: "Start with these",
     networkDescription: "Manage members who joined with your code and the 6-level network.",
     networkLabel: "Referral members",
     notReady: "Setup required",
-    pending: "In progress",
+    pending: "Payment check needed",
     pointsDescription: "Review points and reward history created by referral activity.",
     pointsLabel: "Points",
     primaryCompleted: "Share referral link",
     primaryDisconnected: "Start with email",
-    primaryPending: "Complete activation",
+    primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
     secondaryLabel: "My services",
