@@ -544,6 +544,15 @@ export function SmartWalletApp({
     buildPathWithReferral(`/${locale}/activate/network`, preferredReferralCode),
     landingLanguage,
   );
+  const activateAIStarHref = setPathSearchParams(
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/activate/ai-star`, preferredReferralCode),
+      landingLanguage,
+    ),
+    {
+      returnTo: activatePageHref,
+    },
+  );
   const assetPageHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate/assets`, preferredReferralCode),
     {
@@ -1936,6 +1945,7 @@ export function SmartWalletApp({
         <AndroidInstallBanner locale={locale} />
 
         <ActivationServiceHub
+          activateAIStarHref={activateAIStarHref}
           activateNetworkHref={activateNetworkHref}
           assetManagementHref={assetManagementHref}
           assetManagementLocked={!assetWalletUnlock.isUnlocked}
@@ -2521,6 +2531,7 @@ function Panel({
 }
 
 function ActivationServiceHub({
+  activateAIStarHref,
   activateNetworkHref,
   assetManagementHref,
   assetManagementLocked,
@@ -2536,6 +2547,7 @@ function ActivationServiceHub({
   rewardsHref,
   status,
 }: {
+  activateAIStarHref: string;
   activateNetworkHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
@@ -2587,7 +2599,14 @@ function ActivationServiceHub({
     { label: copy.walletLabel, value: walletStatus },
     { label: copy.shareLabel, value: referralCode },
     ...(isSignupCompleted
-      ? [{ label: copy.aiStarIpLabel, value: aiStarIpStatus }]
+      ? [
+          {
+            actionLabel: locale === "ko" ? "관리" : "Manage",
+            href: activateAIStarHref,
+            label: copy.aiStarIpLabel,
+            value: aiStarIpStatus,
+          },
+        ]
       : []),
   ];
   const actionItems = [
@@ -2680,17 +2699,40 @@ function ActivationServiceHub({
 
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {statusItems.slice(2).map((item) => (
-                  <div
-                    className="min-w-0 rounded-2xl border border-white/10 bg-black/20 px-3 py-2"
-                    key={item.label}
-                  >
-                    <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/35">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 truncate text-sm font-semibold text-white/90">
-                      {item.value}
-                    </p>
-                  </div>
+                  item.href ? (
+                    <Link
+                      className="group min-w-0 rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-white transition hover:border-white/25 hover:bg-white/10"
+                      href={item.href}
+                      key={item.label}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="min-w-0">
+                          <span className="block truncate text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/35">
+                            {item.label}
+                          </span>
+                          <span className="mt-1 block truncate text-sm font-semibold text-white/90">
+                            {item.value}
+                          </span>
+                        </span>
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-[0.65rem] font-semibold text-white/70 transition group-hover:bg-white group-hover:text-zinc-950">
+                          {item.actionLabel}
+                          <ArrowUpRight className="size-3" />
+                        </span>
+                      </span>
+                    </Link>
+                  ) : (
+                    <div
+                      className="min-w-0 rounded-2xl border border-white/10 bg-black/20 px-3 py-2"
+                      key={item.label}
+                    >
+                      <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/35">
+                        {item.label}
+                      </p>
+                      <p className="mt-1 truncate text-sm font-semibold text-white/90">
+                        {item.value}
+                      </p>
+                    </div>
+                  )
                 ))}
               </div>
             </div>
