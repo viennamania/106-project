@@ -55,6 +55,7 @@ import {
 import type {
   SilverRewardClaimRecord,
   SilverRewardClaimSummaryResponse,
+  SilverRewardQuoteRecord,
 } from "@/lib/silver-reward-claim";
 import {
   BSC_EXPLORER,
@@ -74,6 +75,7 @@ type RewardsPageState = {
   redemptionsError: string | null;
   silverClaim: SilverRewardClaimRecord | null;
   silverClaimError: string | null;
+  silverQuote: SilverRewardQuoteRecord | null;
   status: "idle" | "loading" | "ready" | "error";
   summary: PointsSummaryRecord;
 };
@@ -82,6 +84,7 @@ type RewardRedeemDialogState = {
   error: string | null;
   phase: "confirm" | "processing" | "success" | "error";
   reward: RewardCatalogItemRecord;
+  silverQuote: SilverRewardQuoteRecord | null;
   spendablePointsBefore: number;
 };
 
@@ -120,6 +123,7 @@ export function RewardsPage({
     redemptionsError: null,
     silverClaim: null,
     silverClaimError: null,
+    silverQuote: null,
     status: "idle",
     summary: createEmptyPointsSummary(),
   });
@@ -182,6 +186,7 @@ export function RewardsPage({
           error: null,
           redemptionsError: null,
           silverClaimError: null,
+          silverQuote: null,
           status: "loading",
         }));
       }
@@ -295,6 +300,7 @@ export function RewardsPage({
               return {
                 claim: data.claim,
                 error: null,
+                quote: data.quote,
               };
             })().catch((error) => {
               return {
@@ -303,11 +309,13 @@ export function RewardsPage({
                   error instanceof Error
                     ? error.message
                     : dictionary.rewardsPage.silverClaim.errors.loadFailed,
+                quote: null,
               };
             })
           : Promise.resolve({
               claim: null,
               error: null,
+              quote: null,
             });
 
         const [catalog, summaryResult, redemptionsResult, silverClaimResult] =
@@ -328,6 +336,7 @@ export function RewardsPage({
           redemptionsError: redemptionsResult.error,
           silverClaim: silverClaimResult.claim,
           silverClaimError: silverClaimResult.error,
+          silverQuote: silverClaimResult.quote,
           status: "ready",
           summary: summaryResult.summary,
         });
@@ -364,6 +373,7 @@ export function RewardsPage({
         redemptionsError: null,
         silverClaim: null,
         silverClaimError: null,
+        silverQuote: null,
         status: "idle",
         summary: createEmptyPointsSummary(),
       });
@@ -431,6 +441,7 @@ export function RewardsPage({
         error: null,
         phase: "confirm",
         reward,
+        silverQuote: state.silverQuote,
         spendablePointsBefore: state.summary.spendablePoints,
       });
       return;
@@ -1095,6 +1106,28 @@ function RewardRedeemDialog({
               </p>
               <p className="mt-1 text-lg font-semibold text-emerald-950">
                 {formatPoints(afterPoints, locale)}
+              </p>
+            </div>
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-3 py-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500">
+                    {copy.expectedBnbLabel}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">
+                    {dialog.silverQuote
+                      ? `${dialog.silverQuote.bnbAmount} BNB`
+                      : copy.expectedBnbUnavailable}
+                  </p>
+                </div>
+                {dialog.silverQuote ? (
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    {formatUsd(dialog.silverQuote.usdAmount, locale)}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-2 break-keep text-xs leading-5 text-slate-500">
+                {copy.expectedBnbHint}
               </p>
             </div>
           </div>
@@ -2173,6 +2206,15 @@ function formatNumber(value: number, locale: string) {
 
 function formatPoints(value: number, locale: string) {
   return `${formatNumber(value, locale)}P`;
+}
+
+function formatUsd(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    currency: "USD",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
 }
 
 function formatTemplate(

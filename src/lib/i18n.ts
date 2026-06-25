@@ -564,6 +564,9 @@ export type Dictionary = {
       costLabel: string;
       balanceLabel: string;
       afterBalanceLabel: string;
+      expectedBnbLabel: string;
+      expectedBnbHint: string;
+      expectedBnbUnavailable: string;
       processingTitle: string;
       successTitle: string;
       successDescription: string;
@@ -1447,6 +1450,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         costLabel: "사용 포인트",
         balanceLabel: "현재 포인트",
         afterBalanceLabel: "교환 후 예상",
+        expectedBnbLabel: "지급 예정 BNB",
+        expectedBnbHint:
+          "Silver 카드 교환 후 BNB 클레임 화면에서 받을 수 있는 예상 수량입니다. 실제 지급 시점의 시세로 다시 계산됩니다.",
+        expectedBnbUnavailable: "클레임 화면에서 계산",
         processingTitle: "교환 처리 중",
         successTitle: "교환 완료",
         successDescription:
@@ -2352,6 +2359,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         costLabel: "Points used",
         balanceLabel: "Current points",
         afterBalanceLabel: "Estimated after",
+        expectedBnbLabel: "Expected BNB payout",
+        expectedBnbHint:
+          "Estimated payout available from the BNB claim after the Silver card redemption. The final amount is recalculated at claim time.",
+        expectedBnbUnavailable: "Calculated on claim",
         processingTitle: "Processing redemption",
         successTitle: "Redemption complete",
         successDescription:
@@ -3263,6 +3274,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         costLabel: "使用ポイント",
         balanceLabel: "現在のポイント",
         afterBalanceLabel: "交換後の目安",
+        expectedBnbLabel: "支給予定 BNB",
+        expectedBnbHint:
+          "Silver カード交換後に BNB クレーム画面で受け取れる推定数量です。実際の支給時点の価格で再計算されます。",
+        expectedBnbUnavailable: "クレーム画面で計算",
         processingTitle: "交換処理中",
         successTitle: "交換完了",
         successDescription:
@@ -4157,6 +4172,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         costLabel: "使用积分",
         balanceLabel: "当前积分",
         afterBalanceLabel: "兑换后预计",
+        expectedBnbLabel: "预计发放 BNB",
+        expectedBnbHint:
+          "完成 Silver 卡兑换后，可在 BNB 领取页面看到预计领取数量。实际发放时会按当时价格重新计算。",
+        expectedBnbUnavailable: "领取页面计算",
         processingTitle: "正在处理兑换",
         successTitle: "兑换完成",
         successDescription:

@@ -277,14 +277,9 @@ function getActivationHubCopy(locale: Locale) {
       assetDescription: "USDT, BNB, 지갑 보안 상태를 확인합니다.",
       assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
-      contextAsset: "가입부터 보상까지 연결",
-      contextDescription:
-        "추천 코드로 들어온 가입, 포인트, 지갑 상태와 AI 스타 IP 생성 흐름을 한 번에 확인합니다.",
-      contextLabel: "서비스 흐름",
-      contextScore: "추천 흐름",
       graphTitle: "진행 흐름",
       description:
-        "가입 상태를 확인하고, 내 추천 코드와 포인트 관리를 바로 시작하세요.",
+        "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
       feedLabel: "활동 피드",
@@ -298,12 +293,12 @@ function getActivationHubCopy(locale: Locale) {
       pending: "진행 중",
       pointsDescription: "추천 활동으로 쌓인 포인트와 보상 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
-      primaryCompleted: "추천 회원 관리",
+      primaryCompleted: "추천 링크 공유하기",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "회원 활성화 완료하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      secondaryLabel: "운영 도구",
+      secondaryLabel: "내 서비스",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
       statusTitle: "내 서비스 상태",
@@ -321,14 +316,9 @@ function getActivationHubCopy(locale: Locale) {
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
-    contextAsset: "Signup to rewards",
-    contextDescription:
-      "Track signup, referral code, points, wallet status, and AI Star IP provisioning in one simple flow.",
-    contextLabel: "Service flow",
-    contextScore: "Referral flow",
     graphTitle: "Progress flow",
     description:
-      "Check your signup status, then start managing your referral code and points.",
+      "Check your status and the next action first.",
     disconnected: "Connection required",
     feedDescription: "Review the latest signup and reward activity.",
     feedLabel: "Activity feed",
@@ -343,12 +333,12 @@ function getActivationHubCopy(locale: Locale) {
     pending: "In progress",
     pointsDescription: "Review points and reward history created by referral activity.",
     pointsLabel: "Points",
-    primaryCompleted: "Manage referral members",
+    primaryCompleted: "Share referral link",
     primaryDisconnected: "Start with email",
     primaryPending: "Complete activation",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    secondaryLabel: "Operations",
+    secondaryLabel: "My services",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
     statusTitle: "My service status",
@@ -1964,7 +1954,6 @@ export function SmartWalletApp({
 
         <ActivationServiceHub
           activateNetworkHref={activateNetworkHref}
-          activatePageHref={activatePageHref}
           assetManagementHref={assetManagementHref}
           assetManagementLocked={!assetWalletUnlock.isUnlocked}
           brandingStudioHref={brandingStudioHref}
@@ -2563,7 +2552,6 @@ function Panel({
 
 function ActivationServiceHub({
   activateNetworkHref,
-  activatePageHref,
   assetManagementHref,
   assetManagementLocked,
   brandingStudioHref,
@@ -2580,7 +2568,6 @@ function ActivationServiceHub({
   status,
 }: {
   activateNetworkHref: string;
-  activatePageHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
   brandingStudioHref: string;
@@ -2649,12 +2636,18 @@ function ActivationServiceHub({
       metric: assetManagementLocked ? copy.disconnected : copy.connected,
       title: copy.assetLabel,
     },
+    {
+      description: copy.feedDescription,
+      href: networkFeedHref,
+      metric: copy.ready,
+      title: copy.feedLabel,
+    },
   ];
 
   const primaryAction = isSignupCompleted ? (
     <Link
       className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
-      href={activateNetworkHref}
+      href={brandingStudioHref}
     >
       <span>{primaryLabel}</span>
       <ArrowUpRight className="size-4" />
@@ -2681,9 +2674,9 @@ function ActivationServiceHub({
 
   return (
     <LandingReveal delay={20} variant="hero">
-      <section className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[34px] sm:p-6">
-        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
-          <div className="flex min-h-[360px] flex-col justify-between rounded-[26px] bg-zinc-950 p-5 text-white sm:p-6">
+      <section className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-3 shadow-[0_18px_54px_rgba(24,24,27,0.08)] sm:rounded-[34px] sm:p-5">
+        <div className="grid gap-3 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+          <div className="flex flex-col justify-between rounded-[26px] bg-zinc-950 p-5 text-white sm:p-6">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/70">
@@ -2694,28 +2687,31 @@ function ActivationServiceHub({
                 </span>
               </div>
 
-              <div className="mt-9 max-w-xl space-y-4">
-                <p className="text-sm font-semibold text-white/54">
+              <div className="mt-7 max-w-xl space-y-3 sm:mt-9">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/44">
                   {copy.statusTitle}
                 </p>
-                <h2 className="text-[2.35rem] font-semibold leading-[0.96] tracking-[-0.05em] text-white sm:text-[3.35rem]">
+                <h2 className="break-keep text-[2.1rem] font-semibold leading-[0.98] tracking-[-0.05em] text-white [word-break:keep-all] sm:text-[3.1rem]">
                   {copy.title}
                 </h2>
-                <p className="max-w-md text-[0.98rem] leading-7 text-white/64">
+                <p className="max-w-md break-keep text-sm leading-6 text-white/62 [word-break:keep-all] sm:text-[0.98rem] sm:leading-7">
                   {copy.description}
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 space-y-4">
+            <div className="mt-7 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">
+                {copy.actionTitle}
+              </p>
               {primaryAction}
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {statusItems.map((item) => (
                   <div
-                    className="min-w-0 rounded-[18px] border border-white/10 bg-white/[0.06] px-3 py-3"
+                    className="min-w-0 rounded-[18px] border border-white/10 bg-white/[0.06] px-3 py-2.5"
                     key={item.label}
                   >
-                    <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/38">
+                    <p className="truncate text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/36">
                       {item.label}
                     </p>
                     <p className="mt-1 truncate text-sm font-semibold text-white">
@@ -2727,66 +2723,32 @@ function ActivationServiceHub({
             </div>
           </div>
 
-          <div className="grid gap-3 content-start">
-            <div className="rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                    {copy.contextLabel}
-                  </p>
-                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
-                    {copy.contextAsset}
-                  </h3>
-                </div>
-                <span className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700">
-                  {copy.contextScore}
-                </span>
-              </div>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
-                {copy.contextDescription}
-              </p>
-            </div>
-
-            <div className="rounded-[24px] border border-zinc-200 bg-white p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold tracking-tight text-zinc-950">
+          <div className="rounded-[26px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                  {copy.secondaryLabel}
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
                   {copy.nextStepTitle}
                 </h3>
-                <Link
-                  className="hidden h-9 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 sm:inline-flex"
-                  href={networkFeedHref}
-                >
-                  {copy.feedLabel}
-                </Link>
               </div>
-
-              <div className="mt-4 grid gap-2.5">
-                {actionItems.map((item, index) => (
-                  <ServiceHubCard
-                    description={item.description}
-                    href={item.href}
-                    index={index + 1}
-                    key={item.title}
-                    metric={item.metric}
-                    title={item.title}
-                  />
-                ))}
-              </div>
+              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600">
+                {isSignupCompleted ? copy.ready : membershipStatus}
+              </span>
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-                href={brandingStudioHref}
-              >
-                {copy.shareLabel}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-                href={activatePageHref}
-              >
-                {copy.membershipLabel}
-              </Link>
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+              {actionItems.map((item, index) => (
+                <ServiceHubCard
+                  description={item.description}
+                  href={item.href}
+                  index={index + 1}
+                  key={item.title}
+                  metric={item.metric}
+                  title={item.title}
+                />
+              ))}
             </div>
           </div>
         </div>
