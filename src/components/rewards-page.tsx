@@ -78,6 +78,13 @@ type RewardsPageState = {
   summary: PointsSummaryRecord;
 };
 
+type RewardRedeemDialogState = {
+  error: string | null;
+  phase: "confirm" | "processing" | "success" | "error";
+  reward: RewardCatalogItemRecord;
+  spendablePointsBefore: number;
+};
+
 const HISTORY_PAGE_SIZE = 8;
 
 export function RewardsPage({
@@ -120,6 +127,8 @@ export function RewardsPage({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [redeemingRewardId, setRedeemingRewardId] =
     useState<RewardCatalogId | null>(null);
+  const [redeemDialog, setRedeemDialog] =
+    useState<RewardRedeemDialogState | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
@@ -342,6 +351,7 @@ export function RewardsPage({
     if (status !== "connected") {
       setIsRefreshing(false);
       setRedeemingRewardId(null);
+      setRedeemDialog(null);
       setActionError(null);
       setActionNotice(null);
       setState({
@@ -411,15 +421,61 @@ export function RewardsPage({
   }, {});
   const membershipCardTier = getMembershipCardTier(state.redemptions);
 
-  async function handleRedeemReward(rewardId: RewardCatalogId) {
+  function handleRedeemReward(rewardId: RewardCatalogId) {
+    const reward = state.catalog.find((item) => item.rewardId === rewardId);
+
+    if (reward?.rewardId === "silver-card") {
+      setActionError(null);
+      setActionNotice(null);
+      setRedeemDialog({
+        error: null,
+        phase: "confirm",
+        reward,
+        spendablePointsBefore: state.summary.spendablePoints,
+      });
+      return;
+    }
+
+    void redeemReward(rewardId);
+  }
+
+  async function redeemReward(
+    rewardId: RewardCatalogId,
+    { useDialog = false }: { useDialog?: boolean } = {},
+  ) {
     if (!state.email) {
-      setActionError(dictionary.rewardsPage.errors.missingEmail);
+      const errorMessage = dictionary.rewardsPage.errors.missingEmail;
+
+      if (useDialog) {
+        setRedeemDialog((current) =>
+          current
+            ? {
+                ...current,
+                error: errorMessage,
+                phase: "error",
+              }
+            : current,
+        );
+      } else {
+        setActionError(errorMessage);
+      }
       return;
     }
 
     setActionError(null);
     setActionNotice(null);
     setRedeemingRewardId(rewardId);
+    if (useDialog) {
+      setRedeemDialog((current) =>
+        current
+          ? {
+              ...current,
+              error: null,
+              phase: "processing",
+            }
+          : current,
+      );
+    }
 
     try {
       const response = await fetch("/api/rewards/redemptions", {
@@ -453,21 +509,70 @@ export function RewardsPage({
         redemptionsError: null,
         summary: data.summary,
       }));
-      setActionNotice(dictionary.rewardsPage.notices.redeemSuccess);
+      if (useDialog) {
+        setRedeemDialog((current) =>
+          current
+            ? {
+                ...current,
+                error: null,
+                phase: "success",
+              }
+            : current,
+        );
+      } else {
+        setActionNotice(dictionary.rewardsPage.notices.redeemSuccess);
+      }
     } catch (error) {
-      setActionError(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : dictionary.rewardsPage.errors.redeemFailed,
-      );
+          : dictionary.rewardsPage.errors.redeemFailed;
+
+      if (useDialog) {
+        setRedeemDialog((current) =>
+          current
+            ? {
+                ...current,
+                error: errorMessage,
+                phase: "error",
+              }
+            : current,
+        );
+      } else {
+        setActionError(errorMessage);
+      }
     } finally {
       setRedeemingRewardId(null);
     }
   }
 
+  function handleConfirmRedeemDialog() {
+    if (!redeemDialog || redeemDialog.phase === "processing") {
+      return;
+    }
+
+    void redeemReward(redeemDialog.reward.rewardId, { useDialog: true });
+  }
+
+  function handleCloseRedeemDialog() {
+    if (redeemDialog?.phase === "processing") {
+      return;
+    }
+
+    setRedeemDialog(null);
+  }
+
   return (
     <div className="friend-service-surface relative isolate overflow-hidden bg-[#f7f4ee]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,255,255,0))]" />
+      <RewardRedeemDialog
+        dictionary={dictionary}
+        dialog={redeemDialog}
+        locale={locale}
+        memberEmail={state.email ?? activeMember?.email ?? null}
+        onClose={handleCloseRedeemDialog}
+        onConfirm={handleConfirmRedeemDialog}
+      />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -866,6 +971,197 @@ function MetricCard({
       <p className="mt-1.5 break-all text-sm font-semibold text-slate-950 sm:mt-2">
         {value}
       </p>
+    </div>
+  );
+}
+
+function RewardRedeemDialog({
+  dictionary,
+  dialog,
+  locale,
+  memberEmail,
+  onClose,
+  onConfirm,
+}: {
+  dictionary: Dictionary;
+  dialog: RewardRedeemDialogState | null;
+  locale: Locale;
+  memberEmail: string | null;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  if (!dialog) {
+    return null;
+  }
+
+  const copy = dictionary.rewardsPage.redeemDialog;
+  const isProcessing = dialog.phase === "processing";
+  const isSuccess = dialog.phase === "success";
+  const isError = dialog.phase === "error";
+  const rewardTitle = getRewardTitle(dialog.reward.rewardId, dictionary);
+  const afterPoints = Math.max(
+    0,
+    dialog.spendablePointsBefore - dialog.reward.costPoints,
+  );
+  const activeStepIndex = isSuccess ? 2 : isProcessing ? 1 : 0;
+  const steps = [
+    copy.steps.confirm,
+    copy.steps.processing,
+    copy.steps.completed,
+  ];
+
+  return (
+    <div
+      aria-labelledby="reward-redeem-dialog-title"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end bg-slate-950/55 px-3 pb-3 pt-10 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+      role="dialog"
+    >
+      <section className="w-full max-w-lg overflow-hidden rounded-[28px] border border-white/30 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.34)]">
+        <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 space-y-2">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                {dictionary.rewardsPage.eyebrow}
+              </p>
+              <h2
+                className="break-keep text-2xl font-semibold tracking-tight text-slate-950"
+                id="reward-redeem-dialog-title"
+              >
+                {isProcessing
+                  ? copy.processingTitle
+                  : isSuccess
+                    ? copy.successTitle
+                    : isError
+                      ? copy.errorTitle
+                      : copy.title}
+              </h2>
+              <p className="break-keep text-sm leading-6 text-slate-600">
+                {isSuccess ? copy.successDescription : copy.description}
+              </p>
+            </div>
+            <button
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isProcessing}
+              onClick={onClose}
+              type="button"
+            >
+              <span className="text-xl leading-none">×</span>
+            </button>
+          </div>
+
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {steps.map((step, index) => (
+              <div
+                className={cn(
+                  "rounded-2xl border px-3 py-2 text-center text-xs font-semibold",
+                  index <= activeStepIndex
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-500",
+                )}
+                key={step}
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3 px-5 py-5 sm:px-6">
+          <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+            <div className="grid grid-cols-2 gap-3">
+              <DialogMetric
+                label={copy.accountLabel}
+                value={memberEmail ?? "-"}
+              />
+              <DialogMetric label={copy.rewardLabel} value={rewardTitle} />
+              <DialogMetric
+                label={copy.balanceLabel}
+                value={formatPoints(dialog.spendablePointsBefore, locale)}
+              />
+              <DialogMetric
+                label={copy.costLabel}
+                value={formatPoints(dialog.reward.costPoints, locale)}
+              />
+            </div>
+            <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+              <p className="text-xs font-medium text-emerald-800">
+                {copy.afterBalanceLabel}
+              </p>
+              <p className="mt-1 text-lg font-semibold text-emerald-950">
+                {formatPoints(afterPoints, locale)}
+              </p>
+            </div>
+          </div>
+
+          {isProcessing ? (
+            <div className="flex items-center gap-3 rounded-[22px] border border-blue-200 bg-blue-50 px-4 py-3 text-blue-950">
+              <RefreshCcw className="size-5 animate-spin" />
+              <p className="text-sm font-medium">{copy.processingTitle}</p>
+            </div>
+          ) : null}
+
+          {isSuccess ? (
+            <div className="flex items-start gap-3 rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-950">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
+              <p className="text-sm font-medium leading-6">{copy.successDescription}</p>
+            </div>
+          ) : null}
+
+          {isError ? (
+            <MessageCard tone="error">
+              {dialog.error ?? dictionary.rewardsPage.errors.redeemFailed}
+            </MessageCard>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2 border-t border-slate-200 bg-white px-5 py-4 sm:grid-cols-2 sm:px-6">
+          {isSuccess ? (
+            <button
+              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:col-span-2"
+              onClick={onClose}
+              type="button"
+            >
+              {copy.actions.close}
+            </button>
+          ) : (
+            <>
+              <button
+                className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isProcessing}
+                onClick={onClose}
+                type="button"
+              >
+                {copy.actions.cancel}
+              </button>
+              <button
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isProcessing}
+                onClick={onConfirm}
+                type="button"
+              >
+                {isError ? copy.actions.retry : copy.actions.confirm}
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function DialogMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-white bg-white px-3 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+      <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1.5 truncate text-sm font-semibold text-slate-950">{value}</p>
     </div>
   );
 }

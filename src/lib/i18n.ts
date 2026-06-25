@@ -556,6 +556,30 @@ export type Dictionary = {
     notices: {
       redeemSuccess: string;
     };
+    redeemDialog: {
+      title: string;
+      description: string;
+      accountLabel: string;
+      rewardLabel: string;
+      costLabel: string;
+      balanceLabel: string;
+      afterBalanceLabel: string;
+      processingTitle: string;
+      successTitle: string;
+      successDescription: string;
+      errorTitle: string;
+      steps: {
+        confirm: string;
+        processing: string;
+        completed: string;
+      };
+      actions: {
+        cancel: string;
+        confirm: string;
+        close: string;
+        retry: string;
+      };
+    };
     tiers: {
       basic: string;
       silver: string;
@@ -1413,6 +1437,32 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notices: {
         redeemSuccess:
           "리워드 교환 요청이 반영되었습니다. 포인트 잔액과 사용 이력을 갱신했습니다.",
+      },
+      redeemDialog: {
+        title: "Silver 멤버 카드 교환",
+        description:
+          "연결된 회원의 포인트에서 차감하고 Silver 멤버 카드 교환 기록을 생성합니다.",
+        accountLabel: "교환 계정",
+        rewardLabel: "리워드",
+        costLabel: "사용 포인트",
+        balanceLabel: "현재 포인트",
+        afterBalanceLabel: "교환 후 예상",
+        processingTitle: "교환 처리 중",
+        successTitle: "교환 완료",
+        successDescription:
+          "Silver 멤버 카드 교환이 완료되었고 포인트 잔액과 사용 이력이 갱신되었습니다.",
+        errorTitle: "교환 실패",
+        steps: {
+          confirm: "확인",
+          processing: "처리",
+          completed: "완료",
+        },
+        actions: {
+          cancel: "취소",
+          confirm: "교환 확정",
+          close: "닫기",
+          retry: "다시 시도",
+        },
       },
       tiers: {
         basic: "Basic",
@@ -2292,6 +2342,32 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       notices: {
         redeemSuccess:
           "The redemption request was applied. Points balance and history are up to date.",
+      },
+      redeemDialog: {
+        title: "Redeem Silver Member Card",
+        description:
+          "Points will be deducted from the connected member account and a Silver member card redemption record will be created.",
+        accountLabel: "Redeeming account",
+        rewardLabel: "Reward",
+        costLabel: "Points used",
+        balanceLabel: "Current points",
+        afterBalanceLabel: "Estimated after",
+        processingTitle: "Processing redemption",
+        successTitle: "Redemption complete",
+        successDescription:
+          "The Silver member card redemption is complete. Points balance and redemption history are now updated.",
+        errorTitle: "Redemption failed",
+        steps: {
+          confirm: "Confirm",
+          processing: "Process",
+          completed: "Complete",
+        },
+        actions: {
+          cancel: "Cancel",
+          confirm: "Confirm redemption",
+          close: "Close",
+          retry: "Try again",
+        },
       },
       tiers: {
         basic: "Basic",
@@ -3178,6 +3254,32 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         redeemSuccess:
           "リワード交換リクエストが反映されました。ポイント残高と使用履歴を更新しました。",
       },
+      redeemDialog: {
+        title: "Silver メンバーカード交換",
+        description:
+          "接続中の会員アカウントからポイントを差し引き、Silver メンバーカードの交換履歴を作成します。",
+        accountLabel: "交換アカウント",
+        rewardLabel: "リワード",
+        costLabel: "使用ポイント",
+        balanceLabel: "現在のポイント",
+        afterBalanceLabel: "交換後の目安",
+        processingTitle: "交換処理中",
+        successTitle: "交換完了",
+        successDescription:
+          "Silver メンバーカードの交換が完了し、ポイント残高と使用履歴が更新されました。",
+        errorTitle: "交換失敗",
+        steps: {
+          confirm: "確認",
+          processing: "処理",
+          completed: "完了",
+        },
+        actions: {
+          cancel: "キャンセル",
+          confirm: "交換を確定",
+          close: "閉じる",
+          retry: "再試行",
+        },
+      },
       tiers: {
         basic: "Basic",
         silver: "Silver",
@@ -4045,6 +4147,32 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       notices: {
         redeemSuccess: "兑换请求已记录，积分余额与兑换记录已同步更新。",
+      },
+      redeemDialog: {
+        title: "兑换 Silver 会员卡",
+        description:
+          "将从当前连接会员的积分中扣除，并创建 Silver 会员卡兑换记录。",
+        accountLabel: "兑换账号",
+        rewardLabel: "奖励",
+        costLabel: "使用积分",
+        balanceLabel: "当前积分",
+        afterBalanceLabel: "兑换后预计",
+        processingTitle: "正在处理兑换",
+        successTitle: "兑换完成",
+        successDescription:
+          "Silver 会员卡兑换已完成，积分余额与兑换记录已更新。",
+        errorTitle: "兑换失败",
+        steps: {
+          confirm: "确认",
+          processing: "处理",
+          completed: "完成",
+        },
+        actions: {
+          cancel: "取消",
+          confirm: "确认兑换",
+          close: "关闭",
+          retry: "重试",
+        },
       },
       tiers: {
         basic: "Basic",
