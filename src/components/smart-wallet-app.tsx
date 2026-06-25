@@ -300,7 +300,6 @@ function getActivationHubCopy(locale: Locale) {
       pendingMessage: "10 USDT 결제 확인이 끝나면 추천 코드와 포인트 관리가 열립니다.",
       pointsDescription: "포인트와 교환 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
-      primaryCompleted: "추천 링크 공유하기",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
@@ -349,7 +348,6 @@ function getActivationHubCopy(locale: Locale) {
     pendingMessage: "After the 10 USDT payment is verified, referral code and points management open.",
     pointsDescription: "Review points and redemption history.",
     pointsLabel: "Points",
-    primaryCompleted: "Share referral link",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
@@ -544,10 +542,6 @@ export function SmartWalletApp({
   );
   const activateNetworkHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/activate/network`, preferredReferralCode),
-    landingLanguage,
-  );
-  const referralBridgeHref = setLandingLanguageContext(
-    buildPathWithReferral(`/${locale}/referral/bridge`, preferredReferralCode),
     landingLanguage,
   );
   const assetPageHref = setPathSearchParams(
@@ -1955,7 +1949,6 @@ export function SmartWalletApp({
           onConnect={() => {
             setIsLoginDialogOpen(true);
           }}
-          referralBridgeHref={referralBridgeHref}
           referralDashboard={referralDashboard}
           rewardsHref={rewardsHref}
           status={status}
@@ -2539,7 +2532,6 @@ function ActivationServiceHub({
   member,
   networkFeedHref,
   onConnect,
-  referralBridgeHref,
   referralDashboard,
   rewardsHref,
   status,
@@ -2555,7 +2547,6 @@ function ActivationServiceHub({
   member: MemberRecord | null;
   networkFeedHref: string;
   onConnect: () => void;
-  referralBridgeHref: string;
   referralDashboard: ReferralDashboardState;
   rewardsHref: string;
   status: string;
@@ -2581,11 +2572,9 @@ function ActivationServiceHub({
     : copy.aiStarIpPending;
   const primaryLabel = !hasThirdwebClientId
     ? copy.primaryUnavailable
-    : isSignupCompleted
-      ? copy.primaryCompleted
-      : isConnected
-        ? copy.primaryPending
-        : copy.primaryDisconnected;
+    : isConnected
+      ? copy.primaryPending
+      : copy.primaryDisconnected;
   const statusMessage = !hasThirdwebClientId
     ? copy.disconnectedMessage
     : isSignupCompleted
@@ -2628,15 +2617,7 @@ function ActivationServiceHub({
     },
   ];
 
-  const primaryAction = isSignupCompleted ? (
-    <Link
-      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
-      href={referralBridgeHref}
-    >
-      <span>{primaryLabel}</span>
-      <ArrowUpRight className="size-4" />
-    </Link>
-  ) : isConnected ? (
+  const primaryAction = isSignupCompleted ? null : isConnected ? (
     <a
       className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
       href="#signup-payment"
@@ -2714,9 +2695,7 @@ function ActivationServiceHub({
               </div>
             </div>
 
-            <div className="mt-4">
-              {primaryAction}
-            </div>
+            {primaryAction ? <div className="mt-4">{primaryAction}</div> : null}
           </div>
 
           <div className="bg-zinc-50 p-4 sm:p-5">
