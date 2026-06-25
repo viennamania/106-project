@@ -373,9 +373,6 @@ function FounderRoleShareCard({
               <Link2 className="size-3.5" />
               {copy.shareLink}
             </div>
-            <p className="mt-2 break-all font-mono text-[0.68rem] font-semibold leading-4 text-[#5b21b6]">
-              {loop.shareLink}
-            </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <CopyTextButton
                 className="h-10 border-black/10 text-sm font-semibold"
