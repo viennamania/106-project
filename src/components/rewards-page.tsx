@@ -142,10 +142,6 @@ export function RewardsPage({
       buildPathWithReferral(`/${locale}/activate`, referralCode),
       landingLanguage,
     );
-  const referralsHref = setLandingLanguageContext(
-    buildPathWithReferral(`/${locale}/referrals`, referralCode),
-    landingLanguage,
-  );
   const silverClaimHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/rewards/silver-claim`, referralCode),
     landingLanguage,
@@ -800,20 +796,12 @@ export function RewardsPage({
                 {activeMember?.status !== "completed" ? (
                   <div className="mt-4 space-y-4">
                     <MessageCard>{dictionary.rewardsPage.paymentRequired}</MessageCard>
-                    <div className="grid gap-3 sm:flex sm:flex-wrap">
-                      <Link
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
-                        href={activateHref}
-                      >
-                        {dictionary.rewardsPage.actions.completeSignup}
-                      </Link>
-                      <Link
-                        className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                        href={referralsHref}
-                      >
-                        {dictionary.rewardsPage.actions.openReferrals}
-                      </Link>
-                    </div>
+                    <Link
+                      className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium !text-white transition hover:bg-slate-800 sm:w-auto"
+                      href={activateHref}
+                    >
+                      {dictionary.rewardsPage.actions.completeSignup}
+                    </Link>
                   </div>
                 ) : null}
 

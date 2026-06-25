@@ -1276,15 +1276,11 @@ function FeedScrollTopControl({
         type="button"
       >
         <ArrowUp className="size-4 shrink-0" />
-        <span
-          className={`whitespace-nowrap transition-all duration-300 ${
-            mode === "ready"
-              ? "max-w-24 opacity-100"
-              : "max-w-0 opacity-0"
-          }`}
-        >
-          {label}
-        </span>
+        {mode === "ready" ? (
+          <span className="whitespace-nowrap transition-all duration-300">
+            {label}
+          </span>
+        ) : null}
       </button>
     </div>
   );

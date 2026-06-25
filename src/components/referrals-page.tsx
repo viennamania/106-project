@@ -10,7 +10,6 @@ import {
   KeyRound,
   Link2,
   LogOut,
-  PenSquare,
   Route,
   Rss,
   Share2,
@@ -120,19 +119,6 @@ export function ReferralsPage({
     buildPathWithReferral(`/${locale}/referrals`, referralCode),
     landingLanguage,
   );
-  const brandingStudioHref = setPathSearchParams(
-    setLandingLanguageContext(
-      buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
-      landingLanguage,
-    ),
-    {
-      returnTo: currentReferralsHref,
-    },
-  );
-  const creatorStudioHref = setLandingLanguageContext(
-    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
-    landingLanguage,
-  );
   const networkFeedHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/network-feed`, referralCode),
     landingLanguage,
@@ -149,10 +135,6 @@ export function ReferralsPage({
     {
       returnTo: currentReferralsHref,
     },
-  );
-  const bnbWalletHref = setLandingLanguageContext(
-    buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
-    landingLanguage,
   );
   const memberManagementHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/activate/network`, referralCode),
@@ -550,34 +532,6 @@ export function ReferralsPage({
           </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <HubCard
-            description={hubCopy.membersDescription}
-            href={memberManagementHref}
-            icon={<UsersRound className="size-5" />}
-            isPrimary
-            title={hubCopy.membersTitle}
-          />
-          <HubCard
-            description={hubCopy.pointsDescription}
-            href={rewardsHref}
-            icon={<Gift className="size-5" />}
-            title={hubCopy.pointsTitle}
-          />
-          <HubCard
-            description={hubCopy.walletDescription}
-            href={walletHref}
-            icon={<WalletMinimal className="size-5" />}
-            title={hubCopy.walletTitle}
-          />
-          <HubCard
-            description={hubCopy.brandingDescription}
-            href={brandingStudioHref}
-            icon={<PenSquare className="size-5" />}
-            title={hubCopy.brandingTitle}
-          />
-        </section>
-
         <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <section className="rounded-[32px] border border-white/70 bg-white/86 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:p-5">
             <SectionHeading
@@ -718,22 +672,10 @@ export function ReferralsPage({
                 title={hubCopy.walletTitle}
               />
               <ActionLinkCard
-                description={hubCopy.bnbDescription}
-                href={bnbWalletHref}
-                icon={<WalletMinimal className="size-5" />}
-                title={hubCopy.bnbTitle}
-              />
-              <ActionLinkCard
                 description={contentCopy.entry.viewerDescription}
                 href={networkFeedHref}
                 icon={<Rss className="size-5" />}
                 title={contentCopy.entry.viewerTitle}
-              />
-              <ActionLinkCard
-                description={contentCopy.entry.creatorDescription}
-                href={creatorStudioHref}
-                icon={<PenSquare className="size-5" />}
-                title={contentCopy.entry.creatorTitle}
               />
             </div>
           </section>
@@ -809,62 +751,6 @@ function HeroMetric({ label, value }: { label: string; value: string }) {
         {value}
       </p>
     </div>
-  );
-}
-
-function HubCard({
-  description,
-  href,
-  icon,
-  isPrimary = false,
-  title,
-}: {
-  description: string;
-  href: string;
-  icon: ReactNode;
-  isPrimary?: boolean;
-  title: string;
-}) {
-  return (
-    <Link
-      className={cn(
-        "group flex min-h-[9.5rem] flex-col justify-between rounded-[26px] border p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:translate-y-[-1px] sm:min-h-[10rem] sm:p-5",
-        isPrimary
-          ? "border-slate-950 bg-slate-950 text-white"
-          : "border-white/70 bg-white/88 text-slate-950 backdrop-blur hover:border-slate-200",
-      )}
-      href={href}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-2xl",
-            isPrimary ? "bg-white text-slate-950" : "bg-slate-950 text-white",
-          )}
-        >
-          {icon}
-        </div>
-        <ArrowUpRight
-          className={cn(
-            "size-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5",
-            isPrimary ? "text-white/62" : "text-slate-400",
-          )}
-        />
-      </div>
-      <div className="mt-4 min-w-0">
-        <p className="text-sm font-semibold tracking-tight sm:text-base">
-          {title}
-        </p>
-        <p
-          className={cn(
-            "mt-2 hidden text-sm leading-6 sm:line-clamp-2 sm:block",
-            isPrimary ? "text-white/64" : "text-slate-600",
-          )}
-        >
-          {description}
-        </p>
-      </div>
-    </Link>
   );
 }
 

@@ -68,7 +68,6 @@ import {
 } from "@/lib/landing-branding";
 import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import { getContentCopy } from "@/lib/content-copy";
-import { getLandingBrandingCopy } from "@/lib/landing-branding-copy";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -500,15 +499,6 @@ export function SmartWalletApp({
     returnTo: activatePageHref,
     walletAddress: accountAddress,
   });
-  const brandingStudioHref = setPathSearchParams(
-    setLandingLanguageContext(
-      buildPathWithReferral(`/${locale}/branding-studio`, preferredReferralCode),
-      landingLanguage,
-    ),
-    {
-      returnTo: activatePageHref,
-    },
-  );
   const creatorStudioHref = setPathSearchParams(
     setLandingLanguageContext(
       buildPathWithReferral(`/${locale}/creator/studio`, preferredReferralCode),
@@ -542,6 +532,10 @@ export function SmartWalletApp({
   );
   const activateNetworkHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/activate/network`, preferredReferralCode),
+    landingLanguage,
+  );
+  const referralBridgeHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/referral/bridge`, preferredReferralCode),
     landingLanguage,
   );
   const assetPageHref = setPathSearchParams(
@@ -1962,7 +1956,6 @@ export function SmartWalletApp({
           activateNetworkHref={activateNetworkHref}
           assetManagementHref={assetManagementHref}
           assetManagementLocked={!assetWalletUnlock.isUnlocked}
-          brandingStudioHref={brandingStudioHref}
           dictionary={dictionary}
           hasThirdwebClientId={hasThirdwebClientId}
           isMembershipLoading={isMembershipLoading}
@@ -1973,6 +1966,7 @@ export function SmartWalletApp({
           onConnect={() => {
             setIsLoginDialogOpen(true);
           }}
+          referralBridgeHref={referralBridgeHref}
           referralDashboard={referralDashboard}
           rewardsHref={rewardsHref}
           status={status}
@@ -1982,7 +1976,6 @@ export function SmartWalletApp({
           <CompletedHomeDashboard
             activateNetworkHref={activateNetworkHref}
             announcementsPageHref={announcementsPageHref}
-            brandingStudioHref={brandingStudioHref}
             creatorStudioHref={creatorStudioHref}
             dictionary={dictionary}
             isSelfIncomingReferral={isSelfIncomingReferral}
@@ -2560,7 +2553,6 @@ function ActivationServiceHub({
   activateNetworkHref,
   assetManagementHref,
   assetManagementLocked,
-  brandingStudioHref,
   dictionary,
   hasThirdwebClientId,
   isMembershipLoading,
@@ -2569,6 +2561,7 @@ function ActivationServiceHub({
   member,
   networkFeedHref,
   onConnect,
+  referralBridgeHref,
   referralDashboard,
   rewardsHref,
   status,
@@ -2576,7 +2569,6 @@ function ActivationServiceHub({
   activateNetworkHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
-  brandingStudioHref: string;
   dictionary: Dictionary;
   hasThirdwebClientId: boolean;
   isMembershipLoading: boolean;
@@ -2585,6 +2577,7 @@ function ActivationServiceHub({
   member: MemberRecord | null;
   networkFeedHref: string;
   onConnect: () => void;
+  referralBridgeHref: string;
   referralDashboard: ReferralDashboardState;
   rewardsHref: string;
   status: string;
@@ -2660,7 +2653,7 @@ function ActivationServiceHub({
   const primaryAction = isSignupCompleted ? (
     <Link
       className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
-      href={brandingStudioHref}
+      href={referralBridgeHref}
     >
       <span>{primaryLabel}</span>
       <ArrowUpRight className="size-4" />
@@ -3045,7 +3038,6 @@ function CompletedHomeDashboard({
   announcementsPageHref,
   assetManagementHref,
   assetManagementLocked,
-  brandingStudioHref,
   creatorStudioHref,
   dictionary,
   isSelfIncomingReferral,
@@ -3061,7 +3053,6 @@ function CompletedHomeDashboard({
   announcementsPageHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
-  brandingStudioHref: string;
   creatorStudioHref: string;
   dictionary: Dictionary;
   isSelfIncomingReferral: boolean;
@@ -3076,7 +3067,6 @@ function CompletedHomeDashboard({
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
   const activationCopy = getActivationSeparationCopy(locale);
-  const brandingCopy = getLandingBrandingCopy(locale);
   const contentCopy = getContentCopy(locale);
   const assetCopy = getAssetManagementCopy(locale);
   const referralSharePath = buildPathWithReferral(
@@ -3228,22 +3218,21 @@ function CompletedHomeDashboard({
 
                 {referralShareUrl ? (
                   <>
-                    <a
-                      className="group block rounded-[22px] border border-white/10 bg-black/10 p-3.5 transition hover:border-white/16 hover:bg-black/14"
-                      href={referralShareUrl}
-                      rel="noreferrer"
-                      target="_blank"
+                    <div
+                      className="rounded-[22px] border border-white/10 bg-black/10 p-3.5"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/45">
                           {activationCopy.growthLinkLabel}
                         </p>
-                        <ArrowUpRight className="size-4 shrink-0 text-white/45 transition group-hover:text-white/72" />
+                        <span className="rounded-full bg-white/10 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/55">
+                          {dictionary.member.completedValue}
+                        </span>
                       </div>
                       <p className="mt-2 break-all text-sm font-medium leading-6 text-white/92">
                         {referralShareUrl}
                       </p>
-                    </a>
+                    </div>
 
                     <div className="grid gap-2.5">
                       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
@@ -3272,14 +3261,6 @@ function CompletedHomeDashboard({
                           text={referralShareUrl}
                         />
                       </div>
-                      <Link
-                        className="group inline-flex h-12 w-full min-w-0 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#f7d97e_0%,#f5c34d_52%,#ecab1f_100%)] px-4 !text-slate-950 shadow-[0_22px_50px_rgba(245,195,77,0.24)] transition hover:translate-y-[-1px] hover:shadow-[0_26px_60px_rgba(245,195,77,0.3)]"
-                        href={brandingStudioHref}
-                      >
-                        <Sparkles className="size-4 shrink-0 !text-slate-950 transition group-hover:rotate-[-8deg]" />
-                        <span className="whitespace-nowrap !text-slate-950">{brandingCopy.actions.customizeLandingCompact}</span>
-                        <ArrowUpRight className="hidden size-4 shrink-0 !text-slate-950 opacity-80 transition group-hover:translate-x-0.5 2xl:block" />
-                      </Link>
                     </div>
                     {shareState === "error" ? (
                       <p className="text-sm font-medium text-rose-200">
