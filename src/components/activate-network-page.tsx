@@ -109,6 +109,8 @@ type MemberSortKey =
 
 type MemberSortDirection = "asc" | "desc";
 
+const NETWORK_MEMBER_PAGE_SIZE = 6;
+
 function getServiceManagementCopy(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -212,6 +214,7 @@ export function ActivateNetworkPage({
   const [memberSortDirection, setMemberSortDirection] =
     useState<MemberSortDirection>("desc");
   const [memberSortKey, setMemberSortKey] = useState<MemberSortKey>("recent");
+  const [memberPage, setMemberPage] = useState(1);
   const [serviceScope, setServiceScope] =
     useState<ServiceSuspensionScope>("member");
   const [serviceStatusUpdate, setServiceStatusUpdate] =
@@ -233,6 +236,7 @@ export function ActivateNetworkPage({
   });
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const serviceCopy = getServiceManagementCopy(locale);
+  const paginationCopy = getMemberPaginationCopy(locale);
   const isCompletedMember = state.member?.status === "completed";
   const notificationsPageHref = buildPathWithReferral(
     `/${locale}/notifications`,
@@ -290,9 +294,27 @@ export function ActivateNetworkPage({
     });
   }, [filteredMembers, locale, memberSortDirection, memberSortKey]);
 
+  const totalMemberPages = Math.max(
+    1,
+    Math.ceil(sortedMembers.length / NETWORK_MEMBER_PAGE_SIZE),
+  );
+  const safeMemberPage = Math.min(memberPage, totalMemberPages);
+  const memberPageStartIndex = (safeMemberPage - 1) * NETWORK_MEMBER_PAGE_SIZE;
+  const paginatedMembers = useMemo(
+    () =>
+      sortedMembers.slice(
+        memberPageStartIndex,
+        memberPageStartIndex + NETWORK_MEMBER_PAGE_SIZE,
+      ),
+    [memberPageStartIndex, sortedMembers],
+  );
+  const memberPageEndIndex = Math.min(
+    memberPageStartIndex + paginatedMembers.length,
+    sortedMembers.length,
+  );
   const selectedMember =
     state.members.find((member) => member.email === selectedMemberEmail) ??
-    sortedMembers[0] ??
+    paginatedMembers[0] ??
     null;
   const currentPageHref = useMemo(
     () =>
@@ -352,19 +374,35 @@ export function ActivateNetworkPage({
   }, [selectedMemberEmail]);
 
   useEffect(() => {
-    if (!selectedMemberEmail && sortedMembers[0]) {
-      setSelectedMemberEmail(sortedMembers[0].email);
+    setMemberPage(1);
+  }, [deferredSearchQuery, memberSortDirection, memberSortKey]);
+
+  useEffect(() => {
+    if (memberPage > totalMemberPages) {
+      setMemberPage(totalMemberPages);
+    }
+  }, [memberPage, totalMemberPages]);
+
+  useEffect(() => {
+    if (!paginatedMembers.length) {
+      if (selectedMemberEmail && sortedMembers.length === 0) {
+        setSelectedMemberEmail(null);
+      }
+
+      return;
+    }
+
+    if (!selectedMemberEmail) {
+      setSelectedMemberEmail(paginatedMembers[0].email);
       return;
     }
 
     if (
-      selectedMemberEmail &&
-      sortedMembers.length > 0 &&
-      !sortedMembers.some((member) => member.email === selectedMemberEmail)
+      !paginatedMembers.some((member) => member.email === selectedMemberEmail)
     ) {
-      setSelectedMemberEmail(sortedMembers[0]?.email ?? null);
+      setSelectedMemberEmail(paginatedMembers[0]?.email ?? null);
     }
-  }, [selectedMemberEmail, sortedMembers]);
+  }, [paginatedMembers, selectedMemberEmail, sortedMembers.length]);
 
   useEffect(() => {
     const normalizedRequestedEmail = requestedMemberEmail?.trim().toLowerCase();
@@ -373,14 +411,24 @@ export function ActivateNetworkPage({
       return;
     }
 
-    const matchedMember = state.members.find((member) => {
+    const matchedMember = sortedMembers.find((member) => {
       return member.email.toLowerCase() === normalizedRequestedEmail;
     });
+
+    if (matchedMember) {
+      const matchedIndex = sortedMembers.findIndex((member) => {
+        return member.email === matchedMember.email;
+      });
+
+      if (matchedIndex >= 0) {
+        setMemberPage(Math.floor(matchedIndex / NETWORK_MEMBER_PAGE_SIZE) + 1);
+      }
+    }
 
     if (matchedMember && matchedMember.email !== selectedMemberEmail) {
       setSelectedMemberEmail(matchedMember.email);
     }
-  }, [requestedMemberEmail, selectedMemberEmail, state.members]);
+  }, [requestedMemberEmail, selectedMemberEmail, sortedMembers]);
 
   const loadNetwork = useCallback(async () => {
     if (!accountAddress) {
@@ -1380,7 +1428,7 @@ export function ActivateNetworkPage({
                     </div>
                   </div>
 
-                  <div className="mt-4 space-y-3 lg:max-h-[42rem] lg:overflow-y-auto lg:pr-1">
+                  <div className="mt-4 space-y-3">
                     {state.error ? (
                       <MessageCard tone="error">{state.error}</MessageCard>
                     ) : null}
@@ -1388,7 +1436,7 @@ export function ActivateNetworkPage({
                     {sortedMembers.length === 0 ? (
                       <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
                     ) : (
-                      sortedMembers.map((member) => {
+                      paginatedMembers.map((member) => {
                         const isSelected = selectedMember?.email === member.email;
 
                         return (
@@ -1421,6 +1469,15 @@ export function ActivateNetworkPage({
                                   >
                                     {formatAddressLabel(member.lastWalletAddress)}
                                   </p>
+                                  <p
+                                    className={cn(
+                                      "mt-1 text-xs font-medium",
+                                      isSelected ? "text-white/55" : "text-slate-500",
+                                    )}
+                                  >
+                                    {dictionary.activateNetworkPage.labels.joinedAt}{" "}
+                                    {formatDateTime(member.registrationCompletedAt, locale)}
+                                  </p>
                                 </div>
                                 {member.membershipCardTier !== "none" ? (
                                   <MembershipCardBadge
@@ -1452,6 +1509,47 @@ export function ActivateNetworkPage({
                       })
                     )}
                   </div>
+
+                  {sortedMembers.length > NETWORK_MEMBER_PAGE_SIZE ? (
+                    <div className="mt-4 rounded-[22px] border border-slate-200 bg-white/85 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs font-medium text-slate-500">
+                          {formatTemplate(paginationCopy.range, {
+                            end: formatInteger(memberPageEndIndex, locale),
+                            start: formatInteger(memberPageStartIndex + 1, locale),
+                            total: formatInteger(sortedMembers.length, locale),
+                          })}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="inline-flex min-h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+                            disabled={safeMemberPage <= 1}
+                            onClick={() => {
+                              setMemberPage((current) => Math.max(1, current - 1));
+                            }}
+                            type="button"
+                          >
+                            {paginationCopy.previous}
+                          </button>
+                          <span className="min-w-16 rounded-full bg-slate-950 px-3 py-2 text-center text-xs font-semibold text-white">
+                            {safeMemberPage} / {totalMemberPages}
+                          </span>
+                          <button
+                            className="inline-flex min-h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+                            disabled={safeMemberPage >= totalMemberPages}
+                            onClick={() => {
+                              setMemberPage((current) =>
+                                Math.min(totalMemberPages, current + 1),
+                              );
+                            }}
+                            type="button"
+                          >
+                            {paginationCopy.next}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </section>
               </div>
 
@@ -2459,6 +2557,22 @@ function getMemberSortCopy(locale: Locale) {
   };
 }
 
+function getMemberPaginationCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      next: "다음",
+      previous: "이전",
+      range: "{start}-{end}명 / 전체 {total}명",
+    };
+  }
+
+  return {
+    next: "Next",
+    previous: "Prev",
+    range: "{start}-{end} of {total}",
+  };
+}
+
 function getMemberSortOptions(locale: Locale) {
   const isKorean = locale === "ko";
 
@@ -2627,10 +2741,16 @@ function formatAddressLabel(address: string) {
 }
 
 function formatDateTime(value: string, locale: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatInteger(value: number, locale: string) {
