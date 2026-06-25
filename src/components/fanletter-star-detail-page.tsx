@@ -2319,36 +2319,6 @@ export function FanletterStarDetailPage({
       : isKorean
         ? "파운더 참여 기록"
         : "Founder join event";
-  const viewerStateLabel =
-    viewerState === "founder"
-      ? isKorean
-        ? "파운더"
-        : "Founder"
-      : viewerState === "member"
-        ? isKorean
-          ? "회원"
-          : "Member"
-        : isKorean
-          ? "방문자"
-          : "Guest";
-  const starDetailOutcomeCards = [
-    {
-      label: isKorean ? "현재 위치" : "Current",
-      value: displayStarName,
-      detail: `${viewerStateLabel} · ${copy.labels.starScore} ${star.starScore}`,
-    },
-    {
-      label: isKorean ? "다음 행동" : "Next action",
-      value: primaryAction.label,
-      detail: primaryAction.status,
-    },
-    {
-      label: isKorean ? "활동 기록" : "Activity record",
-      value: primaryReputationEventLabel,
-      detail: isKorean ? "내 활동 기록" : "Activity record",
-      isStrong: true,
-    },
-  ];
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-white pb-28 text-black">
@@ -2530,40 +2500,6 @@ export function FanletterStarDetailPage({
               star={star}
             />
           ) : null}
-
-          <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
-            {starDetailOutcomeCards.map((item) => (
-              <div
-                className={joinClasses(
-                  "min-w-0 rounded-xl border px-3 py-2.5 shadow-[0_10px_26px_rgba(15,23,42,0.045)]",
-                  item.isStrong
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : "border-zinc-200 bg-white text-zinc-950",
-                )}
-                key={item.label}
-              >
-                <p
-                  className={joinClasses(
-                    "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
-                    item.isStrong ? "text-white/58" : "text-zinc-500",
-                  )}
-                >
-                  {item.label}
-                </p>
-                <p className="mt-1 truncate text-sm font-semibold">
-                  {item.value}
-                </p>
-                <p
-                  className={joinClasses(
-                    "mt-0.5 truncate text-[0.68rem] font-semibold",
-                    item.isStrong ? "text-white/58" : "text-zinc-500",
-                  )}
-                >
-                  {item.detail}
-                </p>
-              </div>
-            ))}
-          </div>
 
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
