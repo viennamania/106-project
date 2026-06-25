@@ -37,10 +37,27 @@ export function LookbookStartPage({
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stars, setStars] = useState<{ id: string; images: string[] }[]>([]);
   const syncedRef = useRef(false);
 
   const en = locale === "en";
   const studioHref = `/${locale}/fanletter/studio/lookbook`;
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/seller/stars");
+        const data = (await res.json().catch(() => null)) as
+          | { stars?: { id: string; images: string[] }[] }
+          | null;
+        if (res.ok && Array.isArray(data?.stars)) {
+          setStars(data.stars.slice(0, 8));
+        }
+      } catch {
+        // best-effort preview
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!accountAddress || syncedRef.current) {
@@ -146,6 +163,31 @@ export function LookbookStartPage({
           👕 {en ? "Color, print & logos preserved" : "옷의 색·프린트·로고 보존"}
         </li>
       </ul>
+
+      {stars.length > 0 ? (
+        <div className="mt-6">
+          <p className="mb-2 text-[11px] font-bold text-neutral-400">
+            {en
+              ? "Pick from Korean AI stars like these"
+              : "이런 한국형 AI 스타로 만들어요"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {stars.map((star) => (
+              <span
+                className="block h-11 w-11 overflow-hidden rounded-full ring-1 ring-black/10"
+                key={star.id}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt="AI star"
+                  className="h-full w-full object-cover"
+                  src={star.images[0]}
+                />
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {isSyncing ? (
         <div className="mt-7 flex items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-7 py-3.5 text-sm font-extrabold text-white">
