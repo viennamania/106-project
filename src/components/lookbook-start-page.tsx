@@ -222,6 +222,16 @@ export function LookbookStartPage({
           ? "Email sign-in only — no crypto wallet needed."
           : "이메일 로그인만 — 크립토 지갑이 필요 없습니다."}
       </p>
+      <p className="mt-1.5 text-center text-[11px] text-neutral-400">
+        {en ? "By continuing you agree to the " : "계속하면 "}
+        <a
+          className="underline hover:text-neutral-600"
+          href={`/${locale}/lookbook/terms`}
+        >
+          {en ? "Terms & License" : "이용약관"}
+        </a>
+        {en ? "." : "에 동의하는 것으로 간주됩니다."}
+      </p>
 
       {!accountAddress ? (
         <p className="mt-4 text-center text-[11px] text-neutral-400">
