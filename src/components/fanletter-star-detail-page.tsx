@@ -2347,7 +2347,7 @@ export function FanletterStarDetailPage({
     {
       label: isKorean ? "평판 기록" : "Reputation event",
       value: primaryReputationEventLabel,
-      detail: primaryReputationEventType,
+      detail: isKorean ? "내 활동 기록" : "Activity record",
       isStrong: true,
     },
   ];
