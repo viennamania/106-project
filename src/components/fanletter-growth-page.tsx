@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Bot,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FounderRoleBadge } from "@/components/fanletter-founder-club-v2";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -276,18 +276,7 @@ export function FanletterGrowthPage({
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 pb-28 text-black sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
         <h1 className="sr-only">{pageTitle}</h1>
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/68 transition hover:border-black/20 hover:text-black"
-            href={`/${locale}/fanletter`}
-          >
-            <ArrowLeft className="size-4" />
-            {copy.back}
-          </Link>
-          <span className="hidden rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-black/48 sm:inline-flex">
-            {copy.routeLabel}
-          </span>
-        </div>
+        <FanletterPrimaryHeader locale={locale} referralCode={null} />
 
         <FanletterActionGuide
           className="border-black/10"

@@ -13,6 +13,7 @@ import {
 import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import type { Locale } from "@/lib/i18n";
 import {
   buildFanletterAIStarSocialAccountViewModel,
@@ -326,13 +327,7 @@ export function FanletterMyAIPage({
   return (
     <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
-        <Link
-          className="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:text-black"
-          href={`/${locale}/fanletter`}
-        >
-          <ArrowRight className="size-3.5 rotate-180" />
-          {copy.back}
-        </Link>
+        <FanletterPrimaryHeader locale={locale} referralCode={null} />
 
         <FanletterActionGuide
           currentLabel={currentLabel}
