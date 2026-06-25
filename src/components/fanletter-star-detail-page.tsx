@@ -1002,7 +1002,6 @@ function StarDetailMobileSignpost({
   joinReferralCode,
   locale,
   primaryReputationEventLabel,
-  primaryReputationEventType,
   referralCode,
   star,
   trackingAgentRank,
@@ -1014,7 +1013,6 @@ function StarDetailMobileSignpost({
   joinReferralCode?: string | null;
   locale: Locale;
   primaryReputationEventLabel: string;
-  primaryReputationEventType: "founder_joined" | "referral_shared";
   referralCode: string;
   star: AIStar;
   trackingAgentRank?: AgentRankInteractionSignal | null;
@@ -2488,7 +2486,6 @@ export function FanletterStarDetailPage({
             joinReferralCode={joinReferralCode}
             locale={locale}
             primaryReputationEventLabel={primaryReputationEventLabel}
-            primaryReputationEventType={primaryReputationEventType}
             referralCode={referralCode}
             star={star}
             trackingAgentRank={primaryActionAgentRank}
