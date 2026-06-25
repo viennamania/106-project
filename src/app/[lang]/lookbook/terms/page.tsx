@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { hasLocale } from "@/lib/i18n";
+import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-  title: "AI 룩북 스튜디오 — 이용약관 & 라이선스",
-  description:
-    "셀러가 생성한 룩북 이미지의 소유·이용 권리, AI 스타 모델 사용 조건.",
-};
+type Section = { h: string; body: string[] };
 
-const SECTIONS: { h: string; body: string[] }[] = [
+const SECTIONS_KO: Section[] = [
   {
     h: "1. 생성 결과물의 소유·라이선스",
     body: [
@@ -43,7 +39,7 @@ const SECTIONS: { h: string; body: string[] }[] = [
   {
     h: "5. 포인트·결제",
     body: [
-      "룩북은 fanletter 멤버 계정의 포인트(컷당 50P)로 생성됩니다. 생성에는 지갑 연결과 멤버 가입이 필요합니다.",
+      "룩북은 fanletter 멤버 계정의 포인트(컷당 50P)로 생성됩니다. 생성에는 이메일 로그인과 멤버 가입이 필요합니다.",
       "생성에 실패한 경우 차감된 포인트는 환불됩니다. 정상 생성된 결과물에 대한 포인트는 환불되지 않습니다.",
     ],
   },
@@ -54,6 +50,73 @@ const SECTIONS: { h: string; body: string[] }[] = [
     ],
   },
 ];
+
+const SECTIONS_EN: Section[] = [
+  {
+    h: "1. Ownership & license of generated results",
+    body: [
+      "For lookbook images you generate using points, you receive a worldwide, perpetual, non-exclusive commercial license. You may freely use, copy, modify and distribute them for your own product sales, marketing, social media and shop listings.",
+      "AI-generated images may have limited copyright protection in some jurisdictions (human-authorship requirements). These rights are therefore granted as a contractual license rather than as copyright ownership.",
+      "The license is non-exclusive. The same AI star and scene may appear in other sellers' results.",
+    ],
+  },
+  {
+    h: "2. Use of AI stars (models)",
+    body: [
+      "The model is always a virtual AI star provided by the platform. You may not use photos of real people as the model.",
+      "AI stars are fictional characters; results do not imply endorsement by any real person. You must not use them in a way that could be mistaken for a real person's endorsement.",
+      "The platform reserves the right to offer AI stars as models; compensation and consent policies for star creators follow platform policy.",
+    ],
+  },
+  {
+    h: "3. Garments & assets you upload",
+    body: [
+      "You warrant that you hold the necessary rights (ownership or permission) to the garment/product images you upload.",
+      "You must not upload images that include others' trademarks, designs or copyrighted works without authorization; you are responsible for any resulting disputes.",
+    ],
+  },
+  {
+    h: "4. Platform rights",
+    body: [
+      "The platform may process and store results to operate, host and improve the service.",
+      "If the platform wishes to use results for its own promotion or portfolio, it will provide a separate consent or opt-out process.",
+    ],
+  },
+  {
+    h: "5. Points & payment",
+    body: [
+      "Lookbooks are generated with points on a fanletter member account (50P per shot). Generation requires email sign-in and membership.",
+      "If a generation fails, the charged points are refunded. Points for successfully generated results are non-refundable.",
+    ],
+  },
+  {
+    h: "6. Prohibited use",
+    body: [
+      "Illegal, minor, sexual, violent or hateful content, infringement of others' rights, and use for false endorsement or deceptive advertising are prohibited.",
+    ],
+  },
+];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = hasLocale(lang) ? lang : defaultLocale;
+
+  return locale === "en"
+    ? {
+        title: "AI Lookbook Studio — Terms & License",
+        description:
+          "Ownership and usage rights for generated lookbook images, and AI star model terms.",
+      }
+    : {
+        title: "AI 룩북 스튜디오 — 이용약관 & 라이선스",
+        description:
+          "생성한 룩북 이미지의 소유·이용 권리, AI 스타 모델 사용 조건.",
+      };
+}
 
 export default async function SellerLookbookTermsPage({
   params,
@@ -66,21 +129,26 @@ export default async function SellerLookbookTermsPage({
     notFound();
   }
 
+  const locale = lang as Locale;
+  const en = locale === "en";
+  const sections = en ? SECTIONS_EN : SECTIONS_KO;
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#16702e]">
         Lookbook Studio
       </p>
       <h1 className="mt-1 text-2xl font-black tracking-tight text-neutral-900">
-        이용약관 & 라이선스
+        {en ? "Terms & License" : "이용약관 & 라이선스"}
       </h1>
       <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
-        ⚠️ 본 문서는 법률 검토 전 초안입니다. 정식 서비스 전 반드시 변호사 검토가
-        필요합니다.
+        {en
+          ? "⚠️ This is a pre-legal-review draft. A lawyer must review it before launch."
+          : "⚠️ 본 문서는 법률 검토 전 초안입니다. 정식 서비스 전 반드시 변호사 검토가 필요합니다."}
       </p>
 
       <div className="mt-6 space-y-6">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <section key={section.h}>
             <h2 className="text-base font-extrabold text-neutral-900">
               {section.h}
@@ -100,7 +168,9 @@ export default async function SellerLookbookTermsPage({
       </div>
 
       <p className="mt-8 text-xs text-neutral-400">
-        문의: 플랫폼 운영자. 본 약관은 사전 고지 후 변경될 수 있습니다.
+        {en
+          ? "Contact: platform operator. These terms may change with prior notice."
+          : "문의: 플랫폼 운영자. 본 약관은 사전 고지 후 변경될 수 있습니다."}
       </p>
     </div>
   );
