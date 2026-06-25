@@ -138,6 +138,7 @@ function getPrimaryAction({
   if (portfolio.roles.length === 0) {
     return {
       event: "ai_star_discovered",
+      eventLabel: locale === "ko" ? "스타 발견 신호" : "Star discovery signal",
       href: `/${locale}/fanletter/discovery`,
       label: copy.primary.discover,
       next: copy.nextAction.discover,
@@ -148,6 +149,7 @@ function getPrimaryAction({
   if (!unlock.unlocked) {
     return {
       event: "creator_unlock_evaluated",
+      eventLabel: locale === "ko" ? "크리에이터 권한 평가" : "Creator unlock review",
       href: `/${locale}/fanletter/creator-unlock`,
       label: copy.primary.creator,
       next: copy.nextAction.creator,
@@ -157,6 +159,7 @@ function getPrimaryAction({
 
   return {
     event: "referral_shared",
+    eventLabel: locale === "ko" ? "추천 공유 기록" : "Referral shared",
     href: `/${locale}/fanletter/scout`,
     label: copy.primary.founder,
     next: copy.nextAction.founder,
@@ -327,7 +330,7 @@ export function FanletterGrowthPage({
               reputationEventType: primaryAction.event,
             },
           }}
-          reputationEventLabel={primaryAction.event}
+          reputationEventLabel={primaryAction.eventLabel}
           secondaryActions={[
             {
               href: `/${locale}/fanletter/agentrank/events?limit=40`,
