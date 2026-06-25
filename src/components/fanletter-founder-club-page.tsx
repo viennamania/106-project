@@ -78,7 +78,7 @@ function getCopy(locale: Locale) {
       mockMembershipTitle: "파운더 참여 미리보기 반영됨",
       myAiEntry: {
         body:
-          "하단 내 AI에서 들어온 운영 화면입니다. TikTok, 콘텐츠, 평판 기록 상태를 먼저 확인하세요.",
+          "하단 내 AI에서 들어온 운영 화면입니다. TikTok, 콘텐츠, 활동 기록 상태를 먼저 확인하세요.",
         pill: "내 AI 진입",
         title: "운영 AI 스타 관리",
       },
@@ -100,13 +100,13 @@ function getCopy(locale: Locale) {
         eligibility: "크리에이터 진행률",
         founderNetworks: "참여 네트워크",
         invites: "성공 초대",
-        scout: "스카우트 점수",
+        scout: "친구 초대 점수",
       },
       signpost: {
         currentLabel: "현재 관계",
         currentValue: (creatorCount: number, founderCount: number) =>
           `운영 ${formatNumber(creatorCount, locale)}개 · 참여 ${formatNumber(founderCount, locale)}개`,
-        eventLabel: "평판 기록",
+        eventLabel: "활동 기록",
         eventValue: (hasRoles: boolean, view: FounderClubView) =>
           view === "creator"
             ? "creator_unlock_evaluated"

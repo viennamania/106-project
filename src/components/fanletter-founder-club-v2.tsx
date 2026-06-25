@@ -754,8 +754,8 @@ export function MemberPortfolio({
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "참여 역할",
         founderTitle: "참여 중인 파운더 네트워크",
-        reputationCreated: "평판 기록 생성됨",
-        reputationPending: "평판 기록 대기",
+        reputationCreated: "활동 기록 생성됨",
+        reputationPending: "활동 기록 대기",
         openStar: "AI 스타 보기",
         roleLabel: "내 역할",
         socialConnected: "TikTok 연결됨",
@@ -776,8 +776,8 @@ export function MemberPortfolio({
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
         founderEyebrow: "Participation roles",
         founderTitle: "Founder Networks I joined",
-        reputationCreated: "Reputation record created",
-        reputationPending: "Reputation record pending",
+        reputationCreated: "Activity record created",
+        reputationPending: "Activity record pending",
         openStar: "View AI Star",
         roleLabel: "My role",
         socialConnected: "TikTok connected",
@@ -1630,7 +1630,7 @@ export function FounderClubV2HomeSections({
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/62 sm:text-lg">
               <span className="sm:hidden">
                 {isKoreanCopy(copy)
-                  ? "홈에서는 발견, 파운더 참여, 스카우트 보상, 크리에이터 권한 활성화만 빠르게 보여줍니다."
+                  ? "홈에서는 발견, 파운더 참여, 친구 초대 보상, 크리에이터 권한 활성화만 빠르게 보여줍니다."
                   : "The mobile home keeps the discovery, Founder, Scout reward, and Creator unlock path focused."}
               </span>
               <span className="hidden sm:inline">{copy.founderClub.body}</span>

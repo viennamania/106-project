@@ -272,12 +272,12 @@ function getConfirmCopy(locale: Locale) {
     return {
       aiStar: "AI 스타",
       body:
-        "이 단계는 실제 결제 없이 10 USDT 생성 의도와 새 AI 스타 초안을 평판 기록으로 저장합니다.",
+        "이 단계는 실제 결제 없이 10 USDT 생성 의도와 새 AI 스타 초안을 활동 기록으로 저장합니다.",
       cancel: "취소",
       close: "미리보기 생성 확인 닫기",
       confirm: "미리보기 생성 확정",
       cost: "생성 조건",
-      event: "평판 기록",
+      event: "활동 기록",
       eventValue: "x402 미리보기 결제 의도",
       next: "생성 후",
       nextValue: "AI 스타 초안 + 포트폴리오 반영",

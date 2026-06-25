@@ -176,11 +176,11 @@ function ReferralShareOutcomeCard({
         cp: "CP 보상",
         creator: "크리에이터 진행",
         creatorCta: "크리에이터 여정",
-        event: "평판 기록",
+        event: "활동 기록",
         influence: "영향력",
-        ledgerCta: "평판 기록 보기",
+        ledgerCta: "활동 기록 보기",
         nextBody:
-          "공유 기록은 추천 보상, 크리에이터 진행률, 평판 기록으로 이어집니다.",
+          "공유 기록은 추천 보상, 크리에이터 진행률, 활동 기록으로 이어집니다.",
         nextTitle: "다음 행동",
         pendingBody:
           "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
@@ -193,7 +193,7 @@ function ReferralShareOutcomeCard({
         cp: "CP reward",
         creator: "Creator progress",
         creatorCta: "Creator Journey",
-        event: "Reputation record",
+        event: "Activity record",
         influence: "Influence",
         ledgerCta: "View records",
         nextBody:
@@ -450,7 +450,7 @@ export function FanletterStarReferralPanel({
         primaryActionHint:
           "파운더 참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
         reward: "예상 보상",
-        signal: "기록될 평판 기록",
+        signal: "기록될 활동 기록",
         title: "추천 링크 공유",
       }
     : {
@@ -468,7 +468,7 @@ export function FanletterStarReferralPanel({
         primaryActionHint:
           "Use the primary CTA above for account connection and Founder join.",
         reward: "Expected reward",
-        signal: "Reputation events",
+        signal: "Activity records",
         title: "Share referral link",
       };
   const shouldShowFooterAction =

@@ -236,7 +236,7 @@ const explorerCopy = {
     open: "열림",
     overview: "요약",
     referral: "추천",
-    reputationEvents: "평판 기록",
+    reputationEvents: "활동 기록",
     search: "역할 또는 추천 코드 검색",
     selected: "선택 노드",
     scoreBreakdown: "점수 구성",
@@ -244,12 +244,12 @@ const explorerCopy = {
     spawned: "파생 AI 스타",
     trustScore: "평판 점수",
     title: "파운더 네트워크 탐색",
-    viewAgentRank: "평판 기록 보기",
+    viewAgentRank: "활동 기록 보기",
     viewCoverage: "커버리지 감사",
     viewEvidencePacket: "증거 패킷",
     viewLedgerGaps: "오라클 보강",
     viewLedgerHighImpact: "고기여 원장",
-    viewLedger: "평판 기록",
+    viewLedger: "활동 기록",
   },
 } as const;
 
@@ -662,7 +662,7 @@ function FounderDashboardSidebar({
     {
       href: `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40`,
       icon: Gauge,
-      label: isKorean ? "평판 기록" : "Reputation Records",
+      label: isKorean ? "활동 기록" : "Reputation Records",
       meta: isKorean ? "이벤트 원장으로 이동" : "Open event ledger",
     },
     {
@@ -977,7 +977,7 @@ function FounderUniverseMobileSignpost({
             }}
           >
             <ShieldCheck className="size-3.5 shrink-0" />
-            {isKorean ? "평판 기록" : "Records"}
+            {isKorean ? "활동 기록" : "Records"}
           </FanletterTrackedLink>
           <FanletterTrackedLink
             agentRank={{
@@ -1116,7 +1116,7 @@ function FounderNetworkRelationshipSummary({
               {latestEventLabel}
             </p>
             <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
-              {isKorean ? "평판 기록" : "Record"}
+              {isKorean ? "활동 기록" : "Record"}
             </p>
           </div>
         </div>
@@ -1372,7 +1372,7 @@ function FounderNetworkPositionPath({
       <div className="min-w-0 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white">
         <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-white/58">
           <ShieldCheck className="size-3.5" />
-          {isKorean ? "평판 결과" : "Reputation result"}
+          {isKorean ? "활동 결과" : "Reputation result"}
         </p>
         <p className="mt-2 break-words text-base font-semibold leading-5 [word-break:keep-all]">
           {latestEventLabel}
@@ -1399,7 +1399,7 @@ function FounderNetworkPositionPath({
         </div>
         <p className="mt-3 rounded-lg bg-white/8 px-3 py-2 text-xs font-semibold leading-5 text-white/62 [word-break:keep-all]">
           {isKorean
-            ? "자세한 기록은 아래 평판 기록 영역에서 확인합니다."
+            ? "자세한 기록은 아래 활동 기록 영역에서 확인합니다."
             : "Detailed records are available in the reputation section below."}
         </p>
       </div>
@@ -1473,7 +1473,7 @@ function FounderNetworkContextGraphCard({
     },
     {
       icon: ShieldCheck,
-      label: isKorean ? "평판 기록" : "Reputation records",
+      label: isKorean ? "활동 기록" : "Activity records",
       value: `${formatNumber(eventCount, locale)}${isKorean ? "건" : ""}`,
     },
   ];
@@ -1498,7 +1498,7 @@ function FounderNetworkContextGraphCard({
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
             {isKorean
-              ? "이 화면은 AI 스타 유니버스 안에서 누가 어떤 역할로 참여했고, 어떤 추천과 CP 흐름이 평판 기록으로 이어졌는지 보여줍니다."
+              ? "이 화면은 AI 스타 유니버스 안에서 누가 어떤 역할로 참여했고, 어떤 추천과 CP 흐름이 활동 기록으로 이어졌는지 보여줍니다."
               : "This screen shows who joined this AI Star Universe, which role they hold, and how referrals and CP flow into reputation records."}
           </p>
         </div>
@@ -1513,7 +1513,7 @@ function FounderNetworkContextGraphCard({
           </div>
           <p className="mt-2 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
             {isKorean
-              ? "AI 스타, 멤버, 추천, CP, 평판 기록이 한 그래프로 연결됩니다."
+              ? "AI 스타, 멤버, 추천, CP, 활동 기록이 한 그래프로 연결됩니다."
               : "AI Star, members, referrals, CP, and records are connected into one graph."}
           </p>
         </div>
@@ -2211,7 +2211,7 @@ function FounderUniverseDashboardPanel({
           </h2>
           <p className="mt-4 hidden max-w-sm text-sm font-medium leading-6 text-white/64 sm:block">
             {locale === "ko"
-              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 행동 결과가 평판 기록으로 남습니다.`
+              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 행동 결과가 활동 기록으로 남습니다.`
               : `${starName}'s AI Star Universe contains the Founder Network that grows members and records action results.`}
           </p>
         </div>
@@ -2826,7 +2826,7 @@ function MemberReputationRecords({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#111827]">
             <ShieldCheck className="size-4" />
-            {isKorean ? "이 멤버의 평판 기록" : "Member reputation records"}
+            {isKorean ? "이 멤버의 활동 기록" : "Member reputation records"}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 [word-break:keep-all]">
             {isKorean
@@ -2912,7 +2912,7 @@ function MemberReputationRecords({
           placement: "founder_network_member_reputation_records",
         }}
       >
-        {isKorean ? "평판 기록 보기" : "View records"}
+        {isKorean ? "활동 기록 보기" : "View records"}
         <ArrowRight className="size-3.5" />
       </FanletterTrackedLink>
     </section>
@@ -3393,7 +3393,7 @@ function FounderNetworkReputationRecordFlow({
                 starName: universe.star.displayName || universe.star.name,
               }}
             >
-              {locale === "ko" ? "평판 기록 보기" : "View records"}
+              {locale === "ko" ? "활동 기록 보기" : "View records"}
               <ArrowRight className="size-4" />
             </FanletterTrackedLink>
             {latestEvidenceHref ? (
@@ -3504,7 +3504,7 @@ function FounderNetworkReputationRecordFlow({
         <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-4 sm:px-5">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-[#111827]">
-              {locale === "ko" ? "최근 평판 기록" : "Recent records"}
+              {locale === "ko" ? "최근 활동 기록" : "Recent records"}
             </p>
             <span className="text-xs font-semibold text-slate-400">
               {locale === "ko" ? "행동 결과" : "Action results"}

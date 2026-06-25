@@ -42,7 +42,7 @@ function getCopy(locale: Locale) {
         latest: "최신 브이로그",
         noLatest: "아직 공개된 브이로그가 없습니다.",
         publicVlogs: "공개 브이로그",
-        reputation: "평판 기록",
+        reputation: "활동 기록",
         selected: "선택한 AI 스타",
         selectedBody: "브이로그와 팬 반응을 확인하고 다음 행동을 선택하세요.",
         titleSuffix: "AI 스타 채널",

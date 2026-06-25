@@ -83,9 +83,9 @@ function getCopy(locale: Locale) {
         signpost: {
           currentLabel: "현재 위치",
           currentValue: "AI 스타 발견",
-          eventLabel: "평판 기록",
+          eventLabel: "활동 기록",
           eventValue: "스타 발견 신호",
-          flow: ["발견", "스타 선택", "Founder 참여", "평판 기록"],
+          flow: ["발견", "스타 선택", "Founder 참여", "활동 기록"],
           nextLabel: "다음 행동",
           nextValue: "스타 선택",
           subtitle:
