@@ -1530,7 +1530,7 @@ export function FanletterHomePage({
                 {locale === "ko" ? "성장" : "Growth"}
               </Link>
               <Link
-                className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={myAiHref}
               >
                 {locale === "ko" ? "내 AI" : "My AI"}

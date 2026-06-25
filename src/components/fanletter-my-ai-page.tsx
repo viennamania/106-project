@@ -327,7 +327,11 @@ export function FanletterMyAIPage({
   return (
     <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
-        <FanletterPrimaryHeader locale={locale} referralCode={null} />
+        <FanletterPrimaryHeader
+          current="my-ai"
+          locale={locale}
+          referralCode={null}
+        />
 
         <FanletterActionGuide
           currentLabel={currentLabel}

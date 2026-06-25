@@ -15,14 +15,21 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
  */
 export function FanletterPrimaryHeader({
   aside,
+  current,
   locale,
   referralCode,
 }: {
   /** Optional page-specific trailing element (e.g. a status badge). */
   aside?: ReactNode;
+  /** The active top-level destination, highlighted in the nav. */
+  current?: "discovery" | "growth" | "my-ai";
   locale: Locale;
   referralCode: string | null;
 }) {
+  const navItemClassName = (active: boolean) =>
+    active
+      ? "inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+      : "inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black";
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const discoveryHref = buildPathWithReferral(
     `/${locale}/fanletter/discovery`,
@@ -51,19 +58,22 @@ export function FanletterPrimaryHeader({
         className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
       >
         <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          aria-current={current === "discovery" ? "page" : undefined}
+          className={navItemClassName(current === "discovery")}
           href={discoveryHref}
         >
           {locale === "ko" ? "발견" : "Discovery"}
         </Link>
         <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          aria-current={current === "growth" ? "page" : undefined}
+          className={navItemClassName(current === "growth")}
           href={growthHref}
         >
           {locale === "ko" ? "성장" : "Growth"}
         </Link>
         <Link
-          className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+          aria-current={current === "my-ai" ? "page" : undefined}
+          className={navItemClassName(current === "my-ai")}
           href={myAiHref}
         >
           {locale === "ko" ? "내 AI" : "My AI"}

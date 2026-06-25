@@ -276,7 +276,11 @@ export function FanletterGrowthPage({
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 pb-28 text-black sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
         <h1 className="sr-only">{pageTitle}</h1>
-        <FanletterPrimaryHeader locale={locale} referralCode={null} />
+        <FanletterPrimaryHeader
+          current="growth"
+          locale={locale}
+          referralCode={null}
+        />
 
         <FanletterActionGuide
           className="border-black/10"
