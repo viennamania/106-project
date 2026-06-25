@@ -346,27 +346,6 @@ export function FanletterGrowthPage({
           title={primaryAction.next}
         />
 
-        <section className="grid gap-3 rounded-lg border border-black/10 bg-white p-4 shadow-[0_16px_42px_rgba(15,23,42,0.045)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
-              {copy.currentCondition}
-            </p>
-            <h2 className="mt-1 break-words text-2xl font-semibold leading-tight text-black [word-break:keep-all]">
-              {primaryAction.next}
-            </h2>
-            <p className="mt-2 text-sm font-semibold text-black/54 [word-break:keep-all]">
-              {copy.result}: {primaryAction.eventLabel}
-            </p>
-          </div>
-          <Link
-            className="inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white transition hover:bg-zinc-800"
-            href={primaryAction.href}
-          >
-            <span className="min-w-0 truncate">{primaryAction.label}</span>
-            <ArrowRight className="size-4 shrink-0" />
-          </Link>
-        </section>
-
         <section className="rounded-lg border border-black/10 bg-black p-4 text-white shadow-[0_20px_60px_rgba(15,23,42,0.16)] sm:p-6">
           <p className="text-sm font-semibold text-white/54">{copy.heroEyebrow}</p>
           <p className="mt-2 text-[2.4rem] font-semibold leading-none tracking-normal [word-break:keep-all] sm:text-[4.2rem]">
