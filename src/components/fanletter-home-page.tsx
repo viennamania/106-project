@@ -885,10 +885,6 @@ function FanletterProductHomeDashboard({
         unlocked: "Unlocked",
         universeMap: "AI Star Universe Map",
       };
-  const aiStarPortraitClip = {
-    clipPath: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
-  };
-
   return (
     <section className="mx-auto grid w-full max-w-5xl min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8">
       <div className="grid min-w-0 gap-4">
@@ -1045,47 +1041,32 @@ function FanletterProductHomeDashboard({
                       referralCode={referralCode}
                     >
                       <div
-                        className="h-1.5"
-                        style={{
-                          background: `linear-gradient(90deg, ${star.accentColor}, ${star.accentSecondary})`,
-                        }}
-                      />
-                      <div className="p-3.5">
-                        <div className="flex items-start gap-3">
-                          <span
-                            className="relative flex size-16 shrink-0 items-center justify-center p-[2px] shadow-[0_12px_26px_rgba(124,58,237,0.16)]"
-                            style={{
-                              ...aiStarPortraitClip,
-                              background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                            }}
-                          >
-                            <span
-                              className="flex size-full items-center justify-center overflow-hidden bg-cover bg-center text-sm font-semibold text-white"
-                              style={
-                                star.portraitImageUrl
-                                  ? {
-                                      ...aiStarPortraitClip,
-                                      backgroundImage: `url(${star.portraitImageUrl})`,
-                                    }
-                                  : {
-                                      ...aiStarPortraitClip,
-                                      background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                                    }
+                        className="relative aspect-square w-full overflow-hidden bg-cover bg-center"
+                        style={
+                          star.portraitImageUrl
+                            ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                            : {
+                                background: `linear-gradient(150deg, ${star.accentColor}, ${star.accentSecondary})`,
                               }
-                            >
-                              {star.portraitImageUrl ? null : star.portraitInitials}
-                            </span>
+                        }
+                      >
+                        {star.portraitImageUrl ? null : (
+                          <span className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
+                            {star.portraitInitials}
                           </span>
-                          <span className="min-w-0">
-                            <span className="inline-flex min-h-6 items-center rounded-full bg-black px-2 text-[0.62rem] font-semibold tracking-[0.08em] text-white">
-                              {productCopy.aiStarBadge}
-                            </span>
-                            <span className="mt-2 block truncate text-base font-semibold text-zinc-950">
-                              {star.name}
-                            </span>
-                            <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
-                              {getFanletterV2LocalizedText(star.specialty, locale)}
-                            </span>
+                        )}
+                        <span className="absolute left-2.5 top-2.5 inline-flex min-h-6 items-center rounded-full bg-black/75 px-2 text-[0.62rem] font-semibold tracking-[0.08em] text-white">
+                          {productCopy.aiStarBadge}
+                        </span>
+                        <span className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
+                        <span className="absolute inset-x-3 bottom-2 block truncate text-base font-bold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]">
+                          {star.name}
+                        </span>
+                      </div>
+                      <div className="p-3.5">
+                        <div className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-slate-500">
+                            {getFanletterV2LocalizedText(star.specialty, locale)}
                           </span>
                         </div>
                         <div className="mt-4 grid grid-cols-3 gap-1.5 text-center sm:gap-2">
