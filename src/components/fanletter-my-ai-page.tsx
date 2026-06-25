@@ -399,153 +399,6 @@ export function FanletterMyAIPage({
           title={primaryAccount ? copy.nextConnected : copy.nextPending}
         />
 
-        <section className="grid min-w-0 gap-2 sm:grid-cols-2">
-          <Link
-            className="group min-w-0 rounded-[1.05rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] transition hover:border-zinc-300"
-            href={primaryStar ? primarySocialPermissionHref : `/${locale}/fanletter/creator-unlock`}
-          >
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  <Bot className="size-3.5" />
-                  {copy.creator}
-                </p>
-                <h2 className="mt-1 truncate text-xl font-semibold">
-                  {copy.heroTitle}
-                </h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
-                  {locale === "ko"
-                    ? "AI 스타 콘텐츠, TikTok 채널, 생성 미리보기를 운영하는 권한입니다."
-                    : "Permission to operate AI Star content, TikTok channels, and launch previews."}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.65rem] font-semibold text-zinc-700">
-                {formatNumber(ownedStars.length, locale)}
-              </span>
-            </div>
-            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-900">
-              <span className="min-w-0 truncate">{copy.operatedRelationCta}</span>
-              <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
-            </p>
-          </Link>
-
-          <Link
-            className="group min-w-0 rounded-[1.05rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] transition hover:border-zinc-300"
-            href={`/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`}
-          >
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  <UsersRound className="size-3.5" />
-                  Founder Network
-                </p>
-                <h2 className="mt-1 truncate text-xl font-semibold">
-                  {copy.founderNetworks}
-                </h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
-                  {copy.founderNetworksBody}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.65rem] font-semibold text-zinc-700">
-                {formatNumber(portfolio.roles.length, locale)}
-              </span>
-            </div>
-            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-900">
-              <span className="min-w-0 truncate">{copy.founderRelationCta}</span>
-              <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
-            </p>
-          </Link>
-        </section>
-
-        {primaryStar && primarySocialAccount && primaryStarName ? (
-          <section
-            className="min-w-0 rounded-[1.25rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]"
-            id="my-ai-tiktok-test"
-          >
-            <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  크리에이터 여정
-                </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
-                  {copy.tiktokFocusTitle}
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
-                  {primaryAccount ? copy.tiktokFocusReady : copy.tiktokFocusBody}
-                </p>
-              </div>
-            </div>
-            <div className="mb-3 flex min-w-0 flex-wrap gap-2">
-              {copy.tiktokTestSteps.map((step, index) => (
-                <span
-                  className="inline-flex min-h-8 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700"
-                  key={step}
-                >
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-black text-[0.62rem] text-white">
-                    {index + 1}
-                  </span>
-                  {step}
-                </span>
-              ))}
-            </div>
-            <FanletterAIStarSocialAccountCard
-              connectHref={primarySocialPermissionHref}
-              locale={locale}
-              social={primarySocialAccount}
-              source="fanletter_my_ai"
-              starId={primaryStar.id}
-              starName={primaryStarName}
-              starPortraitImageUrl={primaryStarPortraitUrl}
-              starPortraitInitials={primaryStarPortraitInitials}
-            />
-          </section>
-        ) : null}
-
-        <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.05)] sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                <Bot className="size-4" />
-                {copy.heroEyebrow}
-              </p>
-              <h2 className="mt-1 break-words text-xl font-semibold leading-tight tracking-normal sm:text-2xl">
-                {copy.overviewTitle}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
-                {copy.overviewBody}
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:min-w-80">
-              {[
-                {
-                  label: copy.aiStar,
-                  value: formatNumber(ownedStars.length, locale),
-                },
-                {
-                  label: copy.connected,
-                  value: formatNumber(connectedCount, locale),
-                },
-                {
-                  label: locale === "ko" ? "기여 포인트" : "Contribution Points",
-                  value: formatNumber(portfolio.cpBalance, locale),
-                },
-              ].map((metric) => (
-                <div
-                  className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3"
-                  key={metric.label}
-                >
-                  <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
-                    {metric.label}
-                  </p>
-                  <p className="mt-1 truncate text-lg font-semibold text-zinc-950">
-                    {metric.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {ownedStars.length > 0 ? (
           <section className="grid min-w-0 gap-3 sm:grid-cols-2">
             {sortedOwnedStars.map((ownedStar) => {
@@ -740,6 +593,96 @@ export function FanletterMyAIPage({
             </div>
           </section>
         ) : null}
+
+        {primaryStar && primarySocialAccount && primaryStarName ? (
+          <section
+            className="min-w-0 rounded-[1.25rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]"
+            id="my-ai-tiktok-test"
+          >
+            <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  크리에이터 여정
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
+                  {copy.tiktokFocusTitle}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {primaryAccount ? copy.tiktokFocusReady : copy.tiktokFocusBody}
+                </p>
+              </div>
+            </div>
+            <div className="mb-3 flex min-w-0 flex-wrap gap-2">
+              {copy.tiktokTestSteps.map((step, index) => (
+                <span
+                  className="inline-flex min-h-8 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700"
+                  key={step}
+                >
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-black text-[0.62rem] text-white">
+                    {index + 1}
+                  </span>
+                  {step}
+                </span>
+              ))}
+            </div>
+            <FanletterAIStarSocialAccountCard
+              connectHref={primarySocialPermissionHref}
+              locale={locale}
+              social={primarySocialAccount}
+              source="fanletter_my_ai"
+              starId={primaryStar.id}
+              starName={primaryStarName}
+              starPortraitImageUrl={primaryStarPortraitUrl}
+              starPortraitInitials={primaryStarPortraitInitials}
+            />
+          </section>
+        ) : null}
+
+        <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.05)] sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                <Bot className="size-4" />
+                {copy.heroEyebrow}
+              </p>
+              <h2 className="mt-1 break-words text-xl font-semibold leading-tight tracking-normal sm:text-2xl">
+                {copy.overviewTitle}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                {copy.overviewBody}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:min-w-80">
+              {[
+                {
+                  label: copy.aiStar,
+                  value: formatNumber(ownedStars.length, locale),
+                },
+                {
+                  label: copy.connected,
+                  value: formatNumber(connectedCount, locale),
+                },
+                {
+                  label: locale === "ko" ? "기여 포인트" : "Contribution Points",
+                  value: formatNumber(portfolio.cpBalance, locale),
+                },
+              ].map((metric) => (
+                <div
+                  className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3"
+                  key={metric.label}
+                >
+                  <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
+                    {metric.label}
+                  </p>
+                  <p className="mt-1 truncate text-lg font-semibold text-zinc-950">
+                    {metric.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
   );
