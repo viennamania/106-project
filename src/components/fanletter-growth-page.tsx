@@ -355,7 +355,7 @@ export function FanletterGrowthPage({
               {primaryAction.next}
             </h2>
             <p className="mt-2 text-sm font-semibold text-black/54 [word-break:keep-all]">
-              {copy.result}: {primaryAction.event}
+              {copy.result}: {primaryAction.eventLabel}
             </p>
           </div>
           <Link
