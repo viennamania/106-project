@@ -222,7 +222,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       founder: "성장",
       home: "홈",
       label: "AIAVpark 주요 메뉴",
-      scout: "스카우트",
+      scout: "친구 초대",
       studio: "내 AI",
     },
     en: {

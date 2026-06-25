@@ -50,7 +50,7 @@ function getCopy(locale: Locale) {
       connectedTitle: "TikTok 채널 연결됨",
       connectComplete: "수동 미리보기 저장",
       connectHelper:
-        "AI 스타별 TikTok 채널 연결은 평판 기록으로 남습니다. TikTok 승인 또는 미리보기 연결로 테스트할 수 있습니다.",
+        "AI 스타별 TikTok 채널 연결은 활동 기록으로 남습니다. TikTok 승인 또는 미리보기 연결로 테스트할 수 있습니다.",
       connectRequired: "TikTok 연결 필요",
       connectTitle: "AI 스타별 TikTok 채널",
       creatorPermissionBody:
@@ -58,8 +58,8 @@ function getCopy(locale: Locale) {
       creatorPermissionCta: "크리에이터 권한 활성화 확인",
       creatorPermissionTitle: "크리에이터 / 운영자 권한 필요",
       creatorOnly: "크리에이터 / 운영자 권한 필요",
-      eventCreated: "평판 기록 생성됨",
-      eventPreview: "평판 기록 미리보기",
+      eventCreated: "활동 기록 생성됨",
+      eventPreview: "활동 기록 미리보기",
       apiCapabilityStatus: {
         app_review_required: "앱 리뷰 필요",
         connected_ready: "연결 후 가능",
@@ -68,20 +68,20 @@ function getCopy(locale: Locale) {
       },
       apiCapabilityTitle: "TikTok API 적용 범위",
       apiCoverageCta: "커버리지 확인",
-      apiCoverageHint: "평판 기록 점검",
+      apiCoverageHint: "활동 기록 점검",
       apiCapabilityItems: {
         content_publish: {
           detail:
-            "TikTok Content Posting API로 게시한 영상만 status/webhook 평판 기록으로 연결합니다.",
+            "TikTok Content Posting API로 게시한 영상만 status/webhook 활동 기록으로 연결합니다.",
           title: "콘텐츠 게시",
         },
         manual_app_posting: {
           detail:
-            "TikTok 앱에서 직접 올린 영상은 아직 자동으로 AI 스타 평판 기록에 반영되지 않습니다.",
+            "TikTok 앱에서 직접 올린 영상은 아직 자동으로 AI 스타 활동 기록에 반영되지 않습니다.",
           title: "수동 앱 포스팅",
         },
         performance_sync: {
-          detail: "조회, 좋아요, 댓글, 공유 수를 Star Score와 평판 기록에 반영합니다.",
+          detail: "조회, 좋아요, 댓글, 공유 수를 Star Score와 활동 기록에 반영합니다.",
           title: "성과 동기화",
         },
         profile_sync: {
@@ -101,11 +101,11 @@ function getCopy(locale: Locale) {
         "권한 반영 후 같은 AI 스타 채널로 다시 승인을 시도하세요.",
       oauthCallbackSuccess: "TikTok 승인 완료",
       oauthCallbackSuccessBody:
-        "AI 스타 TikTok 채널 연결이 서버 평판 기록으로 저장되었습니다.",
+        "AI 스타 TikTok 채널 연결이 서버 활동 기록으로 저장되었습니다.",
       oauthModeLabel: "OAuth 모드",
       flowChannel: "채널 연결",
       flowCreatorJourney: "조건 반영",
-      flowRecord: "평판 기록",
+      flowRecord: "활동 기록",
       handleHelper: "예: @minseo.golf.ai",
       handleLabel: "TikTok handle",
       handlePreview: "연결될 채널",
@@ -116,7 +116,7 @@ function getCopy(locale: Locale) {
         "미리보기 연결을 완료하지 못했습니다. 입력값과 크리에이터 권한을 다시 확인해주세요.",
       mockConnectSaving: "미리보기 연결 저장 중",
       mockOnly:
-        "실제 연결 테스트는 위 TikTok 승인 버튼을 사용하세요. 수동 미리보기 저장은 OAuth가 막혔을 때 UI와 평판 기록 흐름을 확인하는 백업 테스트입니다.",
+        "실제 연결 테스트는 위 TikTok 승인 버튼을 사용하세요. 수동 미리보기 저장은 OAuth가 막혔을 때 UI와 활동 기록 흐름을 확인하는 백업 테스트입니다.",
       manualStatus: "수동 / 미리보기",
       oauthReadinessItems: [
         "TikTok 앱과 redirect URI 검증",
@@ -141,8 +141,8 @@ function getCopy(locale: Locale) {
       primaryCta: "TikTok 연결하기",
       realOAuthCta: "TikTok으로 실제 연결 테스트",
       replaceCta: "채널 변경",
-      reputationLedger: "평판 기록 보기",
-      reputationLedgerHint: "연결 기록을 평판 기록에서 확인",
+      reputationLedger: "활동 기록 보기",
+      reputationLedgerHint: "연결 기록을 활동 기록에서 확인",
       retryOAuthCta: "다시 승인 시도",
       roleCreator: "크리에이터",
       roleOwner: "운영자",
@@ -152,7 +152,7 @@ function getCopy(locale: Locale) {
       statusJourneyTitle: "TikTok 연결 상태",
       statusSteps: {
         channel: "채널 연결",
-        reputation: "평판 기록",
+        reputation: "활동 기록",
         server: "서버 저장",
         sync: "동기화 가능",
       },
@@ -164,13 +164,13 @@ function getCopy(locale: Locale) {
       syncApiError:
         "TikTok 미리보기 동기화를 완료하지 못했습니다. 연결 상태와 크리에이터 권한을 확인해주세요.",
       syncApiHelper:
-        "현재는 미리보기 영상 목록으로 평판 기록 흐름을 확인합니다. 실제 TikTok video.list 권한 승인 후 같은 UI에 최근 영상을 표시합니다.",
+        "현재는 미리보기 영상 목록으로 활동 기록 흐름을 확인합니다. 실제 TikTok video.list 권한 승인 후 같은 UI에 최근 영상을 표시합니다.",
       syncApiSaving: "동기화 중",
       syncApiTitle: "최근 TikTok 영상",
       syncContextPacketBody:
-        "최근 영상 성과가 AI 스타 콘텐츠 Context로 저장되고 AgentRank 평판 기록으로 이어집니다.",
+        "최근 영상 성과가 AI 스타 콘텐츠 Context로 저장되고 AgentRank 활동 기록으로 이어집니다.",
       syncContextPacketTitle: "콘텐츠 Context 패킷",
-      syncResult: "평판 기록 생성됨",
+      syncResult: "활동 기록 생성됨",
       syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
       syncVideoComments: "댓글",
       syncVideoLikes: "좋아요",
@@ -392,8 +392,8 @@ function getCopy(locale: Locale) {
     creatorPermissionCta: "Review Creator permission",
     creatorPermissionTitle: "Creator / Owner permission required",
     creatorOnly: "Creator / Owner permission required",
-    eventCreated: "Reputation record created",
-    eventPreview: "Reputation record preview",
+    eventCreated: "Activity record created",
+    eventPreview: "Activity record preview",
     apiCapabilityStatus: {
       app_review_required: "App review required",
       connected_ready: "Ready after connection",
@@ -402,7 +402,7 @@ function getCopy(locale: Locale) {
     },
     apiCapabilityTitle: "TikTok API coverage",
     apiCoverageCta: "Check Coverage",
-    apiCoverageHint: "Reputation record review",
+    apiCoverageHint: "Activity record review",
     apiCapabilityItems: {
       content_publish: {
         detail:
@@ -441,7 +441,7 @@ function getCopy(locale: Locale) {
     oauthModeLabel: "OAuth mode",
     flowChannel: "Channel connected",
     flowCreatorJourney: "Condition reflected",
-    flowRecord: "Reputation record",
+    flowRecord: "Activity record",
     handleHelper: "Example: @minseo.golf.ai",
     handleLabel: "TikTok handle",
     handlePreview: "Channel to connect",
@@ -489,7 +489,7 @@ function getCopy(locale: Locale) {
     statusJourneyTitle: "TikTok connection state",
     statusSteps: {
       channel: "Channel connected",
-      reputation: "Reputation record",
+      reputation: "Activity record",
       server: "Server saved",
       sync: "Sync ready",
     },
@@ -953,7 +953,7 @@ export function FanletterAIStarSocialAccountCard({
         : "Content performance context";
   const syncContextPreviewBody =
     locale === "ko"
-      ? "TikTok 연결 후 최근 영상과 팬 반응이 AI 스타의 평판 기록으로 전환됩니다."
+      ? "TikTok 연결 후 최근 영상과 팬 반응이 AI 스타의 활동 기록으로 전환됩니다."
       : locale === "ja"
         ? "TikTok接続後、最近の動画とファン反応がAIスターの評判記録に変換されます。"
         : "After TikTok connection, recent videos and audience signals become AI Star Reputation Records.";

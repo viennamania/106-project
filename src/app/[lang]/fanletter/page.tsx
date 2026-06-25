@@ -304,7 +304,6 @@ export default async function FanletterRoutePage({
   return (
     <FanletterHomePage
       agentRankSnapshot={agentRankSnapshot}
-      featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
       founderClubCreatorUnlock={founderClubCreatorUnlock}
       founderClubMemberPortfolio={founderClubMemberPortfolio}
@@ -313,10 +312,8 @@ export default async function FanletterRoutePage({
       founderClubStars={founderClubStars}
       agentRankTrackingStarId={coverageStarId}
       coverageAction={coverageAction}
-      hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={locale}
       liveStats={landingData.liveStats}
-      nsfwOptInEnabled={landingData.nsfwOptInEnabled}
       referralCode={referralCode}
       shareContext={shareContext}
     />

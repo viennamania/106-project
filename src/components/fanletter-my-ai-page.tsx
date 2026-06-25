@@ -48,7 +48,7 @@ function getCopy(locale: Locale) {
       contextAssetReady: "AI 스타 운영 증거",
       contextAssetTitle: "Context Asset",
       contextGraphMetric: "그래프 강화",
-      contextGraphPath: "회원 → AI 스타 → TikTok → 평판 기록",
+      contextGraphPath: "회원 → AI 스타 → TikTok → 활동 기록",
       contextMoatMetric: "복제 난이도",
       contextMoatValue: "운영 권한 + 공식 채널 + 서버 기록",
       contextScoreLabel: "Context Score",
@@ -63,7 +63,7 @@ function getCopy(locale: Locale) {
         },
         {
           detail: "연결 행동이 AgentRank 증거로 남는지",
-          label: "평판 기록",
+          label: "활동 기록",
         },
       ],
       content: "콘텐츠",
@@ -75,7 +75,7 @@ function getCopy(locale: Locale) {
       emptyCta: "크리에이터 권한 활성화 보기",
       emptyTitle: "운영 중인 AI 스타가 없습니다",
       eventConnected: "TikTok 채널 연결 기록 생성",
-      eventPending: "TikTok 연결 시 평판 기록 생성",
+      eventPending: "TikTok 연결 시 활동 기록 생성",
       founderRelationCta: "참여 네트워크 보기",
       founderNetworks: "참여 중인 파운더 네트워크",
       founderNetworksBody:
@@ -88,10 +88,10 @@ function getCopy(locale: Locale) {
       relationFounder: "Founder Network",
       relationFounderBody: "AI 스타 유니버스 안에서 초대, CP, 역할로 참여합니다.",
       relationTitle: "관계 구분",
-      reputationResult: "평판 기록 결과",
+      reputationResult: "활동 기록 결과",
       selectedAiStar: "선택 AI 스타",
       heroBody:
-        "내 AI는 회원 개인 계정이 아니라 AI 스타별 운영 채널입니다. TikTok 연결, 콘텐츠 준비, 평판 기록을 한 화면에서 확인합니다.",
+        "내 AI는 회원 개인 계정이 아니라 AI 스타별 운영 채널입니다. TikTok 연결, 콘텐츠 준비, 활동 기록을 한 화면에서 확인합니다.",
       heroEyebrow: "내 AI",
       heroTitle: "내가 운영하는 AI 스타",
       launch: "출시 의도",
@@ -105,15 +105,15 @@ function getCopy(locale: Locale) {
       routeLabel: "FanLetter / 내 AI",
       source: "원천 AI 스타 유니버스",
       status: "상태",
-      steps: ["운영 AI", "TikTok", "콘텐츠", "평판 기록"],
+      steps: ["운영 AI", "TikTok", "콘텐츠", "활동 기록"],
       tiktok: "TikTok",
       tiktokFocusBody:
-        "AI 스타별 TikTok 채널을 연결하면 크리에이터 여정 조건과 평판 기록이 함께 채워집니다.",
+        "AI 스타별 TikTok 채널을 연결하면 크리에이터 여정 조건과 활동 기록이 함께 채워집니다.",
       tiktokFocusReady:
-        "모든 운영 AI 스타의 TikTok 연결이 준비되어 있습니다. 다음은 평판 기록 확인입니다.",
+        "모든 운영 AI 스타의 TikTok 연결이 준비되어 있습니다. 다음은 활동 기록 확인입니다.",
       tiktokFocusTitle: "TikTok 다음 행동",
-      tiktokTestSteps: ["채널 확인", "미리보기 연결", "평판 기록 확인"],
-      viewReputation: "평판 기록 보기",
+      tiktokTestSteps: ["채널 확인", "미리보기 연결", "활동 기록 확인"],
+      viewReputation: "활동 기록 보기",
       viewUniverse: "AI 스타 유니버스 보기",
     };
   }
@@ -130,7 +130,7 @@ function getCopy(locale: Locale) {
     contextAssetReady: "AI Star operation proof",
     contextAssetTitle: "Context Asset",
     contextGraphMetric: "Graph strength",
-    contextGraphPath: "Member → AI Star → TikTok → Reputation record",
+    contextGraphPath: "Member → AI Star → TikTok → Activity record",
     contextMoatMetric: "Context Moat",
     contextMoatValue: "Operating permission + official channel + server record",
     contextScoreLabel: "Context Score",
@@ -145,7 +145,7 @@ function getCopy(locale: Locale) {
       },
       {
         detail: "Whether the action becomes AgentRank evidence",
-        label: "Reputation record",
+        label: "Activity record",
       },
     ],
     content: "Content",

@@ -385,19 +385,19 @@ function StarActionLink({
     ? {
         close: "파운더 참여 확인 패널 닫기",
         confirm: action.variant === "connect" ? "계정 연결 계속" : "파운더 참여 확정",
-        events: "기록될 평판 기록",
+        events: "기록될 활동 기록",
         location: "현재 위치",
         next: "다음 행동",
         steps:
           action.variant === "connect"
-            ? ["AI 스타 발견", "계정 연결", "파운더 참여", "평판 기록"]
-            : ["AI 스타 발견", "파운더 참여", "추천 링크", "평판 기록"],
+            ? ["AI 스타 발견", "계정 연결", "파운더 참여", "활동 기록"]
+            : ["AI 스타 발견", "파운더 참여", "추천 링크", "활동 기록"],
         title: "파운더 참여 확인",
       }
     : {
         close: "Close Founder join confirmation panel",
         confirm: action.variant === "connect" ? "Continue to connect" : "Confirm Founder join",
-        events: "Reputation events",
+        events: "Activity records",
         location: "Current location",
         next: "Next action",
         steps:
@@ -694,7 +694,7 @@ function StarViewerRelationshipCard({
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "크리에이터 권한 활성화",
         referralRecord: "추천 공유 기록",
-        recordLabel: "생성될 평판 기록",
+        recordLabel: "생성될 활동 기록",
         tiktokConnected: "TikTok 채널 연결됨",
         tiktokConnectedRecord: "TikTok 채널 연결 기록",
         tiktokDetailFallback: "AI 스타 채널 상태 확인",
@@ -746,7 +746,7 @@ function StarViewerRelationshipCard({
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
         referralRecord: "Referral share record",
-        recordLabel: "Reputation record",
+        recordLabel: "Activity record",
         tiktokConnected: "TikTok channel connected",
         tiktokConnectedRecord: "TikTok channel connection record",
         tiktokDetailFallback: "Review AI Star channel status",
@@ -1105,7 +1105,7 @@ function StarDetailMobileSignpost({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              {isKorean ? "생성될 평판 기록" : "Reputation record"}
+              {isKorean ? "생성될 활동 기록" : "Activity record"}
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
               {primaryReputationEventLabel}
@@ -1248,7 +1248,7 @@ function FounderNextReputationPath({
         active: "지금 할 일",
         done: "완료",
         next: "다음",
-        subtitle: "내 링크로 새 Founder가 참여하면 보상과 평판 기록이 함께 생성됩니다.",
+        subtitle: "내 링크로 새 Founder가 참여하면 보상과 활동 기록이 함께 생성됩니다.",
         title: "Founder 다음 흐름",
       }
     : {
@@ -1277,7 +1277,7 @@ function FounderNextReputationPath({
     {
       event: "event_ledger",
       icon: Database,
-      label: isKorean ? "평판 기록" : "Reputation record",
+      label: isKorean ? "활동 기록" : "Activity record",
       recordLabel: isKorean ? "보상/참여 기록" : "Reward and join record",
       state: "next",
     },
@@ -1413,15 +1413,15 @@ function FounderJoinResultCard({
   const displayStarName = getDisplayStarName(star.name, copy);
   const labels = isKorean
     ? {
-        body: "추천 코드가 생성되었고, 보상과 평판 기록이 준비되었습니다.",
-        event: "생성된 평판 기록",
+        body: "추천 코드가 생성되었고, 보상과 활동 기록이 준비되었습니다.",
+        event: "생성된 활동 기록",
         network: "파운더 네트워크 보기",
         share: "추천 링크 공유하기",
         title: "파운더 참여 완료",
       }
     : {
         body: "Your referral code is ready, with rewards and reputation records prepared.",
-        event: "Reputation records",
+        event: "Activity records",
         network: "View Founder Network",
         share: "Share referral link",
         title: "Founder join complete",
@@ -1570,7 +1570,7 @@ function StarAgentRankJoinSignal({
     ? {
         cta: "AgentRank 보기",
         edges: "네트워크",
-        events: "평판 기록",
+        events: "활동 기록",
         join: "파운더 참여",
         ledger: "이벤트 원장",
         referral: "추천 코드",
@@ -2270,7 +2270,7 @@ export function FanletterStarDetailPage({
             status: "active" as const,
           },
           {
-            label: isKorean ? "평판 기록" : "Reputation",
+            label: isKorean ? "활동 기록" : "Reputation",
             status: "next" as const,
           },
         ]
@@ -2289,7 +2289,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: isKorean ? "평판 기록" : "Reputation",
+              label: isKorean ? "활동 기록" : "Reputation",
               status: "next" as const,
             },
           ]
@@ -2307,7 +2307,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: isKorean ? "평판 기록" : "Reputation",
+              label: isKorean ? "활동 기록" : "Reputation",
               status: "next" as const,
             },
           ];
@@ -2343,7 +2343,7 @@ export function FanletterStarDetailPage({
       detail: primaryAction.status,
     },
     {
-      label: isKorean ? "평판 기록" : "Reputation event",
+      label: isKorean ? "활동 기록" : "Activity record",
       value: primaryReputationEventLabel,
       detail: isKorean ? "내 활동 기록" : "Activity record",
       isStrong: true,

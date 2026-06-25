@@ -98,7 +98,7 @@ function getCopy(locale: Locale) {
       continueJourney: "크리에이터 여정 계속",
       connectedEvent: "TikTok 채널 연결 기록",
       contextAssetBody:
-        "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 평판 기록을 하나의 검증 가능한 Context Asset으로 묶습니다.",
+        "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 활동 기록을 하나의 검증 가능한 Context Asset으로 묶습니다.",
       contextAssetMetric: "축적 자산",
       contextAssetPending: "AI 스타 선택 대기",
       contextAssetTitle: "Context Asset",
@@ -113,7 +113,7 @@ function getCopy(locale: Locale) {
       contextSignals: [
         "운영자 권한",
         "공식 채널 연결",
-        "평판 기록 생성",
+        "활동 기록 생성",
         "콘텐츠 동기화 준비",
       ],
       contentSyncReady: "콘텐츠 동기화 준비",
@@ -124,11 +124,11 @@ function getCopy(locale: Locale) {
       emptyTitle: "연결할 AI 스타가 없습니다",
       eyebrow: "크리에이터 여정",
       flowChannel: "채널 연결",
-      flowEvent: "평판 기록",
+      flowEvent: "활동 기록",
       flowSync: "콘텐츠 동기화",
       intro:
         "회원 개인 TikTok이 아니라 선택한 AI 스타의 공식 채널을 연결합니다.",
-      ledger: "평판 기록 보기",
+      ledger: "활동 기록 보기",
       mainCta: "TikTok 연결하기",
       nextAction: "다음 행동",
       nextRecordMetric: "다음 기록",
@@ -140,9 +140,9 @@ function getCopy(locale: Locale) {
       oauthFailureChecks: ["Sandbox Target User", "client key", "redirect URI"],
       oauthSuccess: "TikTok 승인 완료",
       oauthSuccessBody:
-        "AI 스타 TikTok 채널 연결이 서버에 저장되고 평판 기록 조건에 반영됩니다.",
+        "AI 스타 TikTok 채널 연결이 서버에 저장되고 활동 기록 조건에 반영됩니다.",
       pageTitle: "AI 스타 TikTok 채널",
-      recordReady: "평판 기록 생성됨",
+      recordReady: "활동 기록 생성됨",
       selected: "선택됨",
       successNextBody:
         "이제 TikTok 채널 연결 기록을 확인하고, 새 AI 스타 생성 미리보기 또는 콘텐츠 동기화 준비로 이어갈 수 있습니다.",
@@ -246,7 +246,7 @@ function getCopy(locale: Locale) {
     contextSignals: [
       "Operator permission",
       "Official channel link",
-      "Reputation record",
+      "Activity record",
       "Content sync readiness",
     ],
     contentSyncReady: "Content sync ready",
@@ -257,7 +257,7 @@ function getCopy(locale: Locale) {
     emptyTitle: "No AI Star available",
     eyebrow: "Creator Journey",
     flowChannel: "Channel connection",
-    flowEvent: "Reputation record",
+    flowEvent: "Activity record",
     flowSync: "Content sync",
     intro:
       "Connect the selected AI Star's official channel, not a personal member TikTok.",

@@ -402,7 +402,7 @@ function CreatorUnlockConditionsPanel({
       closeLabel={closeLabel}
       description={
         isKorean
-          ? "조건을 충족하면 크리에이터 권한이 활성화되고, 이후 미리보기 생성 행동은 평판 기록으로 남습니다."
+          ? "조건을 충족하면 크리에이터 권한이 활성화되고, 이후 미리보기 생성 행동은 활동 기록으로 남습니다."
           : "When conditions are met, Creator permission is activated, and mock launch actions become AgentRank reputation events."
       }
       eyebrow={isKorean ? "크리에이터 여정" : "Creator Journey"}
@@ -473,7 +473,7 @@ function CreatorUnlockConditionsPanel({
 
         <section className="rounded-lg border border-zinc-200 bg-white p-3">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            {isKorean ? "평판 기록" : "Reputation record flow"}
+            {isKorean ? "활동 기록" : "Activity record flow"}
           </p>
           <div className="mt-3 grid gap-2">
             {getCreatorJourneyReputationSequence(locale).map((event, index) => (
@@ -1629,7 +1629,7 @@ function MockLaunchEventReceiptCard({
         amount: "10 USDT 미리보기",
         cpPool: "CP 풀 출처",
         draft: "생성된 초안",
-        event: hasLaunch ? "생성된 평판 기록" : "생성될 평판 기록",
+        event: hasLaunch ? "생성된 활동 기록" : "생성될 활동 기록",
         payment: "실제 결제 없음",
         pendingName: "AI 스타 초안 생성 대기",
         source: "창업 출처",
@@ -1639,7 +1639,7 @@ function MockLaunchEventReceiptCard({
         amount: "10 USDT mock",
         cpPool: "CP Pool source",
         draft: "Created draft",
-        event: hasLaunch ? "Reputation records" : "Pending reputation records",
+        event: hasLaunch ? "Activity records" : "Pending reputation records",
         payment: "No real payment",
         pendingName: "AI Star draft pending",
         source: "Launch source",
@@ -1738,17 +1738,17 @@ function LaunchReadinessSignpost({
   const labels = isKorean
     ? {
         body:
-          "선택한 출처 AI 스타 유니버스, 10 USDT 미리보기 의도, 생성될 평판 기록만 확인합니다.",
+          "선택한 출처 AI 스타 유니버스, 10 USDT 미리보기 의도, 생성될 활동 기록만 확인합니다.",
         cta: requiresSourceUniverse
           ? copy.noSourcePrimary
           : isPreviewMode
             ? copy.loginCta
             : "미리보기 생성하기",
-        event: "생성될 평판 기록",
+        event: "생성될 활동 기록",
         result: "생성 결과",
         source: "출처",
         stepMock: "10 USDT 미리보기",
-        stepRecord: "평판 기록",
+        stepRecord: "활동 기록",
         stepSource: "출처 선택",
         title: "생성 전 마지막 확인",
       }
@@ -1760,7 +1760,7 @@ function LaunchReadinessSignpost({
           : isPreviewMode
             ? copy.loginCta
             : "Create preview",
-        event: "Reputation records",
+        event: "Activity records",
         result: "Launch result",
         source: "Source",
         stepMock: "10 USDT mock",
@@ -1872,7 +1872,7 @@ function LaunchReadinessSignpost({
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 px-5 text-sm font-semibold text-white/78 transition hover:bg-white/10"
               href={launchLedgerHref}
             >
-              {isKorean ? "평판 기록 보기" : "View records"}
+              {isKorean ? "활동 기록 보기" : "View records"}
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -2006,10 +2006,10 @@ function CreatorUnlockStateStrip({
           connect: "계정 연결 후 실데이터 확인",
           locked: "조건 상세 확인",
           nextCondition: "다음 조건",
-          recordCreated: "평판 기록 생성됨",
-          reputationRecord: "평판 기록",
+          recordCreated: "활동 기록 생성됨",
+          reputationRecord: "활동 기록",
           socialComplete: "TikTok 연결 조건 완료",
-          viewRecord: "평판 기록 보기",
+          viewRecord: "활동 기록 보기",
           progress: "권한 진행률",
           ready: "생성 미리보기 가능",
           source: "창업 출처",
@@ -2405,11 +2405,11 @@ function CreatorNextActionStatusCard({
           : isPreviewMode
             ? "계정을 연결하면 내 파운더 활동과 조건 진행률을 실데이터로 확인합니다."
             : unlock.unlocked
-              ? "조건이 충족되었습니다. 미리보기 생성 행동은 평판 기록으로 남습니다."
+              ? "조건이 충족되었습니다. 미리보기 생성 행동은 활동 기록으로 남습니다."
               : "부족한 조건을 채우면 크리에이터 권한 평가 기록이 갱신됩니다.",
         condition: "다음 조건",
         current: "현재",
-        event: "평판 기록 결과",
+        event: "활동 기록 결과",
         source: "창업 출처",
         target: "목표",
         title: unlock.unlocked ? "권한 활성화 준비 완료" : "다음 조건부터 처리하세요",
@@ -2547,7 +2547,7 @@ function CreatorJourneyEventPath({
         next: "다음",
         source: "출처",
         subtitle: "선택한 AI 스타 유니버스의 성과가 새 AI 스타 생성 기록으로 이어집니다.",
-        title: "행동이 평판 기록으로 이어지는 흐름",
+        title: "행동이 활동 기록으로 이어지는 흐름",
       }
     : {
         active: "Now",
@@ -2606,7 +2606,7 @@ function CreatorJourneyEventPath({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            {isKorean ? "평판 기록" : "Reputation records"}
+            {isKorean ? "활동 기록" : "Activity records"}
           </p>
           <h2 className="mt-1 text-xl font-semibold leading-tight text-[#12041f]">
             {labels.title}
@@ -2907,11 +2907,11 @@ function CreatorTikTokContextBridgeCard({
     ? {
         asset: "축적 자산",
         assetValue: "AI 스타 공식 TikTok 채널",
-        bridge: "채널 연결 -> 콘텐츠 동기화 -> 평판 기록",
+        bridge: "채널 연결 -> 콘텐츠 동기화 -> 활동 기록",
         graph: "그래프 강화",
         graphValue: "AI 스타 -> TikTok -> AgentRank",
         graphWaiting: "AI 스타 -> TikTok 연결 대기",
-        ledger: "평판 기록 보기",
+        ledger: "활동 기록 보기",
         moat: "복제 난이도",
         moatValue: "서버 연결 기록 + 공식 채널 증거",
         moatWaiting: "연결 후 서버 기록과 공식 채널 증거 생성",
@@ -2919,9 +2919,9 @@ function CreatorTikTokContextBridgeCard({
         primaryWaiting: "TikTok 연결하기",
         score: "Context Score",
         subtitle:
-          "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 평판 기록으로 만드는 입력원이 됩니다.",
+          "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 활동 기록으로 만드는 입력원이 됩니다.",
         subtitleWaiting:
-          "회원 개인 계정이 아니라 선택한 AI 스타의 공식 채널을 연결해야 콘텐츠 성과가 평판 기록으로 이어집니다.",
+          "회원 개인 계정이 아니라 선택한 AI 스타의 공식 채널을 연결해야 콘텐츠 성과가 활동 기록으로 이어집니다.",
         title: "TikTok 연결이 콘텐츠 Context로 확장됩니다",
         titleWaiting: "TikTok 연결은 콘텐츠 Context의 시작점입니다",
       }
@@ -2929,7 +2929,7 @@ function CreatorTikTokContextBridgeCard({
       ? {
           asset: "蓄積Asset",
           assetValue: "AIスター公式TikTokチャンネル",
-          bridge: "Channel connection -> Content sync -> Reputation record",
+          bridge: "Channel connection -> Content sync -> Activity record",
           graph: "Graph強化",
           graphValue: "AI Star -> TikTok -> AgentRank",
           graphWaiting: "AI Star -> TikTok connection waiting",
@@ -2951,7 +2951,7 @@ function CreatorTikTokContextBridgeCard({
       : {
           asset: "Context asset",
           assetValue: "AI Star official TikTok channel",
-          bridge: "Channel connection -> Content sync -> Reputation record",
+          bridge: "Channel connection -> Content sync -> Activity record",
           graph: "Graph strength",
           graphValue: "AI Star -> TikTok -> AgentRank",
           graphWaiting: "AI Star -> TikTok connection pending",
@@ -3188,7 +3188,7 @@ function CreatorJourneyStepLinks({
         </div>
         <p className="max-w-xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
           {isKorean
-            ? "조건, 출처, TikTok, 생성은 각각 별도 화면에서 하나의 행동과 하나의 평판 기록만 처리합니다."
+            ? "조건, 출처, TikTok, 생성은 각각 별도 화면에서 하나의 행동과 하나의 활동 기록만 처리합니다."
             : "Each dedicated page handles one action and one Reputation Record."}
         </p>
       </div>
@@ -3989,7 +3989,7 @@ export function FanletterCreatorUnlockPage({
           ? {
               body:
                 locale === "ko"
-                  ? "실제 결제 없이 10 USDT 생성 의도와 평판 기록을 미리 확인합니다."
+                  ? "실제 결제 없이 10 USDT 생성 의도와 활동 기록을 미리 확인합니다."
                   : "Preview the 10 USDT mock intent and Reputation Record flow without real payment.",
               title:
                 locale === "ko" ? "AI 스타 생성 미리보기" : "AI Star launch preview",
@@ -4060,13 +4060,13 @@ export function FanletterCreatorUnlockPage({
               : "next",
         },
         {
-          label: locale === "ko" ? "평판 기록" : "Reputation",
+          label: locale === "ko" ? "활동 기록" : "Reputation",
           status: unlock.unlocked ? "next" : "next",
         },
       ]}
       subtitle={
         locale === "ko"
-          ? "선택한 AI 스타 유니버스가 창업 출처로 저장되고, 이후 CP 풀과 평판 기록으로 이어집니다."
+          ? "선택한 AI 스타 유니버스가 창업 출처로 저장되고, 이후 CP 풀과 활동 기록으로 이어집니다."
           : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and reputation records."
       }
       title={
@@ -4483,7 +4483,7 @@ export function FanletterCreatorUnlockPage({
               <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600">
                 {creatorJourneySocialConnected
                   ? locale === "ko"
-                    ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널이 연결되어 평판 기록 조건에 반영되었습니다.`
+                    ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널이 연결되어 활동 기록 조건에 반영되었습니다.`
                     : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is connected and reflected in the Reputation Record condition.`
                   : locale === "ko"
                     ? "회원 개인 계정이 아니라 선택한 AI 스타의 공식 TikTok 채널을 연결합니다."
@@ -4508,7 +4508,7 @@ export function FanletterCreatorUnlockPage({
                 className="inline-flex min-h-8 items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 underline-offset-4 transition hover:text-zinc-950 hover:underline"
                 href={creatorSocialLedgerHref}
               >
-                {locale === "ko" ? "평판 기록 보기" : "View records"}
+                {locale === "ko" ? "활동 기록 보기" : "View records"}
                 <ArrowRight className="size-3.5" />
               </Link>
             </div>
