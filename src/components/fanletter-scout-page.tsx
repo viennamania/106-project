@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  BadgeCheck,
   GitBranch,
   Share2,
   UserRoundCheck,
@@ -504,38 +503,6 @@ export function FanletterScoutPage({
             </div>
           </aside>
         </div>
-
-        <section className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_18px_54px_rgba(15,23,42,0.06)] sm:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                {copy.eventFlow}
-              </p>
-              <h2 className="mt-1 text-xl font-semibold text-black">
-                {copy.primaryShare}
-              </h2>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
-              <BadgeCheck className="size-4" />
-              {hasShareLoop ? copy.connected : copy.pendingEvent}
-            </span>
-          </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-4">
-            {copy.steps.map((step, index) => (
-              <div
-                className="flex min-h-16 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-3"
-                key={step}
-              >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
-                  {index + 1}
-                </span>
-                <span className="text-sm font-semibold leading-5 text-zinc-800 [word-break:keep-all]">
-                  {step}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
 
         <section className="mt-4 rounded-3xl border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_54px_rgba(15,23,42,0.05)] sm:p-5">
           <div className="flex items-center gap-3">
