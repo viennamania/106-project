@@ -225,7 +225,8 @@ function DirectoryHeader({
         className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
       >
         <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          aria-current="page"
+          className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
           href={discoveryHref}
         >
           {locale === "ko" ? "발견" : "Discovery"}
@@ -237,7 +238,7 @@ function DirectoryHeader({
           {locale === "ko" ? "성장" : "Growth"}
         </Link>
         <Link
-          className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
           href={myAiHref}
         >
           {locale === "ko" ? "내 AI" : "My AI"}
