@@ -192,5 +192,18 @@ export async function setMemberServerSessionCookie({
 export async function clearMemberServerSessionCookie() {
   const cookieStore = await cookies();
 
-  cookieStore.delete(MEMBER_SERVER_SESSION_COOKIE);
+  // Overwrite with an already-expired cookie that mirrors the attributes used in
+  // setMemberServerSessionCookie (path, sameSite, secure). A bare delete(name)
+  // can fail to match the original cookie's scope/attributes on some setups,
+  // which left the httpOnly member_session cookie in place after logout — pages
+  // kept serving member data even though the header showed "signed out".
+  cookieStore.set({
+    httpOnly: true,
+    maxAge: 0,
+    name: MEMBER_SERVER_SESSION_COOKIE,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    value: "",
+  });
 }
