@@ -1115,7 +1115,7 @@ function StarDetailMobileSignpost({
           </div>
           <span
             className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-600"
-            title={primaryReputationEventType}
+            title={primaryReputationEventLabel}
           >
             {isKorean ? "기록 준비" : "Record ready"}
           </span>
@@ -1372,7 +1372,7 @@ function FounderNextReputationPath({
                       ? "text-emerald-700/70"
                       : "text-zinc-400",
                 )}
-                title={step.event}
+                title={step.recordLabel}
               >
                 {step.recordLabel}
               </p>
