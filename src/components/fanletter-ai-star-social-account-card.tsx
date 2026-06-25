@@ -937,7 +937,12 @@ export function FanletterAIStarSocialAccountCard({
           : locale === "ja"
             ? "次の記録"
             : "Next record",
-      value: "content_engaged",
+      value:
+        locale === "ko"
+          ? "콘텐츠 반응"
+          : locale === "ja"
+            ? "コンテンツ反応"
+            : "Content engagement",
     },
   ];
   const syncContextPreviewTitle =
