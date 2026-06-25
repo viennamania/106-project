@@ -665,7 +665,7 @@ function StarViewerRelationshipCard({
             ? "운영 권한 없음"
             : "계정 연결 필요",
         founderBody: founderRole
-          ? "이 AI 스타 유니버스 안의 6단계 초대/CP 구조에 참여 중입니다."
+          ? "이 AI 스타 유니버스 안의 6단계 초대/기여 포인트 구조에 참여 중입니다."
           : isMockFounder
             ? "이 브라우저에서 파운더 참여 미리보기가 완료된 상태입니다."
             : isAuthenticated
@@ -717,7 +717,7 @@ function StarViewerRelationshipCard({
             ? "No operator permission"
             : "Connect account",
         founderBody: founderRole
-          ? "You participate in this AI Star Universe's 6-tier invite and CP structure."
+          ? "You participate in this AI Star Universe's 6-tier invite and Contribution Points structure."
           : isMockFounder
             ? "Mock Founder participation is complete in this browser."
             : isAuthenticated
@@ -1255,7 +1255,7 @@ function FounderNextReputationPath({
         active: "Now",
         done: "Done",
         next: "Next",
-        subtitle: "When a new Founder joins through your link, rewards and reputation records are created together.",
+        subtitle: "When a new Founder joins through your link, rewards and activity records are created together.",
         title: "Founder next path",
       };
   const steps = [
@@ -1420,7 +1420,7 @@ function FounderJoinResultCard({
         title: "파운더 참여 완료",
       }
     : {
-        body: "Your referral code is ready, with rewards and reputation records prepared.",
+        body: "Your referral code is ready, with rewards and activity records prepared.",
         event: "Activity records",
         network: "View Founder Network",
         share: "Share referral link",
@@ -1428,7 +1428,7 @@ function FounderJoinResultCard({
       };
   const resultMetrics = [
     {
-      label: "CP",
+      label: locale === "ko" ? "기여 포인트" : "Contribution Points",
       value: `+${formatNumber(loop.rewards.cp, locale)}`,
     },
     {
@@ -1574,7 +1574,7 @@ function StarAgentRankJoinSignal({
         join: "파운더 참여",
         ledger: "이벤트 원장",
         referral: "추천 코드",
-        reward: "CP 보상",
+        reward: "기여 포인트 보상",
         title: "이 참여가 AgentRank 신호가 됩니다",
       }
     : {
@@ -1584,7 +1584,7 @@ function StarAgentRankJoinSignal({
         join: "Founder Join",
         ledger: "Event Ledger",
         referral: "Referral Code",
-        reward: "CP Reward",
+        reward: "Contribution Point Reward",
         title: "This join becomes an AgentRank signal",
       };
   const scorePercent = Math.round(

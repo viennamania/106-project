@@ -130,7 +130,7 @@ function getScoutPageCopy(locale: Locale) {
       viewFounderClub: "파운더 클럽 보기",
       viewUniverse: "AI 스타 유니버스 보기",
       metrics: {
-        cp: "CP",
+        cp: "기여 포인트",
         invites: "성공 초대",
         progress: "크리에이터 진행",
         scout: "친구 초대 점수",
@@ -170,13 +170,13 @@ function getScoutPageCopy(locale: Locale) {
     viewFounderClub: "View Founder Club",
     viewUniverse: "View AI Star Universe",
     metrics: {
-      cp: "CP",
+      cp: "Contribution Points",
       invites: "Successful invites",
       progress: "Creator progress",
       scout: "Scout score",
     },
     signpostSubtitle:
-      "Referral sharing grows the selected AI Star Universe's Founder Network and creates reputation records.",
+      "Referral sharing grows the selected AI Star Universe's Founder Network and creates activity records.",
     steps: [
       "Create referral link",
       "Share to SNS",

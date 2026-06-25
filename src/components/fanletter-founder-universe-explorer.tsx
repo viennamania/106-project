@@ -151,7 +151,7 @@ const explorerCopy = {
     aiStar: "AI STAR",
     back: "Back",
     children: "Children",
-    cpPool: "CP Pool",
+    cpPool: "Contribution Point Pool",
     edge: "Edges",
     empty: "No members match this filter.",
     expansion: "AI Star Universe Expansion",
@@ -186,7 +186,7 @@ const explorerCopy = {
     aiStar: "AI STAR",
     back: "戻る",
     children: "下位",
-    cpPool: "CP Pool",
+    cpPool: "Contribution Point Pool",
     edge: "Edges",
     empty: "条件に合うメンバーがいません。",
     expansion: "AI Star Universe Expansion",
@@ -221,7 +221,7 @@ const explorerCopy = {
     aiStar: "AI 스타",
     back: "뒤로",
     children: "하위",
-    cpPool: "CP 풀",
+    cpPool: "기여 포인트 풀",
     edge: "연결",
     empty: "조건에 맞는 멤버가 없습니다.",
     expansion: "AI 스타 유니버스 확장",
@@ -1468,7 +1468,7 @@ function FounderNetworkContextGraphCard({
     },
     {
       icon: Gauge,
-      label: isKorean ? "CP 흐름" : "CP flow",
+      label: isKorean ? "기여 포인트 흐름" : "CP flow",
       value: `${formatNumber(cpTotal, locale)} CP`,
     },
     {
@@ -1498,8 +1498,8 @@ function FounderNetworkContextGraphCard({
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
             {isKorean
-              ? "이 화면은 AI 스타 유니버스 안에서 누가 어떤 역할로 참여했고, 어떤 추천과 CP 흐름이 활동 기록으로 이어졌는지 보여줍니다."
-              : "This screen shows who joined this AI Star Universe, which role they hold, and how referrals and CP flow into reputation records."}
+              ? "이 화면은 AI 스타 유니버스 안에서 누가 어떤 역할로 참여했고, 어떤 추천과 기여 포인트 흐름이 활동 기록으로 이어졌는지 보여줍니다."
+              : "This screen shows who joined this AI Star Universe, which role they hold, and how referrals and Contribution Points flow into activity records."}
           </p>
         </div>
 
@@ -1513,8 +1513,8 @@ function FounderNetworkContextGraphCard({
           </div>
           <p className="mt-2 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
             {isKorean
-              ? "AI 스타, 멤버, 추천, CP, 활동 기록이 한 그래프로 연결됩니다."
-              : "AI Star, members, referrals, CP, and records are connected into one graph."}
+              ? "AI 스타, 멤버, 추천, 기여 포인트, 활동 기록이 한 그래프로 연결됩니다."
+              : "AI Star, members, referrals, Contribution Points, and records are connected into one graph."}
           </p>
         </div>
       </div>
@@ -2826,12 +2826,12 @@ function MemberReputationRecords({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#111827]">
             <ShieldCheck className="size-4" />
-            {isKorean ? "이 멤버의 활동 기록" : "Member reputation records"}
+            {isKorean ? "이 멤버의 활동 기록" : "Member activity records"}
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 [word-break:keep-all]">
             {isKorean
-              ? "참여, 추천, CP 보상이 AgentRank 기록으로 이어집니다."
-              : "Joins, referrals, and CP rewards become AgentRank records."}
+              ? "참여, 추천, 기여 포인트 보상이 AgentRank 기록으로 이어집니다."
+              : "Joins, referrals, and Contribution Point rewards become AgentRank records."}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">
@@ -3349,8 +3349,8 @@ function FounderNetworkReputationRecordFlow({
     {
       description:
         locale === "ko"
-          ? "CP와 평판 점수에 반영되는 변화"
-          : "Changes reflected in CP and reputation score",
+          ? "기여 포인트와 평판 점수에 반영되는 변화"
+          : "Changes reflected in Contribution Points and reputation score",
       icon: Gauge,
       label: locale === "ko" ? "보상/기여 변화" : "Reward impact",
       value: cpChangeLabel,
@@ -3373,8 +3373,8 @@ function FounderNetworkReputationRecordFlow({
             </h2>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500 [word-break:keep-all]">
               {locale === "ko"
-                ? "AI 스타 유니버스 안에서 참여와 추천이 발생하면, 파운더 네트워크 성장 기록과 CP 변화로 남습니다."
-                : "When joins and referrals happen inside this AI Star Universe, they become Founder Network growth records and CP changes."}
+                ? "AI 스타 유니버스 안에서 참여와 추천이 발생하면, 파운더 네트워크 성장 기록과 기여 포인트 변화로 남습니다."
+                : "When joins and referrals happen inside this AI Star Universe, they become Founder Network growth records and Contribution Point changes."}
             </p>
           </div>
           <div className="grid gap-2 sm:flex sm:shrink-0">
@@ -3757,7 +3757,7 @@ function UniverseExpansionMap({
           </div>
         </div>
         <span className="inline-flex h-9 items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
-          {locale === "ko" ? "CP 풀" : "CP Pool"} 1,000
+          {locale === "ko" ? "기여 포인트 풀" : "Contribution Point Pool"} 1,000
         </span>
       </div>
 

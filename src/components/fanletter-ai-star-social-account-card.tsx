@@ -479,7 +479,7 @@ function getCopy(locale: Locale) {
     realOAuthCta: "Test real connection with TikTok",
     replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
-    reputationLedgerHint: "Check the connection event in reputation records",
+    reputationLedgerHint: "Check the connection event in activity records",
     retryOAuthCta: "Try authorization again",
     roleCreator: "Creator",
     roleOwner: "Owner",

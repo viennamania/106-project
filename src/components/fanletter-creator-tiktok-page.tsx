@@ -231,7 +231,7 @@ function getCopy(locale: Locale) {
     continueJourney: "Continue Creator Journey",
     connectedEvent: "creator_social_connected Reputation Record",
     contextAssetBody:
-      "TikTok connection binds the AI Star's official channel, operator permission, and reputation record into a verifiable Context Asset.",
+      "TikTok connection binds the AI Star's official channel, operator permission, and activity record into a verifiable Context Asset.",
     contextAssetMetric: "Accumulated asset",
     contextAssetPending: "AI Star selection pending",
     contextAssetTitle: "Context Asset",

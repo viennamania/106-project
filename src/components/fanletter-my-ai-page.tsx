@@ -86,7 +86,7 @@ function getCopy(locale: Locale) {
       relationCreator: "Creator / Owner",
       relationCreatorBody: "AI 스타 콘텐츠와 TikTok 채널을 운영합니다.",
       relationFounder: "Founder Network",
-      relationFounderBody: "AI 스타 유니버스 안에서 초대, CP, 역할로 참여합니다.",
+      relationFounderBody: "AI 스타 유니버스 안에서 초대, 기여 포인트, 역할로 참여합니다.",
       relationTitle: "관계 구분",
       reputationResult: "활동 기록 결과",
       selectedAiStar: "선택 AI 스타",
@@ -100,7 +100,7 @@ function getCopy(locale: Locale) {
       nextPending: "TikTok 연결 필요",
       operatedRelationCta: "운영 AI 관리",
       open: "AI 스타 보기",
-      overviewBody: "운영 AI, TikTok 연결, CP를 한 줄로 확인합니다.",
+      overviewBody: "운영 AI, TikTok 연결, 기여 포인트를 한 줄로 확인합니다.",
       overviewTitle: "운영 요약",
       routeLabel: "FanLetter / 내 AI",
       source: "원천 AI 스타 유니버스",
@@ -156,8 +156,8 @@ function getCopy(locale: Locale) {
       "No AI Stars are operated yet. Review Creator permission activation conditions and prepare a new AI Star.",
     emptyCta: "View Creator Permission",
     emptyTitle: "No operated AI Stars yet",
-    eventConnected: "creator_social_connected reputation record created",
-    eventPending: "TikTok connection will create a reputation record",
+    eventConnected: "creator_social_connected activity record created",
+    eventPending: "TikTok connection will create a activity record",
     founderRelationCta: "View joined networks",
     founderNetworks: "Joined Founder Networks",
     founderNetworksBody:
@@ -169,12 +169,12 @@ function getCopy(locale: Locale) {
     relationCreatorBody: "Operate AI Star content and TikTok channel.",
     relationFounder: "Founder Network",
     relationFounderBody:
-      "Participate with invite, CP, and role inside an AI Star Universe.",
+      "Participate with invite, Contribution Points, and role inside an AI Star Universe.",
     relationTitle: "Relationship Split",
     reputationResult: "Reputation result",
     selectedAiStar: "Selected AI Star",
     heroBody:
-      "My AI is not a personal member account. It is the AI Star-specific operating channel for TikTok, content readiness, and reputation records.",
+      "My AI is not a personal member account. It is the AI Star-specific operating channel for TikTok, content readiness, and activity records.",
     heroEyebrow: "My AI",
     heroTitle: "AI Stars I operate",
     launch: "Launch intent",
@@ -183,7 +183,7 @@ function getCopy(locale: Locale) {
     nextPending: "TikTok connection needed",
     operatedRelationCta: "Manage operated AI",
     open: "View AI Star",
-    overviewBody: "A compact readout of operated AI Stars, TikTok connection, and CP.",
+    overviewBody: "A compact readout of operated AI Stars, TikTok connection, and Contribution Points.",
     overviewTitle: "Operating Summary",
     routeLabel: "FanLetter / My AI",
     source: "Source AI Star Universe",
@@ -191,9 +191,9 @@ function getCopy(locale: Locale) {
     steps: ["Operate", "TikTok", "Content", "Reputation"],
     tiktok: "TikTok",
     tiktokFocusBody:
-      "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an AgentRank reputation record.",
+      "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an AgentRank activity record.",
     tiktokFocusReady:
-      "All operated AI Stars have TikTok connected. Next, review the reputation records.",
+      "All operated AI Stars have TikTok connected. Next, review the activity records.",
     tiktokFocusTitle: "TikTok Next Action",
     tiktokTestSteps: ["Confirm handle", "Mock connect", "Review reputation"],
     viewReputation: "View Reputation Records",
@@ -698,7 +698,7 @@ export function FanletterMyAIPage({
                   value: formatNumber(connectedCount, locale),
                 },
                 {
-                  label: "CP",
+                  label: locale === "ko" ? "기여 포인트" : "Contribution Points",
                   value: formatNumber(portfolio.cpBalance, locale),
                 },
               ].map((metric) => (

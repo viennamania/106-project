@@ -785,10 +785,10 @@ export function FanletterFounderMockStatusBanner({
     locale === "ko" ? "다음 초대 보상" : locale === "ja" ? "次の招待報酬" : "Next invite";
   const nextRewardValue =
     locale === "ko"
-      ? "CP +100 / 영향력 +5"
+      ? "기여 포인트 +100 / 영향력 +5"
       : locale === "ja"
         ? "CP +100 / 影響力 +5"
-        : "CP +100 / Influence +5";
+        : "Contribution Points +100 / Influence +5";
   const universeHref = `/${locale}/fanletter/${encodeURIComponent(
     starId,
   )}/universe`;
