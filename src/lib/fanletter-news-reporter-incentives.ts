@@ -16,8 +16,8 @@ import {
 } from "@/lib/mongodb";
 import { awardBonusPointsForMember } from "@/lib/points-service";
 
-export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_VOTE_REWARD_POINTS = 10;
-export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_UNLOCK_REWARD_POINTS = 40;
+export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_VOTE_REWARD_POINTS = 1;
+export const FANLETTER_NEWS_REPORT_SOURCE_REVEAL_UNLOCK_REWARD_POINTS = 5;
 
 export type FanletterNewsReporterIncentiveReportStats = {
   paidUnlockPurchaseCount: number;

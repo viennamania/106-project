@@ -1308,6 +1308,22 @@ export function ActivateNetworkPage({
                     <SummaryMetricCard
                       icon={<Trophy className="size-4" />}
                       label={
+                        dictionary.activateNetworkPage.labels.totalReferralRewardPoints
+                      }
+                      locale={locale}
+                      value={`${formatInteger(state.summary.totalReferralRewardPoints, locale)}P`}
+                    />
+                    <SummaryMetricCard
+                      icon={<Layers3 className="size-4" />}
+                      label={
+                        dictionary.activateNetworkPage.labels.totalContentBonusPoints
+                      }
+                      locale={locale}
+                      value={`${formatInteger(state.summary.totalContentBonusPoints, locale)}P`}
+                    />
+                    <SummaryMetricCard
+                      icon={<Trophy className="size-4" />}
+                      label={
                         dictionary.activateNetworkPage.labels.totalLifetimePoints
                       }
                       locale={locale}

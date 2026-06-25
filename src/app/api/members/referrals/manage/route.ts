@@ -1,6 +1,7 @@
 import {
   getMembersCollection,
   getPointBalancesCollection,
+  getPointLedgerCollection,
   getReferralPlacementSlotsCollection,
   getRewardRedemptionsCollection,
 } from "@/lib/mongodb";
@@ -67,10 +68,19 @@ function finalizeManagedReferralCounts(nodes: ManagedReferralTreeNodeRecord[]) {
 function buildReferralNetworkSummary(
   nodes: ManagedReferralTreeNodeRecord[],
   directMembers: number,
+  pointSourceSummary: {
+    totalContentBonusPoints: number;
+    totalOtherPoints: number;
+    totalReferralRewardPoints: number;
+  },
 ) {
   const summary = createEmptyReferralNetworkSummary();
 
   summary.directMembers = directMembers;
+  summary.totalContentBonusPoints = pointSourceSummary.totalContentBonusPoints;
+  summary.totalOtherPoints = pointSourceSummary.totalOtherPoints;
+  summary.totalReferralRewardPoints =
+    pointSourceSummary.totalReferralRewardPoints;
 
   for (const node of nodes) {
     summary.totalMembers += 1;
@@ -80,6 +90,57 @@ function buildReferralNetworkSummary(
   }
 
   return summary;
+}
+
+async function getReferralNetworkPointSourceSummary(memberEmails: string[]) {
+  if (memberEmails.length === 0) {
+    return {
+      totalContentBonusPoints: 0,
+      totalOtherPoints: 0,
+      totalReferralRewardPoints: 0,
+    };
+  }
+
+  const ledgerCollection = await getPointLedgerCollection();
+  const rows = await ledgerCollection
+    .aggregate<{
+      _id: string | null;
+      points: number;
+    }>([
+      {
+        $match: {
+          memberEmail: { $in: memberEmails },
+          type: "earn",
+        },
+      },
+      {
+        $group: {
+          _id: "$sourceType",
+          points: {
+            $sum: {
+              $cond: [{ $gt: ["$delta", 0] }, "$delta", 0],
+            },
+          },
+        },
+      },
+    ])
+    .toArray();
+  const bySourceType = new Map(
+    rows.map((row) => [row._id ?? "unknown", row.points]),
+  );
+  const totalReferralRewardPoints =
+    bySourceType.get("referral_reward") ?? 0;
+  const totalContentBonusPoints = bySourceType.get("bonus") ?? 0;
+  const totalEarnedPoints = rows.reduce((sum, row) => sum + row.points, 0);
+
+  return {
+    totalContentBonusPoints,
+    totalOtherPoints: Math.max(
+      totalEarnedPoints - totalReferralRewardPoints - totalContentBonusPoints,
+      0,
+    ),
+    totalReferralRewardPoints,
+  };
 }
 
 function findManagedReferralNode(
@@ -182,10 +243,12 @@ async function buildManagedReferralTree(
     pointBalancesCollection,
     rewardRedemptionsCollection,
     referralPlacementSlotsCollection,
+    pointSourceSummary,
   ] = await Promise.all([
     getPointBalancesCollection(),
     getRewardRedemptionsCollection(),
     getReferralPlacementSlotsCollection(),
+    getReferralNetworkPointSourceSummary(descendantEmails),
   ]);
   const [pointBalances, tierRewardRedemptions, placementSlots] =
     descendantEmails.length > 0
@@ -287,7 +350,11 @@ async function buildManagedReferralTree(
     levelCounts,
     members: sortedMembers,
     referrals,
-    summary: buildReferralNetworkSummary(sortedMembers, referrals.length),
+    summary: buildReferralNetworkSummary(
+      sortedMembers,
+      referrals.length,
+      pointSourceSummary,
+    ),
     totalReferrals,
   };
 }

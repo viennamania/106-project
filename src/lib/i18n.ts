@@ -280,8 +280,11 @@ export type Dictionary = {
       searchResults: string;
       spendablePoints: string;
       tier: string;
+      totalContentBonusPoints: string;
       totalLifetimePoints: string;
       totalMembers: string;
+      totalOtherPoints: string;
+      totalReferralRewardPoints: string;
       totalSpendablePoints: string;
       walletAddress: string;
     };
@@ -1134,9 +1137,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         searchResults: "회원 목록",
         spendablePoints: "사용 가능 포인트",
         tier: "회원 등급",
-        totalLifetimePoints: "전체 누적 포인트",
+        totalContentBonusPoints: "콘텐츠 활동 포인트",
+        totalLifetimePoints: "하위 회원 전체 누적",
         totalMembers: "전체 회원 수",
-        totalSpendablePoints: "전체 사용 가능 포인트",
+        totalOtherPoints: "기타 포인트",
+        totalReferralRewardPoints: "추천 보상 포인트",
+        totalSpendablePoints: "하위 회원 사용 가능",
         walletAddress: "지갑 주소",
       },
       actions: {
@@ -2037,9 +2043,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         searchResults: "Member list",
         spendablePoints: "Spendable points",
         tier: "Tier",
-        totalLifetimePoints: "Total lifetime points",
+        totalContentBonusPoints: "Content activity points",
+        totalLifetimePoints: "Downline lifetime total",
         totalMembers: "Total members",
-        totalSpendablePoints: "Total spendable points",
+        totalOtherPoints: "Other points",
+        totalReferralRewardPoints: "Referral reward points",
+        totalSpendablePoints: "Downline spendable total",
         walletAddress: "Wallet address",
       },
       actions: {
@@ -2948,9 +2957,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         searchResults: "会員一覧",
         spendablePoints: "利用可能ポイント",
         tier: "等級",
-        totalLifetimePoints: "全体累計ポイント",
+        totalContentBonusPoints: "コンテンツ活動ポイント",
+        totalLifetimePoints: "下位会員の累計合計",
         totalMembers: "全体会員数",
-        totalSpendablePoints: "全体利用可能ポイント",
+        totalOtherPoints: "その他ポイント",
+        totalReferralRewardPoints: "紹介報酬ポイント",
+        totalSpendablePoints: "下位会員の利用可能合計",
         walletAddress: "ウォレットアドレス",
       },
       actions: {
@@ -3860,9 +3872,12 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         searchResults: "会员列表",
         spendablePoints: "可用积分",
         tier: "会员等级",
-        totalLifetimePoints: "全网累计积分",
+        totalContentBonusPoints: "内容活动积分",
+        totalLifetimePoints: "下级会员累计总额",
         totalMembers: "全网会员数",
-        totalSpendablePoints: "全网可用积分",
+        totalOtherPoints: "其他积分",
+        totalReferralRewardPoints: "推荐奖励积分",
+        totalSpendablePoints: "下级会员可用总额",
         walletAddress: "钱包地址",
       },
       actions: {

@@ -5,8 +5,8 @@ import { loadLocalEnv } from "./lib/load-local-env.mjs";
 loadLocalEnv();
 
 const SOURCE_REVEAL_THRESHOLD = 6;
-const VOTE_REWARD_POINTS = 10;
-const UNLOCK_REWARD_POINTS = 40;
+const VOTE_REWARD_POINTS = 1;
+const UNLOCK_REWARD_POINTS = 5;
 const POINT_TIER_RULES = [
   { minPoints: 0, tier: "basic" },
   { minPoints: 1_000, tier: "silver" },

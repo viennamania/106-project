@@ -170,6 +170,9 @@ export type ManagedReferralTreeNodeRecord = ReferralMemberRecord & {
 
 export type ReferralNetworkSummaryRecord = {
   directMembers: number;
+  totalContentBonusPoints: number;
+  totalOtherPoints: number;
+  totalReferralRewardPoints: number;
   tierCounts: Record<ReferralMemberTier, number>;
   totalLifetimePoints: number;
   totalMembers: number;
@@ -431,6 +434,9 @@ export function createEmptyReferralRewardsSummary(): ReferralRewardsSummaryRecor
 export function createEmptyReferralNetworkSummary(): ReferralNetworkSummaryRecord {
   return {
     directMembers: 0,
+    totalContentBonusPoints: 0,
+    totalOtherPoints: 0,
+    totalReferralRewardPoints: 0,
     tierCounts: {
       basic: 0,
       gold: 0,
