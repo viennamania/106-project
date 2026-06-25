@@ -20,8 +20,6 @@ import {
   LogOut,
   Mail,
   Megaphone,
-  PenSquare,
-  Rss,
   Share2,
   ShieldAlert,
   ShieldCheck,
@@ -196,73 +194,73 @@ function getActivationSeparationCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       activationDescription:
-        "이 화면은 로그인한 회원의 가입 완료, 10 USDT 결제 확인, 지갑 준비 상태를 확인하는 서비스 시작 허브입니다. 추천 가입과 포인트 보상은 아래 성장 리워드 프로그램으로 분리했습니다.",
+        "가입 완료, 지갑, AI 스타 IP 상태를 한곳에서 확인합니다.",
       activationEyebrow: "signup status",
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "10 USDT 결제가 확인되어 서비스 이용 상태가 완료되었습니다. 브이로거, 팬 리포터, 뉴스 소비 활동은 각 서비스 허브에서 이어집니다.",
+        "가입과 10 USDT 확인이 완료되었습니다. 필요한 메뉴에서 추천 회원, 포인트, 지갑, AI 스타 IP를 관리하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
-        "추천 가입과 포인트는 브이로거 자격 조건이 아니라 채널 성장 활동을 기록하는 선택형 보상 영역입니다.",
+        "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
       growthDirectLabel: "성장 참여",
       growthEyebrow: "growth rewards",
       growthLinkCodeLabel: "성장 코드",
       growthLinkDescription:
-        "이 링크는 가입 흐름에 추천 코드를 붙이는 성장 활동용입니다. 브이로거 자격이나 콘텐츠 권한과는 분리됩니다.",
+        "내 추천 코드가 포함된 공유 링크입니다.",
       growthLinkLabel: "성장 리워드 링크",
       growthLinkTitle: "성장 리워드 링크",
       growthMembersTitle: "성장 참여 회원",
       growthNetworkLabel: "성장 네트워크",
       growthTitle: "성장 리워드 프로그램",
       memberPanelDescription:
-        "회원 정보에는 가입 완료와 지갑 연결 상태만 표시합니다. 배치, 하위 회원, 포인트 보상은 성장 리워드 영역에서 따로 확인합니다.",
+        "회원 정보에는 가입 완료와 지갑 연결 상태만 표시합니다.",
       memberPanelTitle: "가입 상태",
       separationDescription:
-        "가입 상태, 콘텐츠 준비, 추천 보상을 각각 따로 관리해 현재 상태와 다음 행동을 분명하게 보여줍니다.",
+        "필요한 메뉴를 먼저 보여주고, 보상과 콘텐츠 작업은 각 메뉴에서 이어집니다.",
       separationLabel: "운영 원칙",
       separationPoints: [
-        "가입 완료와 지갑 연결",
-        "콘텐츠 제작 자격",
-        "추천 성장 리워드",
+        "상태 확인",
+        "메뉴 이동",
+        "보상 관리",
       ],
-      separationTitle: "가입 상태와 보상을 분리해 관리합니다",
+      separationTitle: "지금 필요한 메뉴만 보여줍니다",
     };
   }
 
   return {
     activationDescription:
-      "This screen is the service start hub for signup completion, 10 USDT payment verification, wallet status, and service readiness. Referral signups and points are separated into the Growth Rewards program below.",
+      "Check signup, wallet, and AI Star IP status in one place.",
     activationEyebrow: "signup status",
     activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "The 10 USDT payment has been verified and the service account is ready. Vlogger, fan reporter, and news consumption flows continue in their own service hubs.",
+      "Signup and the 10 USDT check are complete. Use the menu to manage referrals, points, wallet, and AI Star IP.",
     coreStatusTitle: "Signup complete",
     growthDescription:
-      "Referral signups and points are optional growth rewards, not the qualification rule for becoming a vlogger.",
+      "Review referral points and reward history in Points.",
     growthDirectLabel: "Growth signups",
     growthEyebrow: "growth rewards",
     growthLinkCodeLabel: "Growth code",
     growthLinkDescription:
-      "This link attaches your referral code to the signup flow for growth activity. It is separated from vlogger eligibility and content permissions.",
+      "This is your share link with your referral code attached.",
     growthLinkLabel: "Growth reward link",
     growthLinkTitle: "Growth reward link",
     growthMembersTitle: "Growth members",
     growthNetworkLabel: "Growth network",
     growthTitle: "Growth Rewards Program",
     memberPanelDescription:
-      "Member information shows signup completion and wallet connection only. Placement, downline members, and point rewards are handled in the growth area.",
+      "Member information shows signup completion and wallet connection only.",
     memberPanelTitle: "Signup status",
     separationDescription:
-      "Signup status, content readiness, and referral rewards are tracked separately so the current state and next action stay clear.",
+      "Useful menus come first. Rewards and content work continue in their own menus.",
     separationLabel: "Operating rule",
     separationPoints: [
-      "Signup completion and wallet connection",
-      "Content creator qualification",
-      "Referral growth rewards",
+      "Check status",
+      "Open menu",
+      "Manage rewards",
     ],
-    separationTitle: "Signup status and rewards are managed separately",
+    separationTitle: "Only useful next menus are shown",
   };
 }
 
@@ -281,8 +279,8 @@ function getActivationHubCopy(locale: Locale) {
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       disconnectedMessage: "이메일로 시작하면 가입 상태와 추천 코드를 확인할 수 있습니다.",
-      feedDescription: "회원들이 공개한 콘텐츠를 봅니다.",
-      feedLabel: "콘텐츠 보기",
+      feedDescription: "공개 콘텐츠를 한 화면에서 봅니다.",
+      feedLabel: "콘텐츠 피드",
       feedMetric: "보기",
       hubLabel: "1066FRIEND+",
       menuLockedDescription: "이메일로 시작하면 추천 코드, 포인트, 지갑 메뉴를 이어서 사용할 수 있습니다.",
@@ -304,11 +302,14 @@ function getActivationHubCopy(locale: Locale) {
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      readyMessage: "가입이 완료되었습니다. 추천 링크를 공유하고 포인트와 지갑을 관리하세요.",
+      readyMessage: "가입이 완료되었습니다. 필요한 메뉴에서 다음 행동을 선택하세요.",
       secondaryLabel: "서비스 메뉴",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
       statusTitle: "지금 상태",
+      studioDescription: "내 AI 스타 IP와 콘텐츠 작업을 관리합니다.",
+      studioLabel: "스튜디오",
+      studioMetric: "이동",
       title: "1066FRIEND+ 시작하기",
       walletDescription: "USDT와 BNB 지갑 상태를 봅니다.",
       walletLabel: "내 지갑",
@@ -328,8 +329,8 @@ function getActivationHubCopy(locale: Locale) {
       "Check your status and the next action first.",
     disconnected: "Connection required",
     disconnectedMessage: "Start with email to check signup status and referral code.",
-    feedDescription: "Browse public content from members.",
-    feedLabel: "Browse content",
+    feedDescription: "Browse public content in one feed.",
+    feedLabel: "Content feed",
     feedMetric: "View",
     hubLabel: "1066FRIEND+",
     menuLockedDescription: "Start with email to open referral code, points, and wallet menus.",
@@ -352,11 +353,14 @@ function getActivationHubCopy(locale: Locale) {
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    readyMessage: "Signup is complete. Share your referral link, then manage points and wallet status.",
+    readyMessage: "Signup is complete. Choose the next action from the menu.",
     secondaryLabel: "Service menu",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
     statusTitle: "Current status",
+    studioDescription: "Manage your AI Star IP and content work.",
+    studioLabel: "Studio",
+    studioMetric: "Open",
     title: "Start 1066FRIEND+",
     walletDescription: "Check USDT and BNB wallet status.",
     walletLabel: "My wallet",
@@ -1949,6 +1953,7 @@ export function SmartWalletApp({
           activateNetworkHref={activateNetworkHref}
           assetManagementHref={assetManagementHref}
           assetManagementLocked={!assetWalletUnlock.isUnlocked}
+          creatorStudioHref={creatorStudioHref}
           dictionary={dictionary}
           hasThirdwebClientId={hasThirdwebClientId}
           isMembershipLoading={isMembershipLoading}
@@ -1968,7 +1973,6 @@ export function SmartWalletApp({
           <CompletedHomeDashboard
             activateNetworkHref={activateNetworkHref}
             announcementsPageHref={announcementsPageHref}
-            creatorStudioHref={creatorStudioHref}
             dictionary={dictionary}
             isSelfIncomingReferral={isSelfIncomingReferral}
             isRefreshing={
@@ -1977,7 +1981,6 @@ export function SmartWalletApp({
             }
             locale={locale}
             member={memberSync.member}
-            networkFeedHref={networkFeedHref}
             onRefresh={() => {
               void runMemberSync();
             }}
@@ -2535,6 +2538,7 @@ function ActivationServiceHub({
   activateNetworkHref,
   assetManagementHref,
   assetManagementLocked,
+  creatorStudioHref,
   dictionary,
   hasThirdwebClientId,
   isMembershipLoading,
@@ -2551,6 +2555,7 @@ function ActivationServiceHub({
   activateNetworkHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
+  creatorStudioHref: string;
   dictionary: Dictionary;
   hasThirdwebClientId: boolean;
   isMembershipLoading: boolean;
@@ -2627,6 +2632,12 @@ function ActivationServiceHub({
       href: assetManagementHref,
       metric: assetManagementLocked ? copy.disconnected : copy.connected,
       title: copy.assetLabel,
+    },
+    {
+      description: copy.studioDescription,
+      href: creatorStudioHref,
+      metric: copy.studioMetric,
+      title: copy.studioLabel,
     },
     {
       description: copy.feedDescription,
@@ -3071,13 +3082,11 @@ function CompletedHomeDashboard({
   announcementsPageHref,
   assetManagementHref,
   assetManagementLocked,
-  creatorStudioHref,
   dictionary,
   isSelfIncomingReferral,
   isRefreshing,
   locale,
   member,
-  networkFeedHref,
   onRefresh,
   referralDashboard,
   rewardsHref,
@@ -3086,13 +3095,11 @@ function CompletedHomeDashboard({
   announcementsPageHref: string;
   assetManagementHref: string;
   assetManagementLocked: boolean;
-  creatorStudioHref: string;
   dictionary: Dictionary;
   isSelfIncomingReferral: boolean;
   isRefreshing: boolean;
   locale: Locale;
   member: MemberRecord;
-  networkFeedHref: string;
   onRefresh: () => void;
   referralDashboard: ReferralDashboardState;
   rewardsHref: string;
@@ -3306,48 +3313,6 @@ function CompletedHomeDashboard({
             </div>
 
             <div className="grid gap-3">
-              <Link
-                className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
-                href={networkFeedHref}
-              >
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  {contentCopy.page.feedEyebrow}
-                </p>
-                <div className="mt-3 flex items-start justify-between gap-4">
-                  <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <Rss className="size-4" />
-                  </div>
-                  <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
-                </div>
-                <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                  {contentCopy.entry.viewerTitle}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {contentCopy.entry.viewerDescription}
-                </p>
-              </Link>
-
-              <Link
-                className="group rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-200 hover:bg-white sm:p-5"
-                href={creatorStudioHref}
-              >
-                <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  {contentCopy.page.studioEyebrow}
-                </p>
-                <div className="mt-3 flex items-start justify-between gap-4">
-                  <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                    <PenSquare className="size-4" />
-                  </div>
-                  <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-700" />
-                </div>
-                <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950">
-                  {contentCopy.entry.creatorTitle}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {contentCopy.entry.creatorDescription}
-                </p>
-              </Link>
-
               <AssetVaultEntryCard
                 assetCopy={assetCopy}
                 bnbTitle={dictionary.bnbPage.title}
