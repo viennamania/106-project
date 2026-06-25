@@ -186,6 +186,66 @@ const landingCopy: Record<
   },
 };
 
+const landingFooterCopy: Record<
+  LandingLanguage,
+  {
+    terms: string;
+    disclaimer: string;
+    bscscan: string;
+    notice: string;
+  }
+> = {
+  ko: {
+    terms: "이용약관",
+    disclaimer: "면책고지",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+는 소셜 네트워크 플랫폼입니다. 10 USDT는 디지털 서비스 이용료이며 투자 상품이 아닙니다. 포인트는 활동의 결과물이며 금전적 수익을 보장하지 않습니다. 바우처-BNB 전환은 거래 시점의 시장 가격에 따릅니다.",
+  },
+  en: {
+    terms: "Terms of Service",
+    disclaimer: "Disclaimer",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+ is a social network platform. 10 USDT is a digital service fee, not an investment product. Points are activity results and do not guarantee financial income. Voucher-to-BNB conversion depends on market price at the time of transaction.",
+  },
+  ja: {
+    terms: "利用規約",
+    disclaimer: "免責事項",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+はソーシャルネットワークプラットフォームです。10 USDTはデジタルサービス利用料であり、投資商品ではありません。ポイントは活動結果であり、金銭的収益を保証しません。バウチャーからBNBへの換算は取引時点の市場価格により変動します。",
+  },
+  zh: {
+    terms: "服务条款",
+    disclaimer: "免责声明",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+ 是社交网络平台。10 USDT 是数字服务费，并非投资产品。积分是活动结果，不保证金融收益。凭证到 BNB 的转换取决于交易时的市场价格。",
+  },
+  vn: {
+    terms: "Điều khoản dịch vụ",
+    disclaimer: "Miễn trách nhiệm",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+ là nền tảng mạng xã hội. 10 USDT là phí dịch vụ kỹ thuật số, không phải sản phẩm đầu tư. Điểm là kết quả hoạt động và không đảm bảo thu nhập tài chính. Việc chuyển đổi voucher sang BNB phụ thuộc vào giá thị trường tại thời điểm giao dịch.",
+  },
+  id: {
+    terms: "Syarat Layanan",
+    disclaimer: "Penafian",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+ adalah platform media sosial. 10 USDT adalah biaya layanan digital, bukan produk investasi. Poin adalah hasil aktivitas dan tidak menjamin pendapatan finansial. Konversi voucher ke BNB tergantung harga pasar saat transaksi.",
+  },
+  km: {
+    terms: "លក្ខខណ្ឌសេវា",
+    disclaimer: "ការបដិសេធទំនួលខុសត្រូវ",
+    bscscan: "BSCScan",
+    notice:
+      "1066FRIEND+ គឺជាវេទិកាបណ្តាញសង្គម។ 10 USDT គឺជាថ្លៃសេវាឌីជីថល មិនមែនផលិតផលវិនិយោគទេ។ ពិន្ទុគឺជាលទ្ធផលសកម្មភាព ហើយមិនធានាចំណូលហិរញ្ញវត្ថុទេ។ ការបម្លែង voucher ទៅ BNB អាស្រ័យលើតម្លៃទីផ្សារនៅពេលប្រតិបត្តិការ។",
+  },
+};
+
 const serviceLandingCopy: Record<
   LandingLanguage,
   {
@@ -856,6 +916,7 @@ export default async function Home({
   const copy = landingCopy[landingLanguage];
   const serviceCopy = serviceLandingCopy[landingLanguage];
   const storyCopy = landingStoryCopy[landingLanguage];
+  const footerCopy = landingFooterCopy[landingLanguage];
   const activationHref = buildActivationHref({
     activationLocale,
     landingLanguage,
@@ -1268,13 +1329,38 @@ export default async function Home({
       </section>
 
       <footer className="bg-[#0D0520] px-5 py-10 text-white sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link className="text-2xl font-black tracking-[-0.06em]" href={languageHref(landingLanguage)}>
-            1066<span className="text-[#e8185a]">friend+</span>
-          </Link>
-          <p className="break-keep text-sm font-semibold text-white/48 [word-break:keep-all]">
-            {storyCopy.footerTagline}
-          </p>
+        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-[1fr_auto] md:items-start">
+          <div className="min-w-0">
+            <Link className="inline-flex text-2xl font-black tracking-[-0.06em]" href={languageHref(landingLanguage)}>
+              1066<span className="text-[#e8185a]">friend+</span>
+            </Link>
+            <p className="mt-2 break-keep text-sm font-semibold text-white/48 [word-break:keep-all]">
+              {storyCopy.footerTagline}
+            </p>
+            <p className="mt-4 max-w-4xl break-keep text-xs font-medium leading-6 text-white/38 [word-break:keep-all]">
+              {footerCopy.notice}
+            </p>
+          </div>
+
+          <nav
+            aria-label="1066FRIEND+ legal links"
+            className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-bold text-white/58"
+          >
+            <Link className="transition hover:text-white" href={`/${activationLocale}/lookbook/terms`}>
+              {footerCopy.terms}
+            </Link>
+            <Link className="transition hover:text-white" href={`/${activationLocale}/disclaimer`}>
+              {footerCopy.disclaimer}
+            </Link>
+            <a
+              className="transition hover:text-white"
+              href="https://bscscan.com"
+              rel="noreferrer"
+              target="_blank"
+            >
+              {footerCopy.bscscan}
+            </a>
+          </nav>
         </div>
       </footer>
     </main>
