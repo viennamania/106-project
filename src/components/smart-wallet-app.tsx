@@ -284,6 +284,11 @@ function getActivationHubCopy(locale: Locale) {
       feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
       feedLabel: "활동 피드",
       hubLabel: "1066FRIEND+",
+      menuLockedDescription: "이메일로 시작하면 추천 코드, 포인트, 지갑 메뉴를 이어서 사용할 수 있습니다.",
+      menuLockedTitle: "먼저 이메일로 시작하세요",
+      menuPendingDescription: "10 USDT 확인이 끝나면 추천 회원, 포인트, 지갑 관리가 열립니다.",
+      menuPendingTitle: "서비스 이용료 확인이 필요합니다",
+      menuReadyTitle: "필요한 메뉴",
       membershipDescription: "이메일 로그인, 지갑 연결, 10 USDT 서비스 이용료 확인을 완료합니다.",
       membershipLabel: "가입 상태",
       nextStepTitle: "다음으로 할 일",
@@ -326,6 +331,11 @@ function getActivationHubCopy(locale: Locale) {
     feedDescription: "Review the latest signup and reward activity.",
     feedLabel: "Activity feed",
     hubLabel: "1066FRIEND+",
+    menuLockedDescription: "Start with email to open referral code, points, and wallet menus.",
+    menuLockedTitle: "Start with email first",
+    menuPendingDescription: "Referral members, points, and wallet management open after the 10 USDT check.",
+    menuPendingTitle: "Service fee check needed",
+    menuReadyTitle: "Useful menus",
     membershipDescription:
       "Complete email login, wallet connection, and service fee confirmation.",
     membershipLabel: "Signup status",
@@ -1820,17 +1830,6 @@ export function SmartWalletApp({
                       <span className="sr-only">{dictionary.common.disconnectWallet}</span>
                     </button>
                   </>
-                ) : hasThirdwebClientId ? (
-                  <button
-                    aria-label={dictionary.common.connectWallet}
-                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                    onClick={() => {
-                      setIsLoginDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    <Mail className="size-4" />
-                  </button>
                 ) : null}
               </div>
           </div>
@@ -1927,19 +1926,7 @@ export function SmartWalletApp({
                         <span className="sr-only sm:not-sr-only">{dictionary.common.disconnectWallet}</span>
                       </button>
                     </div>
-                  ) : (
-                    <div className="hidden w-full sm:block sm:w-auto">
-                      <button
-                        className="inline-flex h-10 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
-                        onClick={() => {
-                          setIsLoginDialogOpen(true);
-                        }}
-                        type="button"
-                      >
-                        {dictionary.common.connectWallet}
-                      </button>
-                    </div>
-                  )
+                  ) : null
                 ) : (
                   <div className="w-full rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900 sm:w-auto">
                     {dictionary.common.clientIdRequired}
@@ -2120,18 +2107,7 @@ export function SmartWalletApp({
                               </div>
                             </div>
 
-                            <button
-                              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_22px_45px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:mt-5 sm:h-12"
-                              onClick={() => {
-                                setIsLoginDialogOpen(true);
-                              }}
-                              type="button"
-                            >
-                              <WalletMinimal className="size-4" />
-                              {dictionary.common.connectWallet}
-                            </button>
-
-                            <p className="mt-3 text-sm leading-6 text-slate-600 sm:mt-4">
+                            <p className="mt-4 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm leading-6 text-slate-600 sm:mt-5">
                               {dictionary.common.loginDialog.emailDescription}
                             </p>
                           </div>
@@ -2748,7 +2724,11 @@ function ActivationServiceHub({
                   {copy.secondaryLabel}
                 </p>
                 <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-950">
-                  {copy.nextStepTitle}
+                  {isSignupCompleted
+                    ? copy.menuReadyTitle
+                    : isConnected
+                      ? copy.menuPendingTitle
+                      : copy.menuLockedTitle}
                 </h3>
               </div>
               <span className="shrink-0 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600">
@@ -2756,18 +2736,48 @@ function ActivationServiceHub({
               </span>
             </div>
 
-            <div className="mt-4 grid gap-2">
-              {actionItems.map((item, index) => (
-                <ServiceHubCard
-                  description={item.description}
-                  href={item.href}
-                  index={index + 1}
-                  key={item.title}
-                  metric={item.metric}
-                  title={item.title}
-                />
-              ))}
-            </div>
+            {isSignupCompleted ? (
+              <div className="mt-4 grid gap-2">
+                {actionItems.map((item, index) => (
+                  <ServiceHubCard
+                    description={item.description}
+                    href={item.href}
+                    index={index + 1}
+                    key={item.title}
+                    metric={item.metric}
+                    title={item.title}
+                  />
+                ))}
+              </div>
+            ) : isConnected ? (
+              <div className="mt-4 rounded-[22px] border border-zinc-200 bg-white p-4">
+                <p className="break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
+                  {copy.menuPendingDescription}
+                </p>
+                <a
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                  href="#signup-payment"
+                >
+                  {copy.primaryPending}
+                </a>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[22px] border border-zinc-200 bg-white p-4">
+                <p className="break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
+                  {copy.menuLockedDescription}
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {[copy.networkLabel, copy.pointsLabel, copy.assetLabel].map((label) => (
+                    <span
+                      className="rounded-2xl border border-zinc-200 bg-zinc-50 px-2 py-3 text-center text-[0.72rem] font-semibold text-zinc-500"
+                      key={label}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

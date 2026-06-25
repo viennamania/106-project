@@ -1179,6 +1179,9 @@ export function NetworkFeedPage({
                     accountAddress={accountAddress ?? null}
                     feedView={feedView}
                     freeLabel={contentCopy.labels.free}
+                    isPublicReferralFeed={
+                      feedView === "network" && hasReferralCode && !accountAddress
+                    }
                     item={item}
                     levelLabel={contentCopy.labels.level}
                     locale={locale}
@@ -1547,6 +1550,7 @@ function SocialFeedPost({
   feedView,
   freeLabel,
   item,
+  isPublicReferralFeed,
   levelLabel,
   locale,
   missingEmailMessage,
@@ -1563,6 +1567,7 @@ function SocialFeedPost({
   accountAddress: string | null;
   feedView: ContentFeedView;
   freeLabel: string;
+  isPublicReferralFeed: boolean;
   item: ContentFeedItemRecord;
   levelLabel: string;
   locale: Locale;
@@ -1637,6 +1642,13 @@ function SocialFeedPost({
     `/${locale}/content/bridge/${item.contentId}`,
     referralCode,
   );
+  const publicSignupHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    {
+      returnTo: returnToHref,
+      shareId,
+    },
+  );
   const imageRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const mediaOpenTimeoutRef = useRef<number | null>(null);
@@ -1679,6 +1691,9 @@ function SocialFeedPost({
           detail: "게시물 보기",
           hidden: "게시물을 숨겼습니다.",
           hide: "피드에서 숨기기",
+          joinToInteract: "가입하고 계속 보기",
+          joinToInteractDescription:
+            "가입 후 좋아요, 댓글, 저장과 포인트 사용을 이어갈 수 있습니다.",
           like: "좋아요",
           likeCount: "좋아요",
           liked: "좋아요 완료",
@@ -1713,6 +1728,9 @@ function SocialFeedPost({
           detail: "View post",
           hidden: "Post hidden.",
           hide: "Hide from feed",
+          joinToInteract: "Join to continue",
+          joinToInteractDescription:
+            "After joining, you can like, comment, save, and use points.",
           like: "Like",
           likeCount: "likes",
           liked: "Liked",
@@ -2142,6 +2160,10 @@ function SocialFeedPost({
         event.preventDefault();
         clearMediaOpenTimeout();
         lastTapAtRef.current = 0;
+        if (isPublicReferralFeed) {
+          openDetailFromMedia();
+          return;
+        }
         triggerLike(event.clientX, event.clientY);
         return;
       }
@@ -2149,7 +2171,13 @@ function SocialFeedPost({
       lastTapAtRef.current = now;
       scheduleMediaDetailOpen();
     },
-    [clearMediaOpenTimeout, scheduleMediaDetailOpen, triggerLike],
+    [
+      clearMediaOpenTimeout,
+      isPublicReferralFeed,
+      openDetailFromMedia,
+      scheduleMediaDetailOpen,
+      triggerLike,
+    ],
   );
 
   const handleMediaPointerDown = useCallback(
@@ -2337,18 +2365,20 @@ function SocialFeedPost({
             {metaItems.filter(Boolean).join(" · ")}
           </p>
         </div>
-        <button
-          aria-expanded={isMenuOpen}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
-          onClick={() => {
-            setIsMenuOpen((current) => !current);
-          }}
-          type="button"
-        >
-          <span className="sr-only">More</span>
-          <MoreHorizontal className="size-5" />
-        </button>
-        {isMenuOpen ? (
+        {!isPublicReferralFeed ? (
+          <button
+            aria-expanded={isMenuOpen}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+            onClick={() => {
+              setIsMenuOpen((current) => !current);
+            }}
+            type="button"
+          >
+            <span className="sr-only">More</span>
+            <MoreHorizontal className="size-5" />
+          </button>
+        ) : null}
+        {!isPublicReferralFeed && isMenuOpen ? (
           <div className="absolute right-3 top-12 z-30 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_46px_rgba(15,23,42,0.16)]">
             <button
               className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-50"
@@ -2494,71 +2524,85 @@ function SocialFeedPost({
       </div>
 
       <div className="px-3 pb-4 pt-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        {isPublicReferralFeed ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
+              {actionCopy.joinToInteractDescription}
+            </p>
+            <Link
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+              href={publicSignupHref}
+            >
+              {actionCopy.joinToInteract}
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                aria-pressed={social.likedByViewer}
+                className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
+                onClick={toggleLike}
+                type="button"
+              >
+                <span className="sr-only">
+                  {social.likedByViewer ? actionCopy.liked : actionCopy.like}
+                </span>
+                <Heart
+                  className={`size-6 transition ${
+                    social.likedByViewer
+                      ? "fill-rose-500 text-rose-500"
+                      : "text-slate-950"
+                  }`}
+                />
+              </button>
+              <button
+                className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
+                onClick={() => {
+                  void loadComments();
+                }}
+                type="button"
+              >
+                <span className="sr-only">{actionCopy.openComments}</span>
+                <MessageCircle className="size-6 text-slate-950" />
+              </button>
+              <button
+                className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100 disabled:opacity-60"
+                disabled={shareState === "sharing"}
+                onClick={() => {
+                  void handleShare();
+                }}
+                type="button"
+              >
+                <span className="sr-only">
+                  {shareState === "sharing" ? actionCopy.sharing : actionCopy.share}
+                </span>
+                <Send
+                  className={`size-6 transition ${
+                    shareState === "copied" ? "text-emerald-600" : "text-slate-950"
+                  }`}
+                />
+              </button>
+            </div>
             <button
-              aria-pressed={social.likedByViewer}
+              aria-pressed={social.savedByViewer}
               className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
-              onClick={toggleLike}
+              onClick={toggleSave}
               type="button"
             >
               <span className="sr-only">
-                {social.likedByViewer ? actionCopy.liked : actionCopy.like}
+                {social.savedByViewer ? actionCopy.unsavePost : actionCopy.savePost}
               </span>
-              <Heart
+              <Bookmark
                 className={`size-6 transition ${
-                  social.likedByViewer
-                    ? "fill-rose-500 text-rose-500"
+                  social.savedByViewer
+                    ? "fill-slate-950 text-slate-950"
                     : "text-slate-950"
                 }`}
               />
             </button>
-            <button
-              className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
-              onClick={() => {
-                void loadComments();
-              }}
-              type="button"
-            >
-              <span className="sr-only">{actionCopy.openComments}</span>
-              <MessageCircle className="size-6 text-slate-950" />
-            </button>
-            <button
-              className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100 disabled:opacity-60"
-              disabled={shareState === "sharing"}
-              onClick={() => {
-                void handleShare();
-              }}
-              type="button"
-            >
-              <span className="sr-only">
-                {shareState === "sharing" ? actionCopy.sharing : actionCopy.share}
-              </span>
-              <Send
-                className={`size-6 transition ${
-                  shareState === "copied" ? "text-emerald-600" : "text-slate-950"
-                }`}
-              />
-            </button>
           </div>
-          <button
-            aria-pressed={social.savedByViewer}
-            className="inline-flex size-8 items-center justify-center rounded-full transition hover:bg-slate-100"
-            onClick={toggleSave}
-            type="button"
-          >
-            <span className="sr-only">
-              {social.savedByViewer ? actionCopy.unsavePost : actionCopy.savePost}
-            </span>
-            <Bookmark
-              className={`size-6 transition ${
-                social.savedByViewer
-                  ? "fill-slate-950 text-slate-950"
-                  : "text-slate-950"
-              }`}
-            />
-          </button>
-        </div>
+        )}
 
         {toast ? (
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)]">
@@ -2571,15 +2615,21 @@ function SocialFeedPost({
 
         <div className="mt-3 space-y-1.5">
           {social.likeCount > 0 ? (
-            <button
-              className="text-sm font-semibold text-slate-950"
-              onClick={toggleLike}
-              type="button"
-            >
+            isPublicReferralFeed ? (
+              <p className="text-sm font-semibold text-slate-950">
+                {actionCopy.likeCount} {social.likeCount.toLocaleString(locale)}
+              </p>
+            ) : (
+              <button
+                className="text-sm font-semibold text-slate-950"
+                onClick={toggleLike}
+                type="button"
+              >
               {actionCopy.likeCount} {social.likeCount.toLocaleString(locale)}
-            </button>
+              </button>
+            )
           ) : null}
-          {social.commentCount > 0 ? (
+          {!isPublicReferralFeed && social.commentCount > 0 ? (
             <button
               className="block text-sm text-slate-500"
               onClick={() => {

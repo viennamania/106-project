@@ -618,23 +618,11 @@ export function RewardsPage({
 
           <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <StatusChip labels={dictionary.common.status} status={status} />
-            {hasThirdwebClientId ? (
-              status !== "connected" ? (
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
-                  onClick={() => {
-                    setIsLoginDialogOpen(true);
-                  }}
-                  type="button"
-                >
-                  {dictionary.common.connectWallet}
-                </button>
-              ) : null
-            ) : (
+            {!hasThirdwebClientId ? (
               <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
               </div>
-            )}
+            ) : null}
           </div>
         </header>
 

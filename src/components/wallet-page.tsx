@@ -989,23 +989,11 @@ export function WalletPage({
                 <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
                 <span>{dictionary.walletPage.actions.refresh}</span>
               </button>
-              {hasThirdwebClientId ? (
-                isDisconnected ? (
-                  <button
-                    className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                    onClick={() => {
-                      setIsLoginDialogOpen(true);
-                    }}
-                    type="button"
-                  >
-                    {dictionary.common.connectWallet}
-                  </button>
-                ) : null
-              ) : (
+              {!hasThirdwebClientId ? (
                 <div className="rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
                   {dictionary.common.clientIdRequired}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -1028,23 +1016,11 @@ export function WalletPage({
               <RefreshCcw className={cn("size-4", isRefreshing && "animate-spin")} />
               <span className="sr-only">{dictionary.walletPage.actions.refresh}</span>
             </button>
-            {hasThirdwebClientId ? (
-              isDisconnected ? (
-                <button
-                  className="col-span-2 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
-                  onClick={() => {
-                    setIsLoginDialogOpen(true);
-                  }}
-                  type="button"
-                >
-                  {dictionary.common.connectWallet}
-                </button>
-              ) : null
-            ) : (
+            {!hasThirdwebClientId ? (
               <div className="col-span-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900">
                 {dictionary.common.clientIdRequired}
               </div>
-            )}
+            ) : null}
           </div>
         </header>
 
