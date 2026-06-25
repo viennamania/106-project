@@ -281,29 +281,32 @@ function getActivationHubCopy(locale: Locale) {
       description:
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
+      disconnectedMessage: "이메일로 시작하면 가입 상태와 추천 코드를 확인할 수 있습니다.",
       feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
       feedLabel: "활동 피드",
       hubLabel: "1066FRIEND+",
       membershipDescription: "이메일 로그인, 지갑 연결, 10 USDT 서비스 이용료 확인을 완료합니다.",
       membershipLabel: "가입 상태",
-      nextStepTitle: "필요한 것만 먼저",
-      networkDescription: "내 코드로 가입한 회원과 6단계 네트워크를 관리합니다.",
+      nextStepTitle: "다음으로 할 일",
+      networkDescription: "내 코드로 가입한 회원을 확인합니다.",
       networkLabel: "추천 회원 관리",
       notReady: "설정 필요",
       pending: "결제 확인 필요",
-      pointsDescription: "추천 활동으로 쌓인 포인트와 보상 내역을 확인합니다.",
+      pendingMessage: "10 USDT 결제 확인이 끝나면 추천 코드와 포인트 관리가 열립니다.",
+      pointsDescription: "포인트와 교환 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
       primaryCompleted: "추천 링크 공유하기",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      secondaryLabel: "내 서비스",
+      readyMessage: "가입이 완료되었습니다. 추천 링크를 공유하고 포인트와 지갑을 관리하세요.",
+      secondaryLabel: "서비스 메뉴",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
-      statusTitle: "내 서비스 상태",
+      statusTitle: "지금 상태",
       title: "1066FRIEND+ 시작하기",
-      walletDescription: "서비스 이용의 기준 지갑입니다.",
+      walletDescription: "USDT와 BNB 지갑 상태를 봅니다.",
       walletLabel: "내 지갑",
     };
   }
@@ -320,30 +323,33 @@ function getActivationHubCopy(locale: Locale) {
     description:
       "Check your status and the next action first.",
     disconnected: "Connection required",
+    disconnectedMessage: "Start with email to check signup status and referral code.",
     feedDescription: "Review the latest signup and reward activity.",
     feedLabel: "Activity feed",
     hubLabel: "1066FRIEND+",
     membershipDescription:
       "Complete email login, wallet connection, and service fee confirmation.",
     membershipLabel: "Signup status",
-    nextStepTitle: "Start with these",
-    networkDescription: "Manage members who joined with your code and the 6-level network.",
+    nextStepTitle: "Next steps",
+    networkDescription: "Review members who joined with your code.",
     networkLabel: "Referral members",
     notReady: "Setup required",
     pending: "Payment check needed",
-    pointsDescription: "Review points and reward history created by referral activity.",
+    pendingMessage: "After the 10 USDT payment is verified, referral code and points management open.",
+    pointsDescription: "Review points and redemption history.",
     pointsLabel: "Points",
     primaryCompleted: "Share referral link",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    secondaryLabel: "My services",
+    readyMessage: "Signup is complete. Share your referral link, then manage points and wallet status.",
+    secondaryLabel: "Service menu",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
-    statusTitle: "My service status",
+    statusTitle: "Current status",
     title: "Start 1066FRIEND+",
-    walletDescription: "The wallet that anchors service usage.",
+    walletDescription: "Check USDT and BNB wallet status.",
     walletLabel: "My wallet",
   };
 }
@@ -2609,6 +2615,13 @@ function ActivationServiceHub({
       : isConnected
         ? copy.primaryPending
         : copy.primaryDisconnected;
+  const statusMessage = !hasThirdwebClientId
+    ? copy.disconnectedMessage
+    : isSignupCompleted
+      ? copy.readyMessage
+      : isConnected
+        ? copy.pendingMessage
+        : copy.disconnectedMessage;
   const statusItems = [
     { label: copy.membershipLabel, value: membershipStatus },
     { label: copy.walletLabel, value: walletStatus },
@@ -2674,71 +2687,83 @@ function ActivationServiceHub({
 
   return (
     <LandingReveal delay={20} variant="hero">
-      <section className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-3 shadow-[0_18px_54px_rgba(24,24,27,0.08)] sm:rounded-[34px] sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
-          <div className="flex flex-col justify-between rounded-[26px] bg-zinc-950 p-5 text-white sm:p-6">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/70">
-                  {copy.hubLabel}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-emerald-400/12 px-3 py-1.5 text-[0.7rem] font-semibold text-emerald-200">
-                  {membershipStatus}
-                </span>
-              </div>
-
-              <div className="mt-7 max-w-xl space-y-3 sm:mt-9">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/44">
-                  {copy.statusTitle}
-                </p>
-                <h2 className="break-keep text-[2.1rem] font-semibold leading-[0.98] tracking-[-0.05em] text-white [word-break:keep-all] sm:text-[3.1rem]">
-                  {copy.title}
-                </h2>
-                <p className="max-w-md break-keep text-sm leading-6 text-white/62 [word-break:keep-all] sm:text-[0.98rem] sm:leading-7">
-                  {copy.description}
-                </p>
-              </div>
+      <section className="relative overflow-hidden rounded-[30px] border border-zinc-200 bg-white shadow-[0_18px_54px_rgba(24,24,27,0.08)] sm:rounded-[36px]">
+        <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="bg-zinc-950 p-5 text-white sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/70">
+                {copy.hubLabel}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1.5 text-[0.7rem] font-semibold text-emerald-200">
+                {membershipStatus}
+              </span>
             </div>
 
-            <div className="mt-7 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">
-                {copy.actionTitle}
+            <div className="mt-7 max-w-xl space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+                {copy.statusTitle}
               </p>
-              {primaryAction}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {statusItems.map((item) => (
+              <h2 className="break-keep text-[2.25rem] font-semibold leading-[0.98] tracking-[-0.055em] text-white [word-break:keep-all] sm:text-[3.2rem]">
+                {copy.title}
+              </h2>
+              <p className="max-w-md break-keep text-sm leading-6 text-white/62 [word-break:keep-all] sm:text-[0.98rem] sm:leading-7">
+                {statusMessage}
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.06] p-3.5 sm:p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/40">
+                    {copy.membershipLabel}
+                  </p>
+                  <p className="mt-1 truncate text-lg font-semibold text-white">
+                    {membershipStatus}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
+                  {copy.walletLabel}: {walletStatus}
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {statusItems.slice(2).map((item) => (
                   <div
-                    className="min-w-0 rounded-[18px] border border-white/10 bg-white/[0.06] px-3 py-2.5"
+                    className="min-w-0 rounded-2xl border border-white/10 bg-black/20 px-3 py-2"
                     key={item.label}
                   >
-                    <p className="truncate text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/36">
+                    <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/35">
                       {item.label}
                     </p>
-                    <p className="mt-1 truncate text-sm font-semibold text-white">
+                    <p className="mt-1 truncate text-sm font-semibold text-white/90">
                       {item.value}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
+
+            <div className="mt-4">
+              {primaryAction}
+            </div>
           </div>
 
-          <div className="rounded-[26px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
-            <div className="flex items-end justify-between gap-3">
+          <div className="bg-zinc-50 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-zinc-500">
                   {copy.secondaryLabel}
                 </p>
-                <h3 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
+                <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-950">
                   {copy.nextStepTitle}
                 </h3>
               </div>
-              <span className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600">
+              <span className="shrink-0 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-600">
                 {isSignupCompleted ? copy.ready : membershipStatus}
               </span>
             </div>
 
-            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            <div className="mt-4 grid gap-2">
               {actionItems.map((item, index) => (
                 <ServiceHubCard
                   description={item.description}
@@ -2772,22 +2797,22 @@ function ServiceHubCard({
 }) {
   return (
     <Link
-      className="group flex min-w-0 items-center gap-3 rounded-[20px] border border-zinc-200 bg-white p-3.5 transition hover:border-zinc-300 hover:bg-zinc-50"
+      className="group flex min-w-0 items-center gap-3 rounded-[18px] border border-zinc-200 bg-white px-3 py-3 transition hover:border-zinc-300 hover:bg-white sm:px-3.5 sm:py-3.5"
       href={href}
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-sm font-semibold text-white">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-xs font-semibold text-white sm:size-9">
         {index}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center justify-between gap-3">
-          <span className="truncate text-base font-semibold tracking-tight text-zinc-950">
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-semibold tracking-tight text-zinc-950 sm:text-base">
             {title}
           </span>
-          <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+          <span className="max-w-[92px] shrink-0 truncate rounded-full bg-zinc-100 px-2 py-0.5 text-[0.7rem] font-semibold text-zinc-600 sm:max-w-[120px] sm:px-2.5 sm:py-1 sm:text-xs">
             {metric}
           </span>
         </span>
-        <span className="mt-1 line-clamp-1 block text-sm text-zinc-500">
+        <span className="mt-0.5 hidden text-xs leading-5 text-zinc-500 sm:line-clamp-1 sm:block">
           {description}
         </span>
       </span>
