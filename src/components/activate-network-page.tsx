@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   ArrowLeft,
+  ArrowUpDown,
   Bell,
   ChevronRight,
   GitBranch,
@@ -95,6 +96,18 @@ type ServiceStatusUpdateState = {
   notice: string | null;
   status: "error" | "idle" | "submitting" | "success";
 };
+
+type MemberSortKey =
+  | "directReferralCount"
+  | "email"
+  | "lifetimePoints"
+  | "recent"
+  | "spendablePoints"
+  | "tier"
+  | "totalReferralCount"
+  | "depth";
+
+type MemberSortDirection = "asc" | "desc";
 
 function getServiceManagementCopy(locale: Locale) {
   if (locale === "ko") {
@@ -196,6 +209,9 @@ export function ActivateNetworkPage({
     });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [memberSortDirection, setMemberSortDirection] =
+    useState<MemberSortDirection>("desc");
+  const [memberSortKey, setMemberSortKey] = useState<MemberSortKey>("recent");
   const [serviceScope, setServiceScope] =
     useState<ServiceSuspensionScope>("member");
   const [serviceStatusUpdate, setServiceStatusUpdate] =
@@ -253,9 +269,30 @@ export function ActivateNetworkPage({
     });
   }, [deferredSearchQuery, state.members]);
 
+  const sortedMembers = useMemo(() => {
+    return [...filteredMembers].sort((firstMember, secondMember) => {
+      const comparison = compareMembersBySortKey(
+        firstMember,
+        secondMember,
+        memberSortKey,
+        locale,
+      );
+
+      if (comparison !== 0) {
+        return memberSortDirection === "asc" ? comparison : -comparison;
+      }
+
+      if (firstMember.depth !== secondMember.depth) {
+        return firstMember.depth - secondMember.depth;
+      }
+
+      return firstMember.email.localeCompare(secondMember.email, locale);
+    });
+  }, [filteredMembers, locale, memberSortDirection, memberSortKey]);
+
   const selectedMember =
     state.members.find((member) => member.email === selectedMemberEmail) ??
-    filteredMembers[0] ??
+    sortedMembers[0] ??
     null;
   const currentPageHref = useMemo(
     () =>
@@ -315,19 +352,19 @@ export function ActivateNetworkPage({
   }, [selectedMemberEmail]);
 
   useEffect(() => {
-    if (!selectedMemberEmail && filteredMembers[0]) {
-      setSelectedMemberEmail(filteredMembers[0].email);
+    if (!selectedMemberEmail && sortedMembers[0]) {
+      setSelectedMemberEmail(sortedMembers[0].email);
       return;
     }
 
     if (
       selectedMemberEmail &&
-      filteredMembers.length > 0 &&
-      !filteredMembers.some((member) => member.email === selectedMemberEmail)
+      sortedMembers.length > 0 &&
+      !sortedMembers.some((member) => member.email === selectedMemberEmail)
     ) {
-      setSelectedMemberEmail(filteredMembers[0]?.email ?? null);
+      setSelectedMemberEmail(sortedMembers[0]?.email ?? null);
     }
-  }, [filteredMembers, selectedMemberEmail]);
+  }, [selectedMemberEmail, sortedMembers]);
 
   useEffect(() => {
     const normalizedRequestedEmail = requestedMemberEmail?.trim().toLowerCase();
@@ -1287,15 +1324,71 @@ export function ActivateNetworkPage({
                     </div>
                   </label>
 
+                  <div className="mt-4 rounded-[22px] border border-slate-200 bg-white/80 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.035)]">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          {getMemberSortCopy(locale).label}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {formatTemplate(getMemberSortCopy(locale).resultCount, {
+                            count: formatInteger(sortedMembers.length, locale),
+                          })}
+                        </p>
+                      </div>
+                      <button
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+                        onClick={() => {
+                          setMemberSortDirection((current) =>
+                            current === "asc" ? "desc" : "asc",
+                          );
+                        }}
+                        type="button"
+                      >
+                        <ArrowUpDown className="size-3.5" />
+                        {getMemberSortDirectionLabel(
+                          locale,
+                          memberSortKey,
+                          memberSortDirection,
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getMemberSortOptions(locale).map((option) => {
+                        const isActive = memberSortKey === option.key;
+
+                        return (
+                          <button
+                            className={cn(
+                              "inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
+                              isActive
+                                ? "border-slate-950 bg-slate-950 text-white"
+                                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                            )}
+                            key={option.key}
+                            onClick={() => {
+                              setMemberSortKey(option.key);
+                              setMemberSortDirection(option.defaultDirection);
+                            }}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="mt-4 space-y-3 lg:max-h-[42rem] lg:overflow-y-auto lg:pr-1">
                     {state.error ? (
                       <MessageCard tone="error">{state.error}</MessageCard>
                     ) : null}
 
-                    {filteredMembers.length === 0 ? (
+                    {sortedMembers.length === 0 ? (
                       <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
                     ) : (
-                      filteredMembers.map((member) => {
+                      sortedMembers.map((member) => {
                         const isSelected = selectedMember?.email === member.email;
 
                         return (
@@ -2350,6 +2443,179 @@ function getMembershipCardLabel(
   }
 
   return dictionary.common.notAvailable;
+}
+
+function getMemberSortCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      label: "정렬",
+      resultCount: "{count}명 표시 중",
+    };
+  }
+
+  return {
+    label: "Sort",
+    resultCount: "{count} members",
+  };
+}
+
+function getMemberSortOptions(locale: Locale) {
+  const isKorean = locale === "ko";
+
+  return [
+    {
+      defaultDirection: "desc",
+      key: "recent",
+      label: isKorean ? "최근 가입" : "Newest",
+    },
+    {
+      defaultDirection: "asc",
+      key: "depth",
+      label: isKorean ? "추천 단계" : "Level",
+    },
+    {
+      defaultDirection: "desc",
+      key: "lifetimePoints",
+      label: isKorean ? "총 포인트" : "Total points",
+    },
+    {
+      defaultDirection: "desc",
+      key: "spendablePoints",
+      label: isKorean ? "사용 가능 P" : "Spendable",
+    },
+    {
+      defaultDirection: "desc",
+      key: "directReferralCount",
+      label: isKorean ? "직접 하위" : "Direct",
+    },
+    {
+      defaultDirection: "desc",
+      key: "totalReferralCount",
+      label: isKorean ? "전체 하위" : "Network",
+    },
+    {
+      defaultDirection: "desc",
+      key: "tier",
+      label: isKorean ? "등급" : "Tier",
+    },
+    {
+      defaultDirection: "asc",
+      key: "email",
+      label: isKorean ? "이메일" : "Email",
+    },
+  ] satisfies Array<{
+    defaultDirection: MemberSortDirection;
+    key: MemberSortKey;
+    label: string;
+  }>;
+}
+
+function getMemberSortDirectionLabel(
+  locale: Locale,
+  key: MemberSortKey,
+  direction: MemberSortDirection,
+) {
+  const isAscending = direction === "asc";
+
+  if (locale !== "ko") {
+    if (key === "recent") {
+      return isAscending ? "Oldest" : "Newest";
+    }
+
+    if (key === "email") {
+      return isAscending ? "A-Z" : "Z-A";
+    }
+
+    if (key === "depth") {
+      return isAscending ? "Near first" : "Deep first";
+    }
+
+    return isAscending ? "Low first" : "High first";
+  }
+
+  if (key === "recent") {
+    return isAscending ? "오래된순" : "최신순";
+  }
+
+  if (key === "email") {
+    return isAscending ? "가나다순" : "역순";
+  }
+
+  if (key === "depth") {
+    return isAscending ? "가까운 단계" : "깊은 단계";
+  }
+
+  return isAscending ? "낮은순" : "높은순";
+}
+
+function compareMembersBySortKey(
+  firstMember: ManagedReferralTreeNodeRecord,
+  secondMember: ManagedReferralTreeNodeRecord,
+  key: MemberSortKey,
+  locale: Locale,
+) {
+  if (key === "email") {
+    return firstMember.email.localeCompare(secondMember.email, locale);
+  }
+
+  if (key === "recent") {
+    return (
+      parseMemberDate(firstMember.registrationCompletedAt) -
+      parseMemberDate(secondMember.registrationCompletedAt)
+    );
+  }
+
+  if (key === "tier") {
+    return getMemberTierRank(firstMember.tier) - getMemberTierRank(secondMember.tier);
+  }
+
+  return getMemberNumericSortValue(firstMember, key) -
+    getMemberNumericSortValue(secondMember, key);
+}
+
+function getMemberNumericSortValue(
+  member: ManagedReferralTreeNodeRecord,
+  key: Exclude<MemberSortKey, "email" | "recent" | "tier">,
+) {
+  if (key === "depth") {
+    return member.depth;
+  }
+
+  if (key === "directReferralCount") {
+    return member.directReferralCount;
+  }
+
+  if (key === "lifetimePoints") {
+    return member.lifetimePoints;
+  }
+
+  if (key === "spendablePoints") {
+    return member.spendablePoints;
+  }
+
+  return member.totalReferralCount;
+}
+
+function getMemberTierRank(tier: ManagedReferralTreeNodeRecord["tier"]) {
+  if (tier === "vip") {
+    return 4;
+  }
+
+  if (tier === "gold") {
+    return 3;
+  }
+
+  if (tier === "silver") {
+    return 2;
+  }
+
+  return 1;
+}
+
+function parseMemberDate(value: string) {
+  const timestamp = Date.parse(value);
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function formatAddressLabel(address: string) {
