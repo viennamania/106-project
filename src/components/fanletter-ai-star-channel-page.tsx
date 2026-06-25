@@ -148,7 +148,7 @@ export function FanletterAIStarChannelPage({
       </header>
 
       <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:px-8">
-        <div className="relative min-h-[25rem] overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-zinc-950 shadow-[0_24px_72px_rgba(15,23,42,0.16)]">
+        <div className="relative min-h-[25rem] overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-[linear-gradient(150deg,#0c1f14_0%,#0a1510_100%)] shadow-[0_24px_72px_rgba(15,23,42,0.16)]">
           {heroImageUrl ? (
             <Image
               alt={starName}
@@ -159,8 +159,11 @@ export function FanletterAIStarChannelPage({
               src={heroImageUrl}
             />
           ) : (
-            <div className="flex h-full min-h-[25rem] items-center justify-center bg-zinc-950 text-[#44f26e]">
-              <Sparkles className="size-20" />
+            <div className="flex h-full min-h-[25rem] flex-col items-center justify-center gap-4 bg-[linear-gradient(150deg,#0c1f14_0%,#17331f_55%,#0a1510_100%)] text-[#44f26e]">
+              <span className="text-6xl font-bold leading-none text-[#8df3ad]">
+                {starName.trim().slice(0, 1) || "AI"}
+              </span>
+              <Sparkles className="size-12 opacity-70" />
             </div>
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.18)_45%,rgba(0,0,0,0.84)_100%)]" />
