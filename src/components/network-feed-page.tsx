@@ -164,6 +164,15 @@ function getFeedActorAvatarImageUrl(item: ContentFeedItemRecord) {
   return item.authorProfile?.avatarImageUrl ?? null;
 }
 
+function getAIStarDisplayName(item: ContentFeedItemRecord, locale: Locale) {
+  return (
+    item.authorProfile?.characterPersona?.name?.trim() ||
+    item.authorProfile?.displayName?.trim() ||
+    item.authorEmail.split("@")[0] ||
+    (locale === "ko" ? "AI 스타" : "AI Star")
+  );
+}
+
 function getAvatarFallback(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "U";
 }
@@ -1590,10 +1599,7 @@ function SocialFeedPost({
   const previewVideoUrl = resolveFeedPreviewVideo(item);
   const displayName = getFeedActorDisplayName(item);
   const avatarImageUrl = getFeedActorAvatarImageUrl(item);
-  const aiStarDisplayName =
-    item.authorProfile?.displayName?.trim() ||
-    item.authorEmail.split("@")[0] ||
-    (locale === "ko" ? "AI 스타" : "AI Star");
+  const aiStarDisplayName = getAIStarDisplayName(item, locale);
   const aiStarAvatarImageUrl = item.authorProfile?.avatarImageUrl ?? null;
   const isPaidContent = item.priceType === "paid";
   const accessLabel = isPaidContent
