@@ -1085,7 +1085,7 @@ function FanletterProductHomeDashboard({
         join: "파운더 참여",
         locked: "조건 확인",
         loop: "발견 → 초대 → 보상 → 창업",
-        open: "빈 슬롯",
+        open: "남은 자리",
         portfolio: "내 성장 상태",
         primaryCta: "AI 스타 발견하기",
         reward: "이번 공유 보상",
@@ -1118,7 +1118,7 @@ function FanletterProductHomeDashboard({
         join: "Join Founder",
         locked: "Locked",
         loop: "Discover → Invite → Reward → Launch",
-        open: "Open",
+        open: "Open spots",
         portfolio: "My Growth Status",
         primaryCta: "Discover AI Stars",
         reward: "Share Reward",
@@ -2536,7 +2536,7 @@ export function FanletterHomePage({
           mockPayment: "실결제 없음",
           myAi: "내 AI",
           reputation: "행동은 평판 기록으로 저장",
-          title: "AI 스타 발견부터 시작하세요",
+          title: "어디로 이어갈까요?",
         }
       : {
           discovery: "AI Star Discovery",
@@ -2547,7 +2547,7 @@ export function FanletterHomePage({
           mockPayment: "No real payment",
           myAi: "My AI",
           reputation: "Actions become reputation records",
-          title: "Start with AI Star Discovery",
+          title: "Where to next?",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
   const mobileHeroCopy =
