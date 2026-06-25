@@ -2749,7 +2749,7 @@ function CreatorJourneyContextGraphCard({
         score: "Context Score",
         source: "출처 AI 스타",
         tiktok: "TikTok 채널",
-        title: "Creator Journey가 평판 Context를 만듭니다",
+        title: "Creator Journey가 활동 맥락을 만듭니다",
       }
     : isJapanese
       ? {
@@ -2922,8 +2922,8 @@ function CreatorTikTokContextBridgeCard({
           "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 활동 기록으로 만드는 입력원이 됩니다.",
         subtitleWaiting:
           "회원 개인 계정이 아니라 선택한 AI 스타의 공식 채널을 연결해야 콘텐츠 성과가 활동 기록으로 이어집니다.",
-        title: "TikTok 연결이 콘텐츠 Context로 확장됩니다",
-        titleWaiting: "TikTok 연결은 콘텐츠 Context의 시작점입니다",
+        title: "TikTok 연결이 콘텐츠 맥락으로 확장됩니다",
+        titleWaiting: "TikTok 연결은 콘텐츠 맥락의 시작점입니다",
       }
     : isJapanese
       ? {
