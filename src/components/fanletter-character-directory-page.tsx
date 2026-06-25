@@ -3,13 +3,13 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
-  MessageCircleHeart,
   Search,
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -201,41 +201,67 @@ function DirectoryHeader({
   routePath: string;
 }) {
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const discoveryHref = getCharactersHref({ referralCode, routePath });
+  const growthHref = buildPathWithReferral(
+    `/${locale}/fanletter/growth`,
+    referralCode,
+  );
+  const myAiHref = buildPathWithReferral(
+    `/${locale}/fanletter/my-ai`,
+    referralCode,
+  );
 
   return (
-    <header className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
       <Link className="flex min-h-11 min-w-0 items-center gap-2" href={homeHref}>
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-10">
-          <MessageCircleHeart className="size-5" />
-        </span>
-        <span className="hidden truncate text-xl font-semibold tracking-normal text-black sm:inline">
+        <FanletterBrandMark className="size-9 shrink-0" />
+        <span className="hidden truncate text-xl font-semibold tracking-tight text-black sm:inline">
           AIAVpark
         </span>
       </Link>
-      <nav className="hidden items-center gap-5 text-sm font-semibold text-black/60 lg:flex">
-        <Link className="transition hover:text-black" href={homeHref}>
-          {locale === "ko" ? "홈" : "Home"}
-        </Link>
-        <Link className="text-black" href={getCharactersHref({ referralCode, routePath })}>
+
+      <nav
+        aria-label={locale === "ko" ? "핵심 여정" : "Primary journey"}
+        className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
+      >
+        <Link
+          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          href={discoveryHref}
+        >
           {locale === "ko" ? "발견" : "Discovery"}
         </Link>
+        <Link
+          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          href={growthHref}
+        >
+          {locale === "ko" ? "성장" : "Growth"}
+        </Link>
+        <Link
+          className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+          href={myAiHref}
+        >
+          {locale === "ko" ? "내 AI" : "My AI"}
+        </Link>
       </nav>
-      <div className="flex min-w-0 shrink-0 items-center gap-2">
+
+      <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
         <FanletterGlobalLanguageSwitcher
           className="inline-flex sm:hidden"
           compact
           locale={locale}
+          surface="light"
           tight
         />
         <FanletterGlobalLanguageSwitcher
           className="hidden sm:inline-flex"
-          compact
           locale={locale}
+          surface="light"
         />
         <FanletterAccountStatusLink
-          className="max-w-[7.25rem] sm:max-w-[14rem]"
+          className="max-w-[6.8rem] sm:max-w-[14rem]"
           locale={locale}
           referralCode={referralCode}
+          surface="light"
         />
       </div>
     </header>
