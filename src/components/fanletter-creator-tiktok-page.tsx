@@ -132,8 +132,8 @@ function getCopy(locale: Locale) {
       mainCta: "TikTok 연결하기",
       nextAction: "다음 행동",
       nextRecordMetric: "다음 기록",
-      nextRecordPending: "content_engaged 대기",
-      nextRecordReady: "content_engaged",
+      nextRecordPending: "콘텐츠 반응 대기",
+      nextRecordReady: "콘텐츠 반응",
       oauthFailed: "TikTok 승인 실패",
       oauthFailedBody:
         "승인 또는 토큰 교환이 완료되지 않았습니다. Sandbox 테스트 사용자, 요청 client key, redirect URI가 같은 TikTok 앱 기준인지 확인한 뒤 다시 시도하세요.",
@@ -199,8 +199,8 @@ function getCopy(locale: Locale) {
       mainCta: "TikTok接続",
       nextAction: "次のアクション",
       nextRecordMetric: "次の記録",
-      nextRecordPending: "content_engaged待ち",
-      nextRecordReady: "content_engaged",
+      nextRecordPending: "コンテンツ反応待ち",
+      nextRecordReady: "コンテンツ反応",
       oauthFailed: "TikTok認証に失敗",
       oauthFailedBody:
         "認証またはトークン交換が完了していません。Sandboxテストユーザーとclient key設定を確認して再試行してください。",
@@ -265,8 +265,8 @@ function getCopy(locale: Locale) {
     mainCta: "Connect TikTok",
     nextAction: "Next action",
     nextRecordMetric: "Next record",
-    nextRecordPending: "content_engaged pending",
-    nextRecordReady: "content_engaged",
+    nextRecordPending: "Content engagement pending",
+    nextRecordReady: "Content engagement",
     oauthFailed: "TikTok authorization failed",
     oauthFailedBody:
       "Authorization or token exchange did not complete. Check Sandbox target user and client key settings, then retry.",
