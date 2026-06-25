@@ -208,15 +208,15 @@ function DirectoryHeader({
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-10">
           <MessageCircleHeart className="size-5" />
         </span>
-        <span className="hidden truncate text-xl font-semibold tracking-normal text-white sm:inline">
+        <span className="hidden truncate text-xl font-semibold tracking-normal text-black sm:inline">
           AIAVpark
         </span>
       </Link>
-      <nav className="hidden items-center gap-5 text-sm font-semibold text-white/68 lg:flex">
-        <Link className="transition hover:text-white" href={homeHref}>
+      <nav className="hidden items-center gap-5 text-sm font-semibold text-black/60 lg:flex">
+        <Link className="transition hover:text-black" href={homeHref}>
           {locale === "ko" ? "홈" : "Home"}
         </Link>
-        <Link className="text-white" href={getCharactersHref({ referralCode, routePath })}>
+        <Link className="text-black" href={getCharactersHref({ referralCode, routePath })}>
           {locale === "ko" ? "발견" : "Discovery"}
         </Link>
       </nav>
@@ -600,8 +600,8 @@ export function FanletterCharacterDirectoryPage({
   ];
 
   return (
-    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
-      <section className="border-b border-white/10">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-black sm:pb-0">
+      <section className="border-b border-black/10">
         <DirectoryHeader
           locale={locale}
           referralCode={referralCode}
@@ -609,18 +609,18 @@ export function FanletterCharacterDirectoryPage({
         />
         <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-7 pt-7 sm:px-6 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:px-8">
           <div className="min-w-0">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
               {copy.hero.eyebrow}
             </p>
-            <h1 className="mt-3 max-w-4xl text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.1rem] lg:text-[3.5rem]">
+            <h1 className="mt-3 max-w-4xl text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-black [word-break:keep-all] sm:text-[3.1rem] lg:text-[3.5rem]">
               {copy.hero.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+            <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-black/60 [word-break:keep-all] sm:text-lg">
               {copy.hero.body}
             </p>
           </div>
 
-          <div className="grid gap-2 rounded-[1.25rem] border border-white/10 bg-white/[0.055] p-3 shadow-[0_18px_52px_rgba(0,0,0,0.22)] backdrop-blur sm:grid-cols-3 lg:grid-cols-1">
+          <div className="grid gap-2 rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_18px_52px_rgba(8,18,12,0.06)] sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-2xl bg-[#44f26e] px-4 py-3 text-black sm:col-span-3 lg:col-span-1">
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] opacity-70">
                 {copy.stats.totalCharacters}
@@ -631,13 +631,13 @@ export function FanletterCharacterDirectoryPage({
             </div>
             {heroSignals.map((signal) => (
               <div
-                className="min-w-0 rounded-2xl border border-white/10 bg-black/22 px-4 py-3"
+                className="min-w-0 rounded-2xl border border-black/10 bg-[#f6f8f4] px-4 py-3"
                 key={signal.label}
               >
-                <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/45">
+                <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-black/45">
                   {signal.label}
                 </p>
-                <p className="mt-1 truncate text-sm font-semibold text-white">
+                <p className="mt-1 truncate text-sm font-semibold text-black">
                   {signal.value}
                 </p>
               </div>
