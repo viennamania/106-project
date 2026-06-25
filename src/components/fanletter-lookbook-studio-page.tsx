@@ -1059,9 +1059,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             </span>
             <a
               className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-black"
-              href={`/${locale}/fanletter/onboarding?returnTo=${encodeURIComponent(
-                `/${locale}/fanletter/studio/lookbook`,
-              )}`}
+              href={`/${locale}/fanletter/studio/lookbook/start`}
             >
               <Sparkles className="h-4 w-4" />
               {locale === "en" ? "Start free with email" : "이메일로 무료 시작"}
