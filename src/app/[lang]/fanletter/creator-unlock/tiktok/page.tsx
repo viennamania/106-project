@@ -23,7 +23,7 @@ function getCreatorTikTokMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AI 스타별 TikTok 채널을 연결하고 평판 기록을 생성하는 전용 화면입니다.",
+        "AI 스타별 TikTok 채널을 연결하고 활동 기록을 생성하는 전용 화면입니다.",
       title: "AI 스타 TikTok 채널 | FanLetter 크리에이터 여정",
     };
   }

@@ -972,7 +972,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       steps: [
         {
           body: "기존 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
-          title: "스카우트 성장",
+          title: "친구 초대 성장",
         },
         {
           body: "추천 코드로 가입이 발생하면 CP와 영향력 점수를 얻습니다.",
@@ -990,7 +990,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       agentRankAuditReady: "AgentRank 감사 준비 80% 이상",
       agentRankEventQuality: "이벤트 품질 80점 이상",
       body:
-        "스카우트 점수, 직접 초대, CP, 파운더 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
+        "친구 초대 점수, 직접 초대, CP, 파운더 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
       creatorSocialConnected: "AI 스타 TikTok 채널 연결",
@@ -1004,13 +1004,13 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       mockPaymentNotice:
         "크리에이터 출시는 10 USDT 조건 미리보기로만 표시됩니다. 결제 화면은 이후 릴리스에서 연결됩니다.",
       mockReadyLabel: "미리보기 준비",
-      scoutScore: "스카우트 점수 80 이상",
+      scoutScore: "친구 초대 점수 80 이상",
       title: "크리에이터 권한 활성화",
       unlockedLabel: "크리에이터 권한 활성화",
     },
     founderClub: {
       body:
-        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 스카우트, 크리에이터 성장 플랫폼으로 진화합니다.",
+        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 친구 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
       eyebrow: "파운더 클럽 2.0",
       title: "AI 스타를 발견하고, 파운더가 되고, 크리에이터로 성장하세요",
     },
@@ -1044,8 +1044,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       openSlots: "잔여 슬롯",
       ownedAiStars: "내가 만든 AI 스타",
       referralCode: "추천 코드",
-      scoutScore: "스카우트 점수",
-      scoutShareLoop: "스카우트 공유 루프",
+      scoutScore: "친구 초대 점수",
+      scoutShareLoop: "친구 초대 공유 루프",
       selectedAiStar: "선택된 AI 스타",
       sourceUniverse: "원천 스타 유니버스",
       spawnedStars: "파생 AI 스타",

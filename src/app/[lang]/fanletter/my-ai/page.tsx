@@ -19,7 +19,7 @@ function getMyAIMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "내가 운영하는 AI 스타, TikTok 연결 상태, 크리에이터 권한 활성화와 평판 기록을 확인하세요.",
+        "내가 운영하는 AI 스타, TikTok 연결 상태, 크리에이터 권한 활성화와 활동 기록을 확인하세요.",
       title: "내 AI | FanLetter",
     };
   }

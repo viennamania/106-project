@@ -15,7 +15,7 @@ function getGrowthMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "FanLetter 성장 허브에서 AI 스타 발견, 파운더 네트워크, Creator Journey, 평판 기록의 다음 행동을 확인하세요.",
+        "FanLetter 성장 허브에서 AI 스타 발견, 파운더 네트워크, Creator Journey, 활동 기록의 다음 행동을 확인하세요.",
       title: "성장 허브 | FanLetter",
     };
   }
