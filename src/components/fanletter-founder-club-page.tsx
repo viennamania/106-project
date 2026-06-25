@@ -109,10 +109,10 @@ function getCopy(locale: Locale) {
         eventLabel: "활동 기록",
         eventValue: (hasRoles: boolean, view: FounderClubView) =>
           view === "creator"
-            ? "creator_unlock_evaluated"
+            ? "크리에이터 권한 평가"
             : hasRoles
-              ? "referral_shared"
-              : "founder_joined",
+              ? "추천 공유 기록"
+              : "파운더 참여 기록",
         nextLabel: "다음 행동",
         nextValue: (hasRoles: boolean, view: FounderClubView) =>
           view === "creator"
@@ -186,13 +186,13 @@ function getCopy(locale: Locale) {
       currentLabel: "Current relationships",
       currentValue: (creatorCount: number, founderCount: number) =>
         `${formatNumber(creatorCount, locale)} operated · ${formatNumber(founderCount, locale)} joined`,
-      eventLabel: "Reputation",
+      eventLabel: "Activity record",
       eventValue: (hasRoles: boolean, view: FounderClubView) =>
         view === "creator"
-          ? "creator_unlock_evaluated"
+          ? "Creator unlock review"
           : hasRoles
-            ? "referral_shared"
-            : "founder_joined",
+            ? "Referral shared"
+            : "Founder joined",
       nextLabel: "Next action",
       nextValue: (hasRoles: boolean, view: FounderClubView) =>
         view === "creator"
