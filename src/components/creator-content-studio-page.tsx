@@ -10829,6 +10829,10 @@ export function CreatorContentStudioPage({
     ? pageDescription
     : isConnectionResolving || state.status === "loading"
       ? contentCopy.messages.detailLoadingDescription
+      : view === "hub"
+        ? locale === "ko"
+          ? "AI 스타 프로필, 콘텐츠 작성, 게시물 관리를 한 곳에서 진행합니다."
+          : "Manage AI star profile, content creation, and posts in one place."
       : isDisconnected
         ? contentCopy.messages.connectRequired
         : pageDescription;
