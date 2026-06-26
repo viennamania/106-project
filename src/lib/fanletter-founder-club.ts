@@ -35,6 +35,11 @@ export type FanletterStarDocument = {
   openSlotCount: number;
   ownerEmail: string | null;
   ownerReferralCode: string | null;
+  profileBackfilledAt?: Date | null;
+  profileBackfillBlobPathname?: string | null;
+  profileBackfillMethod?: string | null;
+  profileBackfillProvider?: string | null;
+  profileIdentitySeed?: string | null;
   portraitImageUrl: string | null;
   source: FanletterFounderClubBackfillSource;
   spawnedFromStarId?: string | null;

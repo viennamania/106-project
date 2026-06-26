@@ -1,5 +1,6 @@
 import "server-only";
 
+import { put } from "@vercel/blob";
 import type { Filter } from "mongodb";
 
 import type {
@@ -85,6 +86,62 @@ const starAccentPairs = [
   ["#f43f5e", "#38bdf8"],
 ] as const;
 
+const starterProfilePalettes = [
+  {
+    accent: "#0f172a",
+    backgroundEnd: "#ccfbf1",
+    backgroundStart: "#fef3c7",
+    clothing: "#020617",
+    hair: "#18181b",
+    skin: "#efc3a5",
+  },
+  {
+    accent: "#7c2d12",
+    backgroundEnd: "#dbeafe",
+    backgroundStart: "#fed7aa",
+    clothing: "#431407",
+    hair: "#1c1917",
+    skin: "#f1c6a8",
+  },
+  {
+    accent: "#075985",
+    backgroundEnd: "#e9d5ff",
+    backgroundStart: "#bae6fd",
+    clothing: "#082f49",
+    hair: "#111827",
+    skin: "#e7b894",
+  },
+  {
+    accent: "#be185d",
+    backgroundEnd: "#bfdbfe",
+    backgroundStart: "#fbcfe8",
+    clothing: "#831843",
+    hair: "#2f1b14",
+    skin: "#f3c7a7",
+  },
+  {
+    accent: "#0f766e",
+    backgroundEnd: "#fde68a",
+    backgroundStart: "#ccfbf1",
+    clothing: "#134e4a",
+    hair: "#1f2937",
+    skin: "#e9b98f",
+  },
+] as const;
+
+const starterProfileHairPaths = [
+  "M315 486c-38-145 38-265 194-265 159 0 239 119 201 265-30-63-92-92-197-92-108 0-169 29-198 92Z",
+  "M304 502c-25-156 50-285 209-285 151 0 238 114 214 282-52-83-104-115-212-115-110 0-163 37-211 118Z",
+  "M300 492c4-166 90-279 236-266 131 12 205 130 185 272-48-65-110-104-212-104-95 0-157 34-209 98Z",
+  "M309 493c-12-151 68-267 207-267 142 0 225 107 205 263-42-73-111-106-205-106-93 0-163 35-207 110Z",
+] as const;
+
+const starterProfileEyeStyles = [
+  '<path d="M424 510c20-13 43-13 64 0" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="12"/><path d="M557 510c20-13 43-13 64 0" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="12"/>',
+  '<circle cx="456" cy="510" r="10" fill="#111827"/><circle cx="589" cy="510" r="10" fill="#111827"/>',
+  '<path d="M426 505c22 10 43 10 62 0" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="10"/><path d="M558 505c22 10 43 10 62 0" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="10"/>',
+] as const;
+
 export type FanletterStarReferralAttribution = {
   code: string;
   memberEmail: string;
@@ -118,6 +175,18 @@ function hashText(value: string) {
   }
 
   return hash;
+}
+
+function pickSeededValue<T>(seed: string, values: readonly T[]) {
+  return values[hashText(seed) % values.length] ?? values[0];
+}
+
+function escapeSvgText(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function getAccentPair(starId: string) {
@@ -191,6 +260,114 @@ function getMemberStarterAIStarName(member: MemberDocument) {
   );
 
   return `${displayName} Starter AI Star`;
+}
+
+function buildMemberStarterProfileSvg({
+  name,
+  starId,
+}: {
+  name: string;
+  starId: string;
+}) {
+  const palette = pickSeededValue(
+    `${starId}:palette`,
+    starterProfilePalettes,
+  );
+  const hairPath = pickSeededValue(`${starId}:hair`, starterProfileHairPaths);
+  const eyeStyle = pickSeededValue(`${starId}:eyes`, starterProfileEyeStyles);
+  const rotation = (hashText(`${starId}:rotation`) % 9) - 4;
+  const safeName = escapeSvgText(name);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="${safeName} AI Star profile">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${palette.backgroundStart}"/>
+      <stop offset="1" stop-color="${palette.backgroundEnd}"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="34%" r="52%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="frame">
+      <path d="M512 72 858 272v400L512 872 166 672V272Z"/>
+    </clipPath>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <g opacity="0.26" fill="none" stroke="${palette.accent}" stroke-width="3">
+    <circle cx="206" cy="210" r="86"/>
+    <circle cx="821" cy="246" r="54"/>
+    <circle cx="790" cy="810" r="106"/>
+  </g>
+  <g clip-path="url(#frame)">
+    <rect x="130" y="70" width="764" height="820" fill="#fff" opacity="0.18"/>
+    <g transform="rotate(${rotation} 512 512)">
+      <path d="M270 886c33-143 126-235 242-235s209 92 242 235H270Z" fill="${palette.clothing}"/>
+      <path d="M449 630h126l24 96c-28 33-145 33-174 0l24-96Z" fill="${palette.skin}"/>
+      <path d="${hairPath}" fill="${palette.hair}"/>
+      <ellipse cx="512" cy="500" rx="162" ry="194" fill="${palette.skin}"/>
+      <path d="M352 504c-21-76-5-138 41-184 51-51 124-71 201-48 57 17 93 56 108 116-43-34-93-50-150-48-92 2-151 53-200 164Z" fill="${palette.hair}" opacity="0.94"/>
+      <path d="M363 490c-53 5-60 92-8 117" fill="${palette.skin}"/>
+      <path d="M661 490c53 5 60 92 8 117" fill="${palette.skin}"/>
+      ${eyeStyle}
+      <path d="M515 526c-11 35-17 58-4 77" fill="none" stroke="#9f6b54" stroke-linecap="round" stroke-width="9" opacity="0.52"/>
+      <path d="M459 639c36 28 78 28 116 0" fill="none" stroke="#9f1239" stroke-linecap="round" stroke-width="11" opacity="0.72"/>
+      <circle cx="386" cy="577" r="23" fill="#f9a8d4" opacity="0.22"/>
+      <circle cx="638" cy="577" r="23" fill="#f9a8d4" opacity="0.22"/>
+    </g>
+  </g>
+  <path d="M512 72 858 272v400L512 872 166 672V272Z" fill="none" stroke="${palette.accent}" stroke-width="18"/>
+  <path d="M512 102 832 287v370L512 842 192 657V287Z" fill="none" stroke="#fff" stroke-opacity="0.64" stroke-width="6"/>
+</svg>`;
+}
+
+async function createMemberStarterAIStarProfileImage({
+  name,
+  now,
+  starId,
+}: {
+  name: string;
+  now: Date;
+  starId: string;
+}) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+    return null;
+  }
+
+  const svg = buildMemberStarterProfileSvg({ name, starId });
+  const pathname = [
+    "fanletter",
+    "ai-stars",
+    starId,
+    "profile",
+    `${now.getTime()}-starter-identity.svg`,
+  ].join("/");
+
+  try {
+    const uploaded = await put(
+      pathname,
+      new Blob([svg], { type: "image/svg+xml" }),
+      {
+        access: "public",
+        addRandomSuffix: true,
+        cacheControlMaxAge: 60 * 60 * 24 * 365,
+        contentType: "image/svg+xml",
+      },
+    );
+
+    return {
+      pathname: uploaded.pathname,
+      url: uploaded.url,
+    };
+  } catch (error) {
+    console.warn("Failed to create member starter AI Star profile image.", {
+      error,
+      starId,
+    });
+
+    return null;
+  }
 }
 
 function buildFallbackFounderPlacement({
@@ -1022,6 +1199,13 @@ export async function ensureFanletterMemberStarterUniverseForCompletedMember(
   const displayName =
     existingStar?.displayName ||
     compactText(member.publicProfile?.displayName, memberEmail.split("@")[0]);
+  const starterProfileImage = existingStar?.portraitImageUrl
+    ? null
+    : await createMemberStarterAIStarProfileImage({
+        name: starName,
+        now,
+        starId,
+      });
 
   await starsCollection.updateOne(
     { starId },
@@ -1039,7 +1223,14 @@ export async function ensureFanletterMemberStarterUniverseForCompletedMember(
         openSlotCount: Math.max(0, DEFAULT_FOUNDER_SLOT_TOTAL - 1),
         ownerEmail: memberEmail,
         ownerReferralCode: memberReferralCode,
-        portraitImageUrl: null,
+        portraitImageUrl: starterProfileImage?.url ?? null,
+        profileBackfilledAt: starterProfileImage ? now : null,
+        profileBackfillBlobPathname: starterProfileImage?.pathname ?? null,
+        profileBackfillMethod: starterProfileImage
+          ? "member_signup_starter_identity_svg_v1"
+          : null,
+        profileBackfillProvider: starterProfileImage ? "svg" : null,
+        profileIdentitySeed: starterProfileImage ? starId : null,
         source: "member_signup",
         starId,
         starScore: 0,
@@ -1049,6 +1240,29 @@ export async function ensureFanletterMemberStarterUniverseForCompletedMember(
     },
     { upsert: true },
   );
+  if (starterProfileImage) {
+    await starsCollection.updateOne(
+      {
+        starId,
+        $or: [
+          { portraitImageUrl: null },
+          { portraitImageUrl: "" },
+          { portraitImageUrl: { $exists: false } },
+        ],
+      },
+      {
+        $set: {
+          portraitImageUrl: starterProfileImage.url,
+          profileBackfilledAt: now,
+          profileBackfillBlobPathname: starterProfileImage.pathname,
+          profileBackfillMethod: "member_signup_starter_identity_svg_v1",
+          profileBackfillProvider: "svg",
+          profileIdentitySeed: starId,
+          updatedAt: now,
+        },
+      },
+    );
+  }
   await starsCollection.updateOne(
     {
       starId,
