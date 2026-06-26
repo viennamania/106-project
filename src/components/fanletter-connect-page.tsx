@@ -714,12 +714,12 @@ function ConnectMobileSignpost({
     locale === "ko"
       ? {
           current: "현재 위치",
-          event: "AgentRank 이벤트",
+          event: "활동 기록",
           next: "다음 행동",
         }
       : {
           current: "Current location",
-          event: "AgentRank event",
+          event: "Activity record",
           next: "Next action",
         };
 
@@ -770,13 +770,13 @@ function FounderBridgeEventCard({
     locale === "ko"
       ? {
           body: `${universeName}의 Founder 참여가 확정되면 추천 코드와 기여 포인트 흐름이 활동 기록으로 이어집니다.`,
-          eyebrow: "AgentRank 브릿지",
+          eyebrow: "활동 기록 브릿지",
           flow: "계정 연결 → Founder 참여 → 활동 기록",
           title: `${starName} 참여 기록 준비`,
         }
       : {
           body: `When Founder participation in ${universeName} is confirmed, referral code and Contribution Point activity becomes activity records.`,
-          eyebrow: "AgentRank bridge",
+          eyebrow: "Activity bridge",
           flow: "Account → Founder join → Activity record",
           title: `${starName} participation record ready`,
         };

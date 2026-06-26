@@ -174,12 +174,12 @@ const explorerCopy = {
     spawned: "Spawned Stars",
     trustScore: "Reputation Score",
     title: "Founder Network Explorer",
-    viewAgentRank: "View Reputation",
+    viewAgentRank: "View activity",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
     viewLedgerGaps: "Oracle Gaps",
     viewLedgerHighImpact: "High-impact Ledger",
-    viewLedger: "Reputation Records",
+    viewLedger: "Activity records",
   },
   ja: {
     all: "すべて",
@@ -201,20 +201,20 @@ const explorerCopy = {
     open: "Open",
     overview: "概要",
     referral: "Referral",
-    reputationEvents: "Reputation Records",
+    reputationEvents: "Activity records",
     search: "RoleまたはReferral codeを検索",
     selected: "選択ノード",
     scoreBreakdown: "Score Breakdown",
     scoreConfidence: "Confidence",
     spawned: "Spawned Stars",
-    trustScore: "AgentRank Score",
+    trustScore: "Reputation Score",
     title: "Founder Network Explorer",
-    viewAgentRank: "AgentRankを見る",
+    viewAgentRank: "活動ログを見る",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
     viewLedgerGaps: "Oracle Gaps",
     viewLedgerHighImpact: "High-impact Ledger",
-    viewLedger: "Reputation Records",
+    viewLedger: "Activity records",
   },
   ko: {
     all: "전체",
@@ -2830,8 +2830,8 @@ function MemberReputationRecords({
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 [word-break:keep-all]">
             {isKorean
-              ? "참여, 추천, 기여 포인트 보상이 AgentRank 기록으로 이어집니다."
-              : "Joins, referrals, and Contribution Point rewards become AgentRank records."}
+              ? "참여, 추천, 기여 포인트 보상이 활동 기록으로 이어집니다."
+              : "Joins, referrals, and Contribution Point rewards become activity records."}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">

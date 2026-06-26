@@ -168,10 +168,10 @@ function getLedgerCopy(locale: Locale) {
       graphScope: "그래프 범위",
       graphReady: "그래프 준비",
       heroBody:
-        "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 평판 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
-      heroEyebrow: "평판 기록",
-      heroTitle: "FanLetter 행동 기록",
-      impact: "평판 영향",
+        "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 활동 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
+      heroEyebrow: "활동 기록",
+      heroTitle: "FanLetter 활동 기록",
+      impact: "활동 영향",
       impactReady: "영향 준비",
       investorDemo: "Investor Demo Mode",
       investorDemoBody:
@@ -227,7 +227,7 @@ function getLedgerCopy(locale: Locale) {
       uniqueStars: "AI 스타",
       userView: "사용자 기록",
       userViewBody:
-        "내 행동이 어떤 평판 기록과 보상/기여 결과로 이어졌는지 먼저 보여줍니다.",
+        "내 행동이 어떤 활동 기록과 보상/기여 결과로 이어졌는지 먼저 보여줍니다.",
       viewAll: "전체 보기",
     };
   }
@@ -267,10 +267,10 @@ function getLedgerCopy(locale: Locale) {
     graphScope: "Graph Scope",
     graphReady: "Graph-ready",
     heroBody:
-      "Review which AI Star discovery, Founder participation, referral, and Creator Journey actions became reputation records. Operator verification is separated below.",
-    heroEyebrow: "Reputation records",
-    heroTitle: "FanLetter Action Records",
-    impact: "Reputation Impact",
+      "Review which AI Star discovery, Founder participation, referral, and Creator Journey actions became activity records. Operator verification is separated below.",
+    heroEyebrow: "Activity log",
+    heroTitle: "FanLetter Activity Records",
+    impact: "Activity impact",
     impactReady: "Impact-ready",
     investorDemo: "Investor Demo Mode",
     investorDemoBody:
@@ -326,7 +326,7 @@ function getLedgerCopy(locale: Locale) {
     uniqueStars: "AI Stars",
     userView: "User records",
     userViewBody:
-      "Shows how user actions became reputation records and score/reward outcomes.",
+      "Shows how user actions became activity records and score/reward outcomes.",
     viewAll: "View all",
   };
 }
@@ -2504,14 +2504,18 @@ export function FanletterAgentRankLedgerPage({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900"
-              href={`/${locale}/fanletter/agentrank${
-                filters.starId
-                  ? `?starId=${encodeURIComponent(filters.starId)}`
-                  : ""
-              }`}
+              href={
+                isOpsView
+                  ? `/${locale}/fanletter/agentrank${
+                      filters.starId
+                        ? `?starId=${encodeURIComponent(filters.starId)}`
+                        : ""
+                    }`
+                  : `/${locale}/fanletter`
+              }
             >
               <ArrowLeft className="size-4" />
-              {copy.back}
+              {isOpsView ? copy.back : locale === "ko" ? "홈으로" : "Back to home"}
             </Link>
           </div>
 

@@ -140,7 +140,7 @@ function getLaunchPageCopy(locale: Locale) {
       fieldsTitle: "새 AI 스타 생성 미리보기",
       founderContribution: "파운더 기여도",
       founderContributionBody:
-        "내 파운더 활동이 어느 AI 스타 유니버스에서 평판 신뢰로 쌓였는지 보여줍니다.",
+        "내 파운더 활동이 어느 AI 스타 유니버스에서 활동 신뢰로 쌓였는지 보여줍니다.",
       contributionScore: "기여 점수",
       contributionConfidence: "신뢰도",
       contributionEvents: "이벤트",
@@ -198,7 +198,7 @@ function getLaunchPageCopy(locale: Locale) {
       fieldsTitle: "New AI Star launch preview",
       founderContribution: "Founder Contribution",
       founderContributionBody:
-        "Shows which AI Star Universes are accumulating your Founder activity as AgentRank trust.",
+        "Shows which AI Star Universes are accumulating your Founder activity as activity trust.",
       contributionScore: "Contribution Score",
       contributionConfidence: "Confidence",
       contributionEvents: "Events",
@@ -255,7 +255,7 @@ function getLaunchPageCopy(locale: Locale) {
     fieldsTitle: "New AI Star launch preview",
     founderContribution: "Founder Contribution",
   founderContributionBody:
-      "Shows which AI Star Universes are accumulating your Founder activity as AgentRank trust.",
+      "Shows which AI Star Universes are accumulating your Founder activity as activity trust.",
     contributionScore: "Contribution Score",
     contributionConfidence: "Confidence",
     contributionEvents: "Events",
@@ -404,7 +404,7 @@ function CreatorUnlockConditionsPanel({
       description={
         isKorean
           ? "조건을 충족하면 크리에이터 권한이 활성화되고, 이후 미리보기 생성 행동은 활동 기록으로 남습니다."
-          : "When conditions are met, Creator permission is activated, and mock launch actions become AgentRank reputation events."
+          : "When conditions are met, Creator permission is activated, and mock launch actions become activity records."
       }
       eyebrow={isKorean ? "크리에이터 여정" : "Creator Journey"}
       onClose={onClose}
@@ -1292,7 +1292,7 @@ function FounderContributionPanel({
               </p>
             </div>
             <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-semibold text-white">
-              AgentRank v0
+              {locale === "ko" ? "활동 기록" : "Activity log"}
             </span>
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/16">
@@ -2910,7 +2910,7 @@ function CreatorTikTokContextBridgeCard({
         assetValue: "AI 스타 공식 TikTok 채널",
         bridge: "채널 연결 -> 콘텐츠 동기화 -> 활동 기록",
         graph: "그래프 강화",
-        graphValue: "AI 스타 -> TikTok -> AgentRank",
+        graphValue: "AI 스타 -> TikTok -> 활동 기록",
         graphWaiting: "AI 스타 -> TikTok 연결 대기",
         ledger: "활동 기록 보기",
         moat: "복제 난이도",
@@ -2920,7 +2920,7 @@ function CreatorTikTokContextBridgeCard({
         primaryWaiting: "TikTok 연결하기",
         score: "맥락 점수",
         subtitle:
-          "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 활동 기록으로 만드는 입력원이 됩니다.",
+          "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 활동 기록으로 만드는 입력원이 됩니다.",
         subtitleWaiting:
           "회원 개인 계정이 아니라 선택한 AI 스타의 공식 채널을 연결해야 콘텐츠 성과가 활동 기록으로 이어집니다.",
         title: "TikTok 연결이 콘텐츠 맥락으로 확장됩니다",
@@ -2932,7 +2932,7 @@ function CreatorTikTokContextBridgeCard({
           assetValue: "AIスター公式TikTokチャンネル",
           bridge: "Channel connection -> Content sync -> Activity record",
           graph: "Graph強化",
-          graphValue: "AI Star -> TikTok -> AgentRank",
+          graphValue: "AI Star -> TikTok -> activity log",
           graphWaiting: "AI Star -> TikTok connection waiting",
           ledger: "評判記録を見る",
           moat: "Context Moat",
@@ -2943,7 +2943,7 @@ function CreatorTikTokContextBridgeCard({
           primaryWaiting: "TikTok接続",
           score: "Context Score",
           subtitle:
-            "TikTokチャンネルはCreator Journey条件を超えて、コンテンツ成果をAgentRank評判記録に変える入力元になります。",
+            "TikTokチャンネルはCreator Journey条件を超えて、コンテンツ成果を活動記録に変える入力元になります。",
           subtitleWaiting:
             "Connect the selected AI Star official channel, not a personal member account, so content performance can become activity records.",
           title: "TikTok connection expands into content context",
@@ -2954,7 +2954,7 @@ function CreatorTikTokContextBridgeCard({
           assetValue: "AI Star official TikTok channel",
           bridge: "Channel connection -> Content sync -> Activity record",
           graph: "Graph strength",
-          graphValue: "AI Star -> TikTok -> AgentRank",
+          graphValue: "AI Star -> TikTok -> activity log",
           graphWaiting: "AI Star -> TikTok connection pending",
           ledger: "View records",
           moat: "Context moat",
@@ -2965,7 +2965,7 @@ function CreatorTikTokContextBridgeCard({
           primaryWaiting: "Connect TikTok",
           score: "Context Score",
           subtitle:
-            "The TikTok channel now becomes an input source for turning content performance into AgentRank Reputation Records.",
+            "The TikTok channel now becomes an input source for turning content performance into activity records.",
           subtitleWaiting:
             "Connect the selected AI Star's official channel, not a personal member account, so content performance can become activity records.",
           title: "TikTok connection expands into content context",

@@ -950,7 +950,7 @@ export function MemberPortfolio({
                     </span>
                     <span className="min-w-0 rounded-md bg-white/8 px-2 py-2">
                       <span className="block truncate text-[0.62rem] font-semibold text-white/42">
-                        AgentRank
+                        {isKoreanCopy(copy) ? "활동 기록" : "Activity"}
                       </span>
                       <span className="mt-1 block truncate text-xs font-semibold text-white">
                         {socialAccount

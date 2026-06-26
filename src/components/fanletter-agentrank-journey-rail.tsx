@@ -41,12 +41,12 @@ export function FanletterAgentRankJourneyRail({
     ? {
         current: "현재",
         eyebrow: "현재 흐름",
-        title: "AI 스타 발견부터 AgentRank까지",
+        title: "AI 스타 발견부터 활동 기록까지",
       }
     : {
         current: "Current",
         eyebrow: "Current flow",
-        title: "From AI Star Discovery to AgentRank",
+        title: "From AI Star Discovery to activity log",
       };
   const steps: Array<{
     Icon: typeof Bot;
@@ -86,11 +86,11 @@ export function FanletterAgentRankJourneyRail({
     },
     {
       Icon: Database,
-      href: `/${locale}/fanletter/agentrank${
+      href: `/${locale}/fanletter/agentrank/events${
         encodedStarId ? `?starId=${encodedStarId}` : ""
       }`,
       key: "agentrank",
-      label: "AgentRank",
+      label: isKorean ? "활동 기록" : "Activity log",
     },
   ];
   const activeIndex = steps.findIndex((step) => step.key === active);
