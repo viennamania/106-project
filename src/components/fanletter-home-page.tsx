@@ -101,7 +101,6 @@ type FanletterCopy = {
     title: string;
   };
   nav: {
-    campaigns: string;
     creators: string;
     faq: string;
     features: string;
@@ -303,10 +302,9 @@ const koCopy: FanletterCopy = {
     title: "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다.",
   },
   nav: {
-    campaigns: "친구 초대",
     creators: "크리에이터",
     faq: "FAQ",
-    features: "발견",
+    features: "둘러보기",
     paid: "파운더 클럽",
     reports: "포트폴리오",
     studio: "스튜디오",
@@ -519,10 +517,9 @@ const enCopy: FanletterCopy = {
     title: "Real public AI character vlogs make the fan experience tangible.",
   },
   nav: {
-    campaigns: "Campaigns",
     creators: "Characters",
     faq: "FAQ",
-    features: "Features",
+    features: "Browse",
     paid: "Fan-only",
     reports: "My reports",
     studio: "Studio",
@@ -836,10 +833,8 @@ function FanletterProductHomeDashboard({
         open: "남은 자리",
         portfolio: "내 성장 상태",
         primaryCta: "AI 스타 발견하기",
-        reward: "이번 공유 보상",
         scout: "초대",
         score: "스타 점수",
-        shareCode: "추천 코드",
         subhead:
           "마음에 드는 AI 스타를 고르면 바로 시작돼요. 참여가 기록으로 쌓이며 스타와 함께 성장합니다.",
         starCardFlow: "상세에서 파운더 참여",
@@ -869,10 +864,8 @@ function FanletterProductHomeDashboard({
         open: "Open spots",
         portfolio: "My Growth Status",
         primaryCta: "Discover AI Stars",
-        reward: "Share Reward",
         scout: "Invite",
         score: "Score",
-        shareCode: "Referral Code",
         subhead:
           "Pick an AI star you like and it starts right away — your participation builds up as you grow together.",
         starCardFlow: "Detail → Founder join",
