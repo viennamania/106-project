@@ -39,8 +39,10 @@ export function FanletterPrimaryHeader({
     `/${locale}/fanletter/my-ai`,
     referralCode,
   );
+  // '만들기' tab routes to the creator activation hub (creator-unlock); the hub
+  // links onward to the vlog creation tool (/create) once activated.
   const createHref = buildPathWithReferral(
-    `/${locale}/fanletter/create`,
+    `/${locale}/fanletter/creator-unlock`,
     referralCode,
   );
 

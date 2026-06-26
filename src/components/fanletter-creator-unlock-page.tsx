@@ -4030,7 +4030,16 @@ export function FanletterCreatorUnlockPage({
         ) : undefined
       }
       reputationEventLabel={creatorUnlockEventLabel}
-      secondaryActions={[]}
+      secondaryActions={
+        unlock.unlocked
+          ? [
+              {
+                href: `/${locale}/fanletter/create`,
+                label: locale === "ko" ? "브이로그 만들기" : "Create a vlog",
+              },
+            ]
+          : []
+      }
       steps={[
         {
           label: locale === "ko" ? "조건 확인" : "Check conditions",

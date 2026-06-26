@@ -249,7 +249,8 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
   const myAIHref = buildHref(`${basePath}/my-ai`);
-  const createHref = buildHref(`${basePath}/create`);
+  // '만들기' tab → creator activation hub (creator-unlock); hub links to /create.
+  const createHref = buildHref(`${basePath}/creator-unlock`);
   const currentView = searchParams.get("view");
   const items: FanletterNavItem[] = [
     {
@@ -275,7 +276,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.studio,
     },
     {
-      activePaths: [`${basePath}/create`],
+      activePaths: [`${basePath}/creator-unlock`, `${basePath}/create`],
       href: createHref,
       icon: Plus,
       key: "create",

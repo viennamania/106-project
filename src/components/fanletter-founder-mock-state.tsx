@@ -20,6 +20,7 @@ import {
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FunnelEventMetadata } from "@/lib/funnel";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import type { Locale } from "@/lib/i18n";
 
 const FANLETTER_FOUNDER_MOCK_MEMBERSHIPS_STORAGE_KEY =
@@ -599,45 +600,8 @@ export function FanletterFounderMockJoinLink(
 }
 
 function getPlacementRoleLabel(role: string | null, locale: Locale) {
-  const roleLabels: Record<string, Partial<Record<Locale, string>>> = {
-    creator: {
-      en: "Creator",
-      ja: "クリエイター",
-      ko: "크리에이터",
-    },
-    founder: {
-      en: "Founder",
-      ja: "Founder",
-      ko: "파운더",
-    },
-    genesis_founder: {
-      en: "Genesis Founder",
-      ja: "Genesis Founder",
-      ko: "제네시스 파운더",
-    },
-    legend: {
-      en: "Legend",
-      ja: "Legend",
-      ko: "레전드",
-    },
-    mentor: {
-      en: "Mentor",
-      ja: "Mentor",
-      ko: "멘토",
-    },
-    partner: {
-      en: "Partner",
-      ja: "Partner",
-      ko: "파트너",
-    },
-    producer: {
-      en: "Producer",
-      ja: "Producer",
-      ko: "프로듀서",
-    },
-  };
-
-  return role ? roleLabels[role]?.[locale] ?? roleLabels[role]?.en ?? role : null;
+  // Collapsed to two public states (크리에이터/팬); full grade kept in the data model.
+  return role ? getFanletterPublicRoleLabel(role, locale) : null;
 }
 
 function getMemberHandle(email: string) {
