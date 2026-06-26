@@ -834,7 +834,6 @@ function FanletterProductHomeDashboard({
         portfolio: "내 성장 상태",
         primaryCta: "AI 스타 발견하기",
         scout: "초대",
-        score: "스타 점수",
         subhead:
           "마음에 드는 AI 스타를 고르면 바로 시작돼요. 참여가 기록으로 쌓이며 스타와 함께 성장합니다.",
         starCardFlow: "상세에서 파운더 참여",
@@ -865,7 +864,6 @@ function FanletterProductHomeDashboard({
         portfolio: "My Growth Status",
         primaryCta: "Discover AI Stars",
         scout: "Invite",
-        score: "Score",
         subhead:
           "Pick an AI star you like and it starts right away — your participation builds up as you grow together.",
         starCardFlow: "Detail → Founder join",
@@ -1010,9 +1008,8 @@ function FanletterProductHomeDashboard({
                             {getFanletterV2LocalizedText(star.specialty, locale)}
                           </span>
                         </div>
-                        <div className="mt-4 grid grid-cols-3 gap-1.5 text-center sm:gap-2">
+                        <div className="mt-4 grid grid-cols-2 gap-1.5 text-center sm:gap-2">
                           {[
-                            [productCopy.score, star.starScore],
                             [productCopy.growth, `+${star.growthPercent}%`],
                             [productCopy.open, star.openSlots.open],
                           ].map(([label, value]) => (
@@ -1247,11 +1244,10 @@ function FanletterProductHomeDashboard({
                 <p className="mt-1 text-sm font-semibold text-slate-500">
                   {primaryStar?.universeName ?? productCopy.founderUniverse}
                 </p>
-                <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="mt-4 grid grid-cols-2 gap-2">
                   {[
                     [productCopy.founder, primaryStar?.founderCount ?? 0],
                     [productCopy.open, primaryStar?.openSlots.open ?? 0],
-                    [productCopy.score, primaryStar?.starScore ?? 0],
                   ].map(([label, value]) => (
                     <span className="rounded-xl bg-slate-50 p-3 text-center" key={label}>
                       <span className="block text-lg font-semibold text-[#12041f]">

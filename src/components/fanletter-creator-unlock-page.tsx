@@ -1399,8 +1399,6 @@ function LaunchAIStarPreviewCard({
   initials,
   name,
   sourceUniverseName,
-  starScoreLabel,
-  starScore,
   unlockCost,
 }: {
   aiStarBadgeLabel: string;
@@ -1409,8 +1407,6 @@ function LaunchAIStarPreviewCard({
   initials: string;
   name: string;
   sourceUniverseName: string;
-  starScoreLabel: string;
-  starScore: number;
   unlockCost: number;
 }) {
   return (
@@ -1440,13 +1436,7 @@ function LaunchAIStarPreviewCard({
         </h2>
         <p className="mt-1 text-sm font-medium text-white/66">{category}</p>
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-white/12 bg-white/10 p-3">
-            <p className="text-xl font-semibold">{starScore}</p>
-            <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
-              {starScoreLabel}
-            </p>
-          </div>
+        <div className="mt-5 grid grid-cols-1 gap-2">
           <div className="rounded-lg border border-white/12 bg-white/10 p-3">
             <p className="text-xl font-semibold">{unlockCost} USDT</p>
             <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
@@ -4734,8 +4724,6 @@ export function FanletterCreatorUnlockPage({
                 initials={launchPreview.initials}
                 name={launchPreview.name}
                 sourceUniverseName={displaySourceUniverseName}
-                starScoreLabel={v2Copy.labels.starScore}
-                starScore={launchPreview.starScore}
                 unlockCost={unlock.createCostUsdt}
               />
             </section>

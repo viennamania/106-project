@@ -1068,10 +1068,6 @@ function StarDetailMobileSignpost({
               value: viewerStateLabel,
             },
             {
-              label: copy.labels.starScore,
-              value: String(star.starScore),
-            },
-            {
               label: copy.labels.openSlots,
               value: formatNumber(star.openSlots.open, locale),
             },
@@ -1722,12 +1718,6 @@ function StarFounderMobilePanel({
             >
               {mobileAIStarBadgeLabel}
             </span>
-            <span
-              aria-label={`${copy.labels.starScore} ${star.starScore}`}
-              className="shrink-0 rounded-full border border-white/18 bg-white/16 px-2 py-1 text-[0.58rem] font-semibold leading-none backdrop-blur"
-            >
-              {star.starScore}
-            </span>
           </div>
           {!star.portraitImageUrl ? (
             <div className="absolute inset-x-6 bottom-12 top-12 rounded-t-full bg-white/16 backdrop-blur-[2px]" />
@@ -1959,9 +1949,6 @@ function SpawnedStarsSection({
               </div>
               <div className="mt-3 flex items-center justify-between gap-2 text-xs font-semibold text-white/70">
                 <span>
-                  {copy.labels.starScore} {spawnedStar.starScore}
-                </span>
-                <span>
                   +{spawnedStar.growthPercent}% {copy.labels.growth}
                 </span>
               </div>
@@ -2122,9 +2109,6 @@ function AIStarGenealogySection({
                 <div className="min-w-0">
                   <p className="truncate text-lg font-semibold">
                     {getDisplayStarName(item.node.name, copy)}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-white/70">
-                    {copy.labels.starScore} {item.node.starScore}
                   </p>
                 </div>
               </div>
@@ -2387,10 +2371,6 @@ export function FanletterStarDetailPage({
             }
             metrics={[
               {
-                label: copy.labels.starScore,
-                value: String(star.starScore),
-              },
-              {
                 label: copy.labels.openSlots,
                 value: `${formatNumber(star.openSlots.open, locale)}/${formatNumber(
                   star.openSlots.total,
@@ -2604,11 +2584,7 @@ export function FanletterStarDetailPage({
                 starPortraitInitials={star.portraitInitials}
               />
 
-              <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-3">
-                <MetricTile
-                  label={copy.labels.starScore}
-                  value={String(star.starScore)}
-                />
+              <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-2">
                 <MetricTile
                   label={copy.labels.growth}
                   value={`+${star.growthPercent}%`}

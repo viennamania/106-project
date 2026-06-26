@@ -10,7 +10,6 @@ import {
   Megaphone,
   Rocket,
   Share2,
-  Sparkles,
   Trophy,
   Users,
 } from "lucide-react";
@@ -153,21 +152,6 @@ function getDisplayStarStatus(
   return status;
 }
 
-export function StarScoreBadge({
-  copy,
-  score,
-}: {
-  copy: FanletterV2Copy;
-  score: number;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/14 px-3 py-1 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(0,0,0,0.16)] backdrop-blur">
-      <Sparkles className="size-3.5 text-fuchsia-100" />
-      {copy.labels.starScore} {score}
-    </span>
-  );
-}
-
 export function FounderRoleBadge({
   copy,
   role,
@@ -307,7 +291,6 @@ export function AIStarCard({
               {copy.labels.selectedAiStar}
             </span>
           ) : null}
-          <StarScoreBadge copy={copy} score={star.starScore} />
         </div>
         <h3 className="mt-4 text-2xl font-semibold leading-tight tracking-normal">
           {displayStarName}
@@ -1260,9 +1243,6 @@ function SpawnedStarCard({
       </div>
       <div className="mt-3 flex items-center justify-between gap-2 text-xs font-semibold text-white/70">
         <span>{copy.labels.aiStarBadge}</span>
-        <span>
-          {copy.labels.starScore} {star.starScore}
-        </span>
       </div>
       {star.createdByUnlock || displaySourceUniverse ? (
         <div className="mt-3 rounded-lg border border-white/12 bg-white/8 p-2 text-[0.68rem] font-semibold leading-4 text-white/72">
@@ -1322,9 +1302,6 @@ function UniverseMiniStar({
       </p>
       <p className="mt-1 text-center text-lg font-semibold leading-tight">
         {displayStarName}
-      </p>
-      <p className="mt-1 text-center text-xs font-medium text-white/60">
-        {copy.labels.starScore} {star.starScore}
       </p>
     </div>
   );
