@@ -100,7 +100,7 @@ function getCopy(locale: Locale) {
         eligibility: "크리에이터 진행률",
         founderNetworks: "참여 네트워크",
         invites: "성공 초대",
-        scout: "친구 초대 점수",
+        scout: "초대 점수",
       },
       signpost: {
         currentLabel: "현재 관계",
@@ -180,7 +180,7 @@ function getCopy(locale: Locale) {
       eligibility: "Creator Progress",
       founderNetworks: "Founder Networks",
       invites: "Successful Invites",
-      scout: "Scout Score",
+      scout: "Invite Score",
     },
     signpost: {
       currentLabel: "Current relationships",
