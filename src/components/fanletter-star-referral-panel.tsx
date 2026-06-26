@@ -109,7 +109,7 @@ function MobileReferralFlow({
             <Crown className="size-4" />
           </span>
           <p className="mt-2 text-[0.62rem] font-semibold text-black/48">
-            {copy.roles.founder}
+            {copy.roles.creator === "크리에이터" ? "초대한 분" : "Invited by"}
           </p>
           <p className="truncate text-sm font-semibold text-black">
             {sourceMember}
