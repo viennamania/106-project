@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  Bot,
-  Crown,
-  House,
-  LayoutDashboard,
-  Share2,
-} from "lucide-react";
+import { Bot, House, LayoutDashboard, Share2 } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
 
 import type { Locale } from "@/lib/i18n";
@@ -288,20 +282,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       icon: Bot,
       key: "discover",
       label: copy.discover,
-    },
-    {
-      activePaths: [
-        `${basePath}/agentrank`,
-        `${basePath}/ai-star-genealogy`,
-        `${basePath}/founder-club`,
-        `${basePath}/creator-unlock`,
-        `${basePath}/growth`,
-      ],
-      href: buildHref(`${basePath}/growth`),
-      icon: Crown,
-      key: "founder",
-      label: copy.founder,
-      primary: true,
     },
     {
       activePaths: [

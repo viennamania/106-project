@@ -202,10 +202,6 @@ function DirectoryHeader({
 }) {
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const discoveryHref = getCharactersHref({ referralCode, routePath });
-  const growthHref = buildPathWithReferral(
-    `/${locale}/fanletter/growth`,
-    referralCode,
-  );
   const myAiHref = buildPathWithReferral(
     `/${locale}/fanletter/my-ai`,
     referralCode,
@@ -230,12 +226,6 @@ function DirectoryHeader({
           href={discoveryHref}
         >
           {locale === "ko" ? "발견" : "Discovery"}
-        </Link>
-        <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-          href={growthHref}
-        >
-          {locale === "ko" ? "성장" : "Growth"}
         </Link>
         <Link
           className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"

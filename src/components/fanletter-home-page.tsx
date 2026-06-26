@@ -1115,6 +1115,38 @@ function FanletterProductHomeDashboard({
                       : "Next action: discover an AI Star"
                   }
                 />
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+            <Link
+              className="group flex min-w-0 items-center justify-between gap-3 rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] transition hover:border-zinc-300"
+              href={`/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`}
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-zinc-950">
+                  {productCopy.founderUniverse}
+                </span>
+                <span className="mt-1 block truncate text-xs font-medium text-zinc-500">
+                  {isKo
+                    ? "참여 중인 파운더 네트워크 보기"
+                    : "View your founder networks"}
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-zinc-500 transition group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              className="group flex min-w-0 items-center justify-between gap-3 rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] transition hover:border-zinc-300"
+              href={`/${locale}/fanletter/agentrank/events?limit=40`}
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-zinc-950">
+                  {isKo ? "활동 기록" : "Activity records"}
+                </span>
+                <span className="mt-1 block truncate text-xs font-medium text-zinc-500">
+                  {isKo ? "내 활동 기록 확인" : "Review your activity records"}
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-zinc-500 transition group-hover:translate-x-0.5" />
+            </Link>
+          </div>
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={180} y={16}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
@@ -1361,10 +1393,6 @@ export function FanletterHomePage({
     `/${locale}/fanletter/discovery`,
     referralCode,
   );
-  const growthHref = buildPathWithReferral(
-    `/${locale}/fanletter/growth`,
-    referralCode,
-  );
   const creatorUnlockHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
@@ -1516,12 +1544,6 @@ export function FanletterHomePage({
                 href={topGrowingStarsHref}
               >
                 {copy.nav.features}
-              </Link>
-              <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-                href={growthHref}
-              >
-                {locale === "ko" ? "성장" : "Growth"}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
@@ -1677,12 +1699,6 @@ export function FanletterHomePage({
               href={topGrowingStarsHref}
             >
               {homeFooterLabels.discovery}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold !text-zinc-900 transition hover:bg-zinc-50"
-              href={growthHref}
-            >
-              {homeFooterLabels.growth}
             </Link>
             <Link
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold !text-zinc-900 transition hover:bg-zinc-50"
