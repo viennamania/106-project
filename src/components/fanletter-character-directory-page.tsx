@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 type CharacterDirectoryCopy = ReturnType<typeof getCopy>;
 
 function getCopy(locale: Locale) {
-  return locale === "ko"
+  const base = locale === "ko"
     ? {
         actions: {
           clear: "전체 AI 스타 보기",
@@ -154,6 +154,77 @@ function getCopy(locale: Locale) {
             "Choose an AI Star to review its channel and AI Star Universe before joining as a Founder.",
         },
       };
+  if (locale === "ko" || locale === "en") {
+    return base;
+  }
+  // zh/vi/id structural-UI drafts (pending native review). Only the hero +
+  // actions sub-objects are localized; other sub-objects fall back to English.
+  const overrides: Partial<
+    Record<Locale, { actions: typeof base.actions; hero: typeof base.hero }>
+  > = {
+    ja: {
+      hero: {
+        body: "ブイログとファンの反応を見て、ひとつ選びましょう。",
+        eyebrow: "AIスター発見",
+        title: "成長中のAIスター",
+      },
+      actions: {
+        clear: "すべてのAIスター",
+        feed: "ブイログフィード",
+        open: "選択",
+        search: "検索",
+        pickStar: "AIスターを選ぶ",
+        start: "自分のAIスターを作る",
+      },
+    },
+    zh: {
+      hero: {
+        body: "查看 Vlog 和粉丝反应后选择一个。",
+        eyebrow: "发现 AI 明星",
+        title: "成长中的 AI 明星",
+      },
+      actions: {
+        clear: "查看全部 AI 明星",
+        feed: "Vlog 动态",
+        open: "选择",
+        search: "搜索",
+        pickStar: "选择 AI 明星",
+        start: "创建我的 AI 明星",
+      },
+    },
+    vi: {
+      hero: {
+        body: "Xem vlog và phản hồi của fan rồi chọn một ngôi sao.",
+        eyebrow: "Khám phá AI Star",
+        title: "AI Star đang phát triển",
+      },
+      actions: {
+        clear: "Xem tất cả AI Star",
+        feed: "Bảng tin vlog",
+        open: "Chọn",
+        search: "Tìm kiếm",
+        pickStar: "Chọn AI Star",
+        start: "Tạo AI Star của tôi",
+      },
+    },
+    id: {
+      hero: {
+        body: "Lihat vlog dan respons fan, lalu pilih satu.",
+        eyebrow: "Temukan AI Star",
+        title: "AI Star yang berkembang",
+      },
+      actions: {
+        clear: "Lihat semua AI Star",
+        feed: "Feed vlog",
+        open: "Pilih",
+        search: "Cari",
+        pickStar: "Pilih AI Star",
+        start: "Buat AI Star saya",
+      },
+    },
+  };
+  const o = overrides[locale];
+  return o ? { ...base, actions: o.actions, hero: o.hero } : base;
 }
 
 function formatNumber(value: number, locale: Locale) {
