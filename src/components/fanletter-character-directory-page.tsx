@@ -160,7 +160,14 @@ function getCopy(locale: Locale) {
   // zh/vi/id structural-UI drafts (pending native review). Only the hero +
   // actions sub-objects are localized; other sub-objects fall back to English.
   const overrides: Partial<
-    Record<Locale, { actions: typeof base.actions; hero: typeof base.hero }>
+    Record<
+      Locale,
+      {
+        actions: typeof base.actions;
+        hero: typeof base.hero;
+        labels: typeof base.labels;
+      }
+    >
   > = {
     ja: {
       hero: {
@@ -175,6 +182,18 @@ function getCopy(locale: Locale) {
         search: "検索",
         pickStar: "AIスターを選ぶ",
         start: "自分のAIスターを作る",
+      },
+      labels: {
+        aiStarChannel: "AIスターチャンネル",
+        fanClub: "ファンクラブ",
+        fanOnly: "ファン限定",
+        latest: "最新ブイログ",
+        founderPath: "ファウンダー参加",
+        level: "Lv.",
+        noLatest: "まだ公開ブイログがありません。",
+        publicVlogs: "公開ブイログ",
+        searchPlaceholder: "AIスター名・紹介・コードで検索",
+        totalCharacters: "稼働中のAIスター",
       },
     },
     zh: {
@@ -191,6 +210,18 @@ function getCopy(locale: Locale) {
         pickStar: "选择 AI 明星",
         start: "创建我的 AI 明星",
       },
+      labels: {
+        aiStarChannel: "AI 明星频道",
+        fanClub: "粉丝俱乐部",
+        fanOnly: "粉丝专属",
+        latest: "最新 Vlog",
+        founderPath: "创始人路径",
+        level: "Lv.",
+        noLatest: "还没有公开 Vlog。",
+        publicVlogs: "公开 Vlog",
+        searchPlaceholder: "搜索 AI 明星名称、简介或代码",
+        totalCharacters: "活跃 AI 明星",
+      },
     },
     vi: {
       hero: {
@@ -205,6 +236,18 @@ function getCopy(locale: Locale) {
         search: "Tìm kiếm",
         pickStar: "Chọn AI Star",
         start: "Tạo AI Star của tôi",
+      },
+      labels: {
+        aiStarChannel: "Kênh AI Star",
+        fanClub: "Câu lạc bộ fan",
+        fanOnly: "Chỉ fan",
+        latest: "Vlog mới nhất",
+        founderPath: "Lộ trình Founder",
+        level: "Lv.",
+        noLatest: "Chưa có vlog công khai.",
+        publicVlogs: "Vlog công khai",
+        searchPlaceholder: "Tìm tên AI Star, giới thiệu hoặc mã",
+        totalCharacters: "AI Star đang hoạt động",
       },
     },
     id: {
@@ -221,10 +264,24 @@ function getCopy(locale: Locale) {
         pickStar: "Pilih AI Star",
         start: "Buat AI Star saya",
       },
+      labels: {
+        aiStarChannel: "Kanal AI Star",
+        fanClub: "Klub fan",
+        fanOnly: "Khusus fan",
+        latest: "Vlog terbaru",
+        founderPath: "Jalur Founder",
+        level: "Lv.",
+        noLatest: "Belum ada vlog publik.",
+        publicVlogs: "Vlog publik",
+        searchPlaceholder: "Cari nama AI Star, intro, atau kode",
+        totalCharacters: "AI Star aktif",
+      },
     },
   };
   const o = overrides[locale];
-  return o ? { ...base, actions: o.actions, hero: o.hero } : base;
+  return o
+    ? { ...base, actions: o.actions, hero: o.hero, labels: o.labels }
+    : base;
 }
 
 function formatNumber(value: number, locale: Locale) {
