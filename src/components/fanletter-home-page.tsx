@@ -793,9 +793,19 @@ function FanletterProductHomeDashboard({
       )
     : aiStarGenealogyHref;
   const topStars = starList.slice(0, 3);
-  // The "My Growth Status" card is member-centric; hide it for anonymous
-  // visitors so the home leads with AI-star discovery instead of a zeroed card.
-  const showPortfolio = Boolean(memberPortfolio);
+  // Content-first home: the progress / score / next-action dashboard renders
+  // only once the member has any activity history. Guests and brand-new members
+  // lead with AI-star discovery instead of a zeroed dashboard. Display-level
+  // only — derived from existing portfolio fields, no data fetching/computation.
+  const hasActivityHistory = Boolean(
+    memberPortfolio &&
+      (memberPortfolio.roles.length > 0 ||
+        memberPortfolio.ownedStars.length > 0 ||
+        memberPortfolio.cpBalance > 0 ||
+        memberPortfolio.scoutScore > 0 ||
+        memberPortfolio.directInvites > 0 ||
+        memberPortfolio.successfulInvites > 0),
+  );
   const portfolioStats = [
     {
       label: isKo ? "친구 초대 점수" : "Scout Score",
@@ -932,64 +942,11 @@ function FanletterProductHomeDashboard({
                     </Link>
                   ) : null}
                 </div>
-                <FanletterActionGuide
-                  currentLabel={productCopy.today}
-                  metrics={[
-                    {
-                      label: productCopy.founder,
-                      value: `${formatMetric(primaryStar?.founderCount ?? 0, locale)}`,
-                    },
-                    {
-                      label: productCopy.open,
-                      value: `${formatMetric(primaryStar?.openSlots.open ?? 0, locale)}`,
-                    },
-                  ]}
-                  primaryAction={{
-                    agentRank: {
-                      eventType: "ai_star_discovered",
-                      intent: "home_primary_discovery",
-                      source: "fanletter_home",
-                      starId: primaryStar?.id ?? null,
-                    },
-                    href: topGrowingStarsHref,
-                    label: productCopy.primaryCta,
-                    metadata: {
-                      placement: "fanletter_product_home_primary_discovery",
-                    },
-                    referralCode,
-                  }}
-                  reputationEventLabel={
-                    isKo ? "활동 기록 생성" : "Reputation Event"
-                  }
-                  secondaryActions={[]}
-                  steps={[
-                    { label: productCopy.discovery, status: "active" },
-                    { label: productCopy.join, status: "next" },
-                    { label: productCopy.scout, status: "next" },
-                    { label: productCopy.creator, status: "next" },
-                  ]}
-                  subtitle={
-                    isKo
-                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 활동 기록으로 쌓입니다."
-                      : "Start by choosing a growing AI Star. Discovery and joins become activity records."
-                  }
-                  title={
-                    isKo
-                      ? "다음 행동: AI 스타 발견"
-                      : "Next action: discover an AI Star"
-                  }
-                />
               </div>
             </div>
           </div>
         </div>
 
-        <div
-          className={joinClasses(
-            "grid min-w-0 max-w-full gap-4 overflow-hidden",
-            showPortfolio ? "lg:grid-cols-[minmax(0,1fr)_18rem]" : "",
-          )}
-        >
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={140} y={16}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
@@ -1109,7 +1066,55 @@ function FanletterProductHomeDashboard({
             </div>
           </ScrollReveal>
 
-          {showPortfolio ? (
+        {hasActivityHistory ? (
+          <>
+                <FanletterActionGuide
+                  currentLabel={productCopy.today}
+                  metrics={[
+                    {
+                      label: productCopy.founder,
+                      value: `${formatMetric(primaryStar?.founderCount ?? 0, locale)}`,
+                    },
+                    {
+                      label: productCopy.open,
+                      value: `${formatMetric(primaryStar?.openSlots.open ?? 0, locale)}`,
+                    },
+                  ]}
+                  primaryAction={{
+                    agentRank: {
+                      eventType: "ai_star_discovered",
+                      intent: "home_primary_discovery",
+                      source: "fanletter_home",
+                      starId: primaryStar?.id ?? null,
+                    },
+                    href: topGrowingStarsHref,
+                    label: productCopy.primaryCta,
+                    metadata: {
+                      placement: "fanletter_product_home_primary_discovery",
+                    },
+                    referralCode,
+                  }}
+                  reputationEventLabel={
+                    isKo ? "활동 기록 생성" : "Reputation Event"
+                  }
+                  secondaryActions={[]}
+                  steps={[
+                    { label: productCopy.discovery, status: "active" },
+                    { label: productCopy.join, status: "next" },
+                    { label: productCopy.scout, status: "next" },
+                    { label: productCopy.creator, status: "next" },
+                  ]}
+                  subtitle={
+                    isKo
+                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 활동 기록으로 쌓입니다."
+                      : "Start by choosing a growing AI Star. Discovery and joins become activity records."
+                  }
+                  title={
+                    isKo
+                      ? "다음 행동: AI 스타 발견"
+                      : "Next action: discover an AI Star"
+                  }
+                />
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={180} y={16}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
@@ -1150,8 +1155,8 @@ function FanletterProductHomeDashboard({
               </Link>
             </div>
           </ScrollReveal>
-          ) : null}
-        </div>
+          </>
+        ) : null}
       </div>
 
       <div className="hidden gap-4">
@@ -1496,18 +1501,7 @@ export function FanletterHomePage({
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,#ffffff_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pb-[calc(5.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
-          <div className="hidden items-center justify-between gap-3 rounded-full border border-zinc-200 bg-white/86 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:bg-white/76 sm:py-2 sm:text-xs sm:shadow-none">
-            <div className="flex min-w-0 items-center gap-2">
-              <Sparkles className="size-3.5 shrink-0 text-black" />
-              <span className="truncate">{copy.announcement.label}</span>
-            </div>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-zinc-50 px-3 py-1 text-[0.68rem] font-semibold text-black sm:bg-transparent sm:px-0 sm:py-0 sm:text-xs">
-              <span className="sm:hidden">{mobileAnnouncementCta}</span>
-              <span className="hidden sm:inline">{copy.announcement.prize}</span>
-            </span>
-          </div>
-
-          <header className="mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:gap-4">
+          <header className="flex items-center justify-between gap-2 sm:gap-4">
             <Link className="flex items-center gap-2" href={homeHref}>
               <FanletterBrandMark className="size-9" />
               <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
@@ -1640,6 +1634,17 @@ export function FanletterHomePage({
             stars={founderClubStars}
             topGrowingStarsHref={topGrowingStarsHref}
           />
+
+          <div className="mt-6 hidden items-center justify-between gap-3 rounded-full border border-zinc-200 bg-white/86 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:bg-white/76 sm:py-2 sm:text-xs sm:shadow-none">
+            <div className="flex min-w-0 items-center gap-2">
+              <Sparkles className="size-3.5 shrink-0 text-black" />
+              <span className="truncate">{copy.announcement.label}</span>
+            </div>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-zinc-50 px-3 py-1 text-[0.68rem] font-semibold text-black sm:bg-transparent sm:px-0 sm:py-0 sm:text-xs">
+              <span className="sm:hidden">{mobileAnnouncementCta}</span>
+              <span className="hidden sm:inline">{copy.announcement.prize}</span>
+            </span>
+          </div>
         </div>
       </section>
 
