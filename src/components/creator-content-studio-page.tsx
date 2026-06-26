@@ -7119,8 +7119,8 @@ export function CreatorContentStudioPage({
 
     return (
       <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3 lg:flex-1">
             <CreatorProfileAvatar
               avatarImageUrl={state.profile.avatarImageUrl}
               displayName={state.profile.displayName}
@@ -7154,16 +7154,16 @@ export function CreatorContentStudioPage({
               </div>
             </div>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto">
+          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[12rem] lg:shrink-0 lg:grid-cols-1">
             <Link
-              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 lg:w-auto whitespace-nowrap"
               href={newPostHref}
             >
               <PenSquare className="size-4" />
               {cardCopy.create}
             </Link>
             <Link
-              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 lg:w-auto whitespace-nowrap"
               href={characterHref}
             >
               {cardCopy.change}
