@@ -166,6 +166,8 @@ function getCopy(locale: Locale) {
         actions: typeof base.actions;
         hero: typeof base.hero;
         labels: typeof base.labels;
+        sort: typeof base.sort;
+        stats: typeof base.stats;
       }
     >
   > = {
@@ -195,6 +197,18 @@ function getCopy(locale: Locale) {
         searchPlaceholder: "AIスター名・紹介・コードで検索",
         totalCharacters: "稼働中のAIスター",
       },
+      sort: {
+        "fan-only": "ファン限定が多い順",
+        featured: "おすすめ順",
+        latest: "最新の活動順",
+        vlogs: "公開ブイログが多い順",
+      },
+      stats: {
+        fanClub: "ファンクラブ会員",
+        fanOnly: "ファン限定投稿",
+        publicVlogs: "公開ブイログ",
+        totalCharacters: "稼働中のAIスター",
+      },
     },
     zh: {
       hero: {
@@ -220,6 +234,18 @@ function getCopy(locale: Locale) {
         noLatest: "还没有公开 Vlog。",
         publicVlogs: "公开 Vlog",
         searchPlaceholder: "搜索 AI 明星名称、简介或代码",
+        totalCharacters: "活跃 AI 明星",
+      },
+      sort: {
+        "fan-only": "粉丝专属最多",
+        featured: "推荐",
+        latest: "最新活动",
+        vlogs: "公开 Vlog 最多",
+      },
+      stats: {
+        fanClub: "粉丝俱乐部成员",
+        fanOnly: "粉丝专属内容",
+        publicVlogs: "公开 Vlog",
         totalCharacters: "活跃 AI 明星",
       },
     },
@@ -249,6 +275,18 @@ function getCopy(locale: Locale) {
         searchPlaceholder: "Tìm tên AI Star, giới thiệu hoặc mã",
         totalCharacters: "AI Star đang hoạt động",
       },
+      sort: {
+        "fan-only": "Nhiều nội dung fan nhất",
+        featured: "Nổi bật",
+        latest: "Hoạt động mới nhất",
+        vlogs: "Nhiều vlog công khai nhất",
+      },
+      stats: {
+        fanClub: "Thành viên CLB fan",
+        fanOnly: "Bài chỉ fan",
+        publicVlogs: "Vlog công khai",
+        totalCharacters: "AI Star đang hoạt động",
+      },
     },
     id: {
       hero: {
@@ -276,11 +314,30 @@ function getCopy(locale: Locale) {
         searchPlaceholder: "Cari nama AI Star, intro, atau kode",
         totalCharacters: "AI Star aktif",
       },
+      sort: {
+        "fan-only": "Paling banyak khusus fan",
+        featured: "Unggulan",
+        latest: "Aktivitas terbaru",
+        vlogs: "Vlog publik terbanyak",
+      },
+      stats: {
+        fanClub: "Anggota klub fan",
+        fanOnly: "Postingan khusus fan",
+        publicVlogs: "Vlog publik",
+        totalCharacters: "AI Star aktif",
+      },
     },
   };
   const o = overrides[locale];
   return o
-    ? { ...base, actions: o.actions, hero: o.hero, labels: o.labels }
+    ? {
+        ...base,
+        actions: o.actions,
+        hero: o.hero,
+        labels: o.labels,
+        sort: o.sort,
+        stats: o.stats,
+      }
     : base;
 }
 
