@@ -17,6 +17,7 @@ import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterSignedOutGate } from "@/components/fanletter-signed-out-gate";
 import type { Locale } from "@/lib/i18n";
 import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
+import { pickFanletterCopy } from "@/lib/fanletter-i18n";
 import {
   buildFanletterAIStarSocialAccountViewModel,
   getFanletterAIStarSocialAccount,
@@ -325,14 +326,24 @@ export function FanletterMyAIPage({
             referralCode={null}
           />
           <FanletterSignedOutGate
-            description={
-              locale === "ko"
-                ? "AI 스타에 참여하거나 운영하면 여기에서 한 화면으로 관리합니다. 먼저 AI 스타를 발견해 시작하세요."
-                : "Join or operate an AI Star and manage it all here. Start by discovering an AI Star."
-            }
+            description={pickFanletterCopy(locale, {
+              ko: "AI 스타에 참여하거나 운영하면 여기에서 한 화면으로 관리합니다. 먼저 AI 스타를 발견해 시작하세요.",
+              en: "Join or operate an AI Star and manage it all here. Start by discovering an AI Star.",
+              ja: "AIスターに参加・運営すると、ここで一括管理できます。まずはAIスターを見つけて始めましょう。",
+              zh: "参与或运营 AI 明星后，可在此一站式管理。先发现一个 AI 明星开始吧。",
+              vi: "Tham gia hoặc vận hành AI Star và quản lý tất cả tại đây. Hãy bắt đầu bằng cách khám phá một AI Star.",
+              id: "Ikuti atau kelola AI Star dan atur semuanya di sini. Mulai dengan menemukan AI Star.",
+            })}
             locale={locale}
             referralCode={null}
-            title={locale === "ko" ? "내 AI 스타를 시작하세요" : "Start your AI Star"}
+            title={pickFanletterCopy(locale, {
+              ko: "내 AI 스타를 시작하세요",
+              en: "Start your AI Star",
+              ja: "あなたのAIスターを始めよう",
+              zh: "开始你的 AI 明星",
+              vi: "Bắt đầu AI Star của bạn",
+              id: "Mulai AI Star Anda",
+            })}
           />
         </div>
       </main>
@@ -692,7 +703,14 @@ export function FanletterMyAIPage({
                   value: formatNumber(connectedCount, locale),
                 },
                 {
-                  label: locale === "ko" ? "기여 포인트" : "Contribution Points",
+                  label: pickFanletterCopy(locale, {
+                    ko: "기여 포인트",
+                    en: "Contribution Points",
+                    ja: "貢献ポイント",
+                    zh: "贡献点",
+                    vi: "Điểm đóng góp",
+                    id: "Poin kontribusi",
+                  }),
                   value: formatNumber(portfolio.cpBalance, locale),
                 },
               ].map((metric) => (
