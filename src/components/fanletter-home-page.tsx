@@ -24,6 +24,7 @@ import type {
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
 import { getFanletterNavLabels } from "@/lib/fanletter-nav-labels";
+import { pickFanletterCopy } from "@/lib/fanletter-i18n";
 import {
   getFanletterV2LocalizedText,
   type AIStar,
@@ -807,17 +808,31 @@ function FanletterProductHomeDashboard({
   // surfaced only inside the 만들기/creator-unlock funnel, not on the dashboard.
   const portfolioStats = [
     {
-      label: isKo ? "기여 포인트" : "Contribution Points",
+      label: pickFanletterCopy(locale, {
+        ko: "기여 포인트",
+        en: "Contribution Points",
+        ja: "貢献ポイント",
+        zh: "贡献点",
+        vi: "Điểm đóng góp",
+        id: "Poin kontribusi",
+      }),
       value: memberPortfolio?.cpBalance ?? 0,
       suffix: "",
     },
     {
-      label: isKo ? "직접 초대" : "Direct Invites",
+      label: pickFanletterCopy(locale, {
+        ko: "직접 초대",
+        en: "Direct Invites",
+        ja: "直接招待",
+        zh: "直接邀请",
+        vi: "Mời trực tiếp",
+        id: "Undangan langsung",
+      }),
       value: memberPortfolio?.directInvites ?? 0,
       suffix: isKo ? "명" : "",
     },
   ];
-  const productCopy = isKo
+  const baseProductCopy = isKo
     ? {
         connect: "계정 연결",
         creator: "크리에이터 권한",
@@ -878,6 +893,95 @@ function FanletterProductHomeDashboard({
         unlocked: "Unlocked",
         universeMap: "AI Star Universe Map",
       };
+  // zh/vi/id structural-UI drafts (pending native review). Any key not listed
+  // here falls back to the English base copy above. Long-form prose and
+  // financial copy (subhead, loop, disclaimers) intentionally stay English.
+  const productCopyL10n: Partial<Record<Locale, Partial<typeof baseProductCopy>>> = {
+    ja: {
+      connect: "アカウント連携",
+      creator: "クリエイター権限",
+      creatorReady: "AIスター立ち上げ準備完了",
+      discovery: "AIスター発見",
+      founderNetworkCta: "ファウンダーネットワークを見る",
+      founderUniverse: "ファウンダーネットワーク",
+      growth: "成長",
+      headline: "一緒に育てるAIスターを見つけよう",
+      join: "ファウンダー参加",
+      locked: "条件を確認",
+      open: "残り枠",
+      portfolio: "私の成長状況",
+      primaryCta: "AIスターを見つける",
+      scout: "招待",
+      swipeHint: "スワイプしてもっと見る",
+      today: "今日のタスク",
+      topGrowingTitle: "成長中のAIスター",
+      unlocked: "有効化",
+    },
+    zh: {
+      connect: "连接账户",
+      creator: "创作者权限",
+      creatorReady: "AI明星启动就绪",
+      discovery: "发现AI明星",
+      founderNetworkCta: "查看创始人网络",
+      founderUniverse: "创始人网络",
+      growth: "成长",
+      headline: "发现一起培养的AI明星",
+      join: "加入创始人",
+      locked: "查看条件",
+      open: "剩余名额",
+      portfolio: "我的成长状态",
+      primaryCta: "发现AI明星",
+      scout: "邀请",
+      swipeHint: "滑动查看更多",
+      today: "今日任务",
+      topGrowingTitle: "成长中的AI明星",
+      unlocked: "已激活",
+    },
+    vi: {
+      connect: "Kết nối tài khoản",
+      creator: "Quyền Creator",
+      creatorReady: "Sẵn sàng ra mắt AI Star",
+      discovery: "Khám phá AI Star",
+      founderNetworkCta: "Xem Founder Network",
+      founderUniverse: "Founder Network",
+      growth: "Phát triển",
+      headline: "Khám phá AI star để cùng phát triển",
+      join: "Tham gia Founder",
+      locked: "Xem điều kiện",
+      open: "Chỗ trống",
+      portfolio: "Trạng thái phát triển của tôi",
+      primaryCta: "Khám phá AI Star",
+      scout: "Mời",
+      swipeHint: "Vuốt để xem thêm",
+      today: "Hôm nay",
+      topGrowingTitle: "AI Star đang phát triển",
+      unlocked: "Đã mở",
+    },
+    id: {
+      connect: "Hubungkan akun",
+      creator: "Izin Creator",
+      creatorReady: "Siap meluncurkan AI Star",
+      discovery: "Temukan AI Star",
+      founderNetworkCta: "Lihat Founder Network",
+      founderUniverse: "Founder Network",
+      growth: "Pertumbuhan",
+      headline: "Temukan AI star untuk tumbuh bersama",
+      join: "Gabung Founder",
+      locked: "Lihat syarat",
+      open: "Slot tersisa",
+      portfolio: "Status pertumbuhan saya",
+      primaryCta: "Temukan AI Star",
+      scout: "Undang",
+      swipeHint: "Geser untuk lihat lebih",
+      today: "Hari ini",
+      topGrowingTitle: "AI Star berkembang",
+      unlocked: "Aktif",
+    },
+  };
+  const productCopy = {
+    ...baseProductCopy,
+    ...(isKo ? {} : (productCopyL10n[locale] ?? {})),
+  };
   return (
     <section className="mx-auto grid w-full max-w-5xl min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8">
       <div className="grid min-w-0 gap-4">
