@@ -696,10 +696,12 @@ export function MemberPortfolio({
             : copy.memberPortfolio.manageStarCta,
         }
       : null;
+  // Single user-facing member score = CP. Invite score / creator-eligibility %
+  // stay internal (creator-unlock gating); only CP + factual invite counts show here.
   const metrics = [
     {
-      label: copy.labels.scoutScore,
-      value: portfolio.scoutScore,
+      label: copy.labels.cpBalance,
+      value: formatNumber(portfolio.cpBalance, locale),
     },
     {
       label: copy.labels.directInvites,
@@ -708,14 +710,6 @@ export function MemberPortfolio({
     {
       label: copy.labels.successfulInvites,
       value: portfolio.successfulInvites,
-    },
-    {
-      label: copy.labels.cpBalance,
-      value: formatNumber(portfolio.cpBalance, locale),
-    },
-    {
-      label: copy.labels.creatorEligibility,
-      value: `${portfolio.creatorEligibilityPercent}%`,
     },
   ];
   const relationCopy = isKoreanCopy(copy)

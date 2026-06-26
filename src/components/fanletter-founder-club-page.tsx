@@ -681,7 +681,13 @@ export function FanletterFounderClubPage({
     portfolio.roles,
     starsById,
   ]);
+  // Single user-facing member score = CP. Invite score / creator-eligibility %
+  // stay internal (creator-unlock gating) and are not shown as standalone metrics.
   const metricItems = [
+    {
+      label: copy.metrics.cp,
+      value: formatNumber(portfolio.cpBalance, locale),
+    },
     {
       label: copy.metrics.creatorStars,
       value: portfolio.ownedStars.length,
@@ -691,20 +697,8 @@ export function FanletterFounderClubPage({
       value: portfolio.roles.length,
     },
     {
-      label: copy.metrics.scout,
-      value: portfolio.scoutScore,
-    },
-    {
       label: copy.metrics.invites,
       value: portfolio.successfulInvites,
-    },
-    {
-      label: copy.metrics.cp,
-      value: formatNumber(portfolio.cpBalance, locale),
-    },
-    {
-      label: copy.metrics.eligibility,
-      value: `${portfolio.creatorEligibilityPercent}%`,
     },
   ];
   const hasFounderRoles = roleShares.length > 0;
