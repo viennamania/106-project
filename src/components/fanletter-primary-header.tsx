@@ -9,7 +9,7 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
 
 /**
  * Shared primary header for top-level FanLetter destinations (home, discovery,
- * growth, my-ai, …) so the brand + 발견/성장/내 AI nav + language/account controls
+ * my-ai, …) so the brand + 발견/내 AI nav + language/account controls
  * stay identical across pages on desktop. Renders as a self-contained flex row
  * meant to drop into a page's existing padded container.
  */
@@ -22,7 +22,7 @@ export function FanletterPrimaryHeader({
   /** Optional page-specific trailing element (e.g. a status badge). */
   aside?: ReactNode;
   /** The active top-level destination, highlighted in the nav. */
-  current?: "discovery" | "growth" | "my-ai";
+  current?: "discovery" | "my-ai";
   locale: Locale;
   referralCode: string | null;
 }) {
@@ -33,10 +33,6 @@ export function FanletterPrimaryHeader({
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const discoveryHref = buildPathWithReferral(
     `/${locale}/fanletter/discovery`,
-    referralCode,
-  );
-  const growthHref = buildPathWithReferral(
-    `/${locale}/fanletter/growth`,
     referralCode,
   );
   const myAiHref = buildPathWithReferral(
@@ -63,13 +59,6 @@ export function FanletterPrimaryHeader({
           href={discoveryHref}
         >
           {locale === "ko" ? "발견" : "Discovery"}
-        </Link>
-        <Link
-          aria-current={current === "growth" ? "page" : undefined}
-          className={navItemClassName(current === "growth")}
-          href={growthHref}
-        >
-          {locale === "ko" ? "성장" : "Growth"}
         </Link>
         <Link
           aria-current={current === "my-ai" ? "page" : undefined}
