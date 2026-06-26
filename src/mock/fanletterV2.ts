@@ -532,7 +532,6 @@ export type FanletterV2Copy = {
     aiStarDiscovery: string;
     creatorProgress: string;
     cpBalance: string;
-    creatorEligibility: string;
     directInvites: string;
     createdByUnlock: string;
     founderClub: string;
@@ -544,7 +543,6 @@ export type FanletterV2Copy = {
     openSlots: string;
     ownedAiStars: string;
     referralCode: string;
-    scoutScore: string;
     scoutShareLoop: string;
     selectedAiStar: string;
     sourceUniverse: string;
@@ -656,7 +654,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       mockPaymentNotice:
         "Creator launch is previewed at 10 USDT. Checkout opens in a later release.",
       mockReadyLabel: "Mock ready",
-      scoutScore: "Scout Score >= 80",
+      scoutScore: "Invite Score >= 80",
       title: "Creator Unlock",
       unlockedLabel: "Creator Unlock",
     },
@@ -684,7 +682,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       aiStarDiscovery: "AI Star Discovery",
       creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
-      creatorEligibility: "Creator Eligibility",
       createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
@@ -696,7 +693,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       openSlots: "Open Slots",
       ownedAiStars: "Owned AI Stars",
       referralCode: "Referral Code",
-      scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
       sourceUniverse: "Source Star Universe",
@@ -830,7 +826,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       mockPaymentNotice:
         "Creatorローンチは10 USDTのプレビューとして表示します。Checkoutは今後のリリースで開きます。",
       mockReadyLabel: "Mock ready",
-      scoutScore: "Scout Score >= 80",
+      scoutScore: "Invite Score >= 80",
       title: "Creator Unlock",
       unlockedLabel: "Creator Unlock",
     },
@@ -858,7 +854,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       aiStarDiscovery: "AI Star Discovery",
       creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
-      creatorEligibility: "Creator Eligibility",
       createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
@@ -870,7 +865,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       openSlots: "Open Slots",
       ownedAiStars: "Owned AI Stars",
       referralCode: "Referral Code",
-      scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
       sourceUniverse: "Source Star Universe",
@@ -1004,7 +998,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       mockPaymentNotice:
         "크리에이터 출시는 10 USDT 조건 미리보기로만 표시됩니다. 결제 화면은 이후 릴리스에서 연결됩니다.",
       mockReadyLabel: "미리보기 준비",
-      scoutScore: "친구 초대 점수 80 이상",
+      scoutScore: "초대 점수 80 이상",
       title: "크리에이터 권한 활성화",
       unlockedLabel: "크리에이터 권한 활성화",
     },
@@ -1032,7 +1026,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       aiStarDiscovery: "AI 스타 발견",
       creatorProgress: "크리에이터 진행률",
       cpBalance: "CP 잔액",
-      creatorEligibility: "크리에이터 가능성",
       createdByUnlock: "권한 활성화로 생성",
       directInvites: "직접 초대",
       founderClub: "파운더 클럽",
@@ -1044,7 +1037,6 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       openSlots: "잔여 슬롯",
       ownedAiStars: "내가 만든 AI 스타",
       referralCode: "추천 코드",
-      scoutScore: "친구 초대 점수",
       scoutShareLoop: "친구 초대 공유 루프",
       selectedAiStar: "선택된 AI 스타",
       sourceUniverse: "원천 스타 유니버스",

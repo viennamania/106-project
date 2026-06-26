@@ -14,7 +14,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "discover" | "founder" | "scout" | "studio" | "create";
+  key: "create" | "discover" | "studio";
   label: string;
   primary?: boolean;
 };
@@ -46,10 +46,6 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
   const activeByPath = item.activePaths.some((path) => {
     return pathname === path || pathname.startsWith(`${path}/`);
   });
-
-  if (item.key === "home") {
-    return pathname === basePath;
-  }
 
   if (activeByPath) {
     return true;
@@ -88,33 +84,12 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     segments.length === 1 &&
     Boolean(firstSegment) &&
     !reservedSections.has(firstSegment);
-  const isStarUniversePath =
-    segments.length === 2 &&
-    Boolean(firstSegment) &&
-    !reservedSections.has(firstSegment) &&
-    segments[1] === "universe";
 
   if (item.key === "discover") {
     return (
       pathname === `${basePath}/discovery` ||
       pathname === `${basePath}/characters` ||
       isStarDetailPath
-    );
-  }
-
-  if (item.key === "founder") {
-    return (
-      pathname === `${basePath}/founder-club` ||
-      pathname === `${basePath}/creator-unlock` ||
-      isStarUniversePath
-    );
-  }
-
-  if (item.key === "scout") {
-    return (
-      pathname === `${basePath}/scout` ||
-      pathname === `${basePath}/onboarding` ||
-      pathname === `${basePath}/connect`
     );
   }
 
@@ -133,10 +108,6 @@ function resolveFanletterNavActive({
   view: string | null;
 }) {
   const founderClubPath = `${basePath}/founder-club`;
-
-  if (pathname === founderClubPath && item.key === "founder") {
-    return view !== "creator";
-  }
 
   if (pathname === founderClubPath && item.key === "studio") {
     return view === "creator";
