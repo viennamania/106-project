@@ -27,18 +27,16 @@ import {
 } from "@/lib/fanletter-founder-universe";
 import type { FanletterFounderUniverseInvestorSnapshot } from "@/lib/fanletter-founder-universe-investor-service";
 import type { Locale } from "@/lib/i18n";
-import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import { getFanletterV2Copy, type FounderRole } from "@/mock/fanletterV2";
 
 type InvestorCopy = ReturnType<typeof getInvestorCopy>;
 
-// Public roles collapse to two states: only creators are highlighted; every
-// founder-universe grade reads as a fan. Full grade ladder stays in the data model.
+// Reward-tier ladder colors — the structural founder-universe tier diagram.
 const roleColors: Record<FanletterFounderUniverseRole, string> = {
-  creator: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  genesis_founder: "bg-slate-100 text-slate-600 border-slate-200",
-  founder: "bg-slate-100 text-slate-600 border-slate-200",
-  mentor: "bg-slate-100 text-slate-600 border-slate-200",
+  creator: "bg-amber-100 text-amber-700 border-amber-200",
+  genesis_founder: "bg-lime-100 text-lime-700 border-lime-200",
+  founder: "bg-sky-100 text-sky-700 border-sky-200",
+  mentor: "bg-violet-100 text-violet-700 border-violet-200",
   partner: "bg-slate-100 text-slate-600 border-slate-200",
   producer: "bg-slate-100 text-slate-600 border-slate-200",
   legend: "bg-slate-100 text-slate-600 border-slate-200",
@@ -207,8 +205,10 @@ function getRoleText(
   role: FanletterFounderUniverseRole,
   copy: ReturnType<typeof getFanletterV2Copy>,
 ) {
-  const isKo = copy.roles.creator === "크리에이터";
-  return getFanletterPublicRoleLabel(role, isKo ? "ko" : "en");
+  // The tier ladder is a structural diagram of the reward tiers, not a member's
+  // identity badge — show the real grade names here. (Member role badges stay
+  // collapsed to 크리에이터/팬 via FounderRoleBadge.)
+  return copy.roles[role as FounderRole] ?? role;
 }
 
 function MetricCard({
