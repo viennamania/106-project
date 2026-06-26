@@ -23,6 +23,7 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterNavLabels } from "@/lib/fanletter-nav-labels";
 import {
   getFanletterV2LocalizedText,
   type AIStar,
@@ -1488,19 +1489,19 @@ export function FanletterHomePage({
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
-                {locale === "ko" ? "둘러보기" : "Browse"}
+                {getFanletterNavLabels(locale).browse}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={myAiHref}
               >
-                {locale === "ko" ? "내 스타" : "My Stars"}
+                {getFanletterNavLabels(locale).myStars}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={createHref}
               >
-                {locale === "ko" ? "만들기" : "Create"}
+                {getFanletterNavLabels(locale).create}
               </Link>
             </nav>
 
