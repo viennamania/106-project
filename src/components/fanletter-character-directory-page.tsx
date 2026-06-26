@@ -12,6 +12,7 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterStarShareButton } from "@/components/fanletter-star-share-button";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   FanletterCharacterDirectoryItem,
@@ -206,6 +207,10 @@ function DirectoryHeader({
     `/${locale}/fanletter/my-ai`,
     referralCode,
   );
+  const createHref = buildPathWithReferral(
+    `/${locale}/fanletter/create`,
+    referralCode,
+  );
 
   return (
     <header className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
@@ -225,13 +230,19 @@ function DirectoryHeader({
           className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
           href={discoveryHref}
         >
-          {locale === "ko" ? "발견" : "Discovery"}
+          {locale === "ko" ? "둘러보기" : "Browse"}
         </Link>
         <Link
           className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
           href={myAiHref}
         >
-          {locale === "ko" ? "내 AI" : "My AI"}
+          {locale === "ko" ? "내 스타" : "My Stars"}
+        </Link>
+        <Link
+          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          href={createHref}
+        >
+          {locale === "ko" ? "만들기" : "Create"}
         </Link>
       </nav>
 
@@ -437,6 +448,7 @@ function CharacterCard({
   ];
 
   return (
+    <div className="relative min-w-0">
     <FanletterTrackedLink
       agentRank={{
         eventType: "ai_star_discovered",
@@ -531,6 +543,13 @@ function CharacterCard({
         </div>
       </div>
     </FanletterTrackedLink>
+      <FanletterStarShareButton
+        channelPath={channelHref}
+        className="absolute right-3 top-3"
+        locale={locale}
+        referralCode={item.referralCode}
+      />
+    </div>
   );
 }
 

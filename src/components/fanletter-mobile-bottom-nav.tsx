@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bot, House, LayoutDashboard, Share2 } from "lucide-react";
+import { Bot, LayoutDashboard, Plus } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
 
 import type { Locale } from "@/lib/i18n";
@@ -14,7 +14,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "discover" | "founder" | "scout" | "studio";
+  key: "home" | "discover" | "founder" | "scout" | "studio" | "create";
   label: string;
   primary?: boolean;
 };
@@ -203,75 +203,55 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const navCopy: Record<
     Locale,
     {
+      create: string;
       discover: string;
-      founder: string;
-      home: string;
       label: string;
-      scout: string;
       studio: string;
     }
   > = {
     ko: {
-      discover: "발견",
-      founder: "성장",
-      home: "홈",
+      create: "만들기",
+      discover: "둘러보기",
       label: "AIAVpark 주요 메뉴",
-      scout: "친구 초대",
-      studio: "내 AI",
+      studio: "내 스타",
     },
     en: {
-      discover: "Discover",
-      founder: "Growth",
-      home: "Home",
+      create: "Create",
+      discover: "Browse",
       label: "AIAVpark navigation",
-      scout: "Scout",
-      studio: "My AI",
+      studio: "My Stars",
     },
     ja: {
-      discover: "発見",
-      founder: "成長",
-      home: "ホーム",
+      create: "作成",
+      discover: "見て回る",
       label: "AIAVparkナビゲーション",
-      scout: "スカウト",
-      studio: "My AI",
+      studio: "マイスター",
     },
     zh: {
-      discover: "发现",
-      founder: "成长",
-      home: "首页",
+      create: "创建",
+      discover: "浏览",
       label: "AIAVpark 导航",
-      scout: "星探",
-      studio: "我的 AI",
+      studio: "我的明星",
     },
     vi: {
+      create: "Tạo",
       discover: "Khám phá",
-      founder: "Tăng trưởng",
-      home: "Trang chủ",
       label: "Điều hướng AIAVpark",
-      scout: "Tuyển trạch",
-      studio: "AI của tôi",
+      studio: "Ngôi sao của tôi",
     },
     id: {
+      create: "Buat",
       discover: "Jelajahi",
-      founder: "Growth",
-      home: "Beranda",
       label: "Navigasi AIAVpark",
-      scout: "Pencari",
-      studio: "AI Saya",
+      studio: "Bintang Saya",
     },
   };
   const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
   const myAIHref = buildHref(`${basePath}/my-ai`);
+  const createHref = buildHref(`${basePath}/create`);
   const currentView = searchParams.get("view");
   const items: FanletterNavItem[] = [
-    {
-      activePaths: [basePath],
-      href: buildHref(basePath),
-      icon: House,
-      key: "home",
-      label: copy.home,
-    },
     {
       activePaths: [
         `${basePath}/discovery`,
@@ -285,17 +265,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     {
       activePaths: [
-        `${basePath}/scout`,
-        `${basePath}/onboarding`,
-        `${basePath}/connect`,
-      ],
-      href: buildHref(`${basePath}/scout`),
-      icon: Share2,
-      key: "scout",
-      label: copy.scout,
-    },
-    {
-      activePaths: [
         `${basePath}/my-ai`,
         `${basePath}/studio`,
         `${basePath}/channels`,
@@ -304,6 +273,13 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       icon: LayoutDashboard,
       key: "studio",
       label: copy.studio,
+    },
+    {
+      activePaths: [`${basePath}/create`],
+      href: createHref,
+      icon: Plus,
+      key: "create",
+      label: copy.create,
     },
   ];
 

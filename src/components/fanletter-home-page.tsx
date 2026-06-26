@@ -758,7 +758,6 @@ function FanletterProductHomeDashboard({
   memberPortfolio,
   referralCode,
   scoutShareLoop,
-  scoutShareLoopHref,
   selectedStarId,
   stars,
   topGrowingStarsHref,
@@ -774,7 +773,6 @@ function FanletterProductHomeDashboard({
   memberPortfolio?: MemberPortfolio | null;
   referralCode: string | null;
   scoutShareLoop?: ScoutShareLoopData | null;
-  scoutShareLoopHref: string;
   selectedStarId?: string | null;
   stars?: AIStar[] | null;
   topGrowingStarsHref: string;
@@ -808,7 +806,7 @@ function FanletterProductHomeDashboard({
   );
   const portfolioStats = [
     {
-      label: isKo ? "친구 초대 점수" : "Scout Score",
+      label: isKo ? "초대 점수" : "Invite Score",
       value: memberPortfolio?.scoutScore ?? 0,
       suffix: "",
     },
@@ -846,7 +844,7 @@ function FanletterProductHomeDashboard({
         portfolio: "내 성장 상태",
         primaryCta: "AI 스타 발견하기",
         reward: "이번 공유 보상",
-        scout: "친구 초대 공유",
+        scout: "초대",
         score: "스타 점수",
         shareCode: "추천 코드",
         subhead:
@@ -879,7 +877,7 @@ function FanletterProductHomeDashboard({
         portfolio: "My Growth Status",
         primaryCta: "Discover AI Stars",
         reward: "Share Reward",
-        scout: "Scout Share",
+        scout: "Invite",
         score: "Score",
         shareCode: "Referral Code",
         subhead:
@@ -1284,42 +1282,6 @@ function FanletterProductHomeDashboard({
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={200} y={16}>
-          <div className="rounded-[1.35rem] border border-emerald-100 bg-emerald-50/78 p-4 shadow-[0_18px_46px_rgba(16,185,129,0.1)]">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-emerald-900">
-                {productCopy.scout}
-              </p>
-              <span className="rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-800">
-                {productCopy.reward}
-              </span>
-            </div>
-            <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-emerald-700">
-              {productCopy.shareCode}
-            </p>
-            <p className="mt-1 truncate text-lg font-semibold text-[#12041f]">
-              {scoutShareLoop?.referralCode ?? "MINSEO-A-001"}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {["Kakao", "Instagram", "X", "TikTok"].map((platform) => (
-                <span
-                  className="rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-800"
-                  key={platform}
-                >
-                  {platform}
-                </span>
-              ))}
-            </div>
-            <Link
-              className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-sm font-semibold !text-white"
-              href={scoutShareLoopHref}
-            >
-              {productCopy.scout}
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-        </ScrollReveal>
-
         <ScrollReveal className="hidden sm:block" delay={220} y={16}>
           <FanletterAgentRankHomeCard
             href={agentRankHref}
@@ -1405,12 +1367,12 @@ export function FanletterHomePage({
     `/${locale}/fanletter/agentrank`,
     referralCode,
   );
-  const scoutShareLoopHref = buildPathWithReferral(
-    `/${locale}/fanletter/scout`,
-    referralCode,
-  );
   const myAiHref = buildPathWithReferral(
     `/${locale}/fanletter/my-ai`,
+    referralCode,
+  );
+  const createHref = buildPathWithReferral(
+    `/${locale}/fanletter/create`,
     referralCode,
   );
   const nonNsfwFeaturedVideos = featuredVideos.filter(
@@ -1543,13 +1505,19 @@ export function FanletterHomePage({
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
-                {copy.nav.features}
+                {locale === "ko" ? "둘러보기" : "Browse"}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={myAiHref}
               >
-                {locale === "ko" ? "내 AI" : "My AI"}
+                {locale === "ko" ? "내 스타" : "My Stars"}
+              </Link>
+              <Link
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                href={createHref}
+              >
+                {locale === "ko" ? "만들기" : "Create"}
               </Link>
             </nav>
 
@@ -1651,7 +1619,6 @@ export function FanletterHomePage({
             memberPortfolio={founderClubMemberPortfolio}
             referralCode={referralCode}
             scoutShareLoop={founderClubScoutShareLoop}
-            scoutShareLoopHref={scoutShareLoopHref}
             selectedStarId={founderClubSelectedStarId}
             stars={founderClubStars}
             topGrowingStarsHref={topGrowingStarsHref}
