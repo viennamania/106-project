@@ -5,6 +5,7 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterNavLabels } from "@/lib/fanletter-nav-labels";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
 /**
@@ -45,6 +46,7 @@ export function FanletterPrimaryHeader({
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
   );
+  const navLabels = getFanletterNavLabels(locale);
 
   return (
     <header className="flex items-center justify-between gap-2 sm:gap-4">
@@ -64,21 +66,21 @@ export function FanletterPrimaryHeader({
           className={navItemClassName(current === "discovery")}
           href={discoveryHref}
         >
-          {locale === "ko" ? "둘러보기" : "Browse"}
+          {navLabels.browse}
         </Link>
         <Link
           aria-current={current === "my-ai" ? "page" : undefined}
           className={navItemClassName(current === "my-ai")}
           href={myAiHref}
         >
-          {locale === "ko" ? "내 스타" : "My Stars"}
+          {navLabels.myStars}
         </Link>
         <Link
           aria-current={current === "create" ? "page" : undefined}
           className={navItemClassName(current === "create")}
           href={createHref}
         >
-          {locale === "ko" ? "만들기" : "Create"}
+          {navLabels.create}
         </Link>
       </nav>
 
