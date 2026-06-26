@@ -16,6 +16,7 @@ import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterSignedOutGate } from "@/components/fanletter-signed-out-gate";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import {
   buildFanletterAIStarSocialAccountViewModel,
   getFanletterAIStarSocialAccount,
@@ -212,19 +213,8 @@ function getUniverseName(star: MemberOwnedAIStar, fallback?: AIStar) {
 }
 
 function getRoleLabel(role: MemberPortfolioRole["role"], locale: Locale) {
-  const isKo = locale === "ko";
-
-  const labels: Record<MemberPortfolioRole["role"], string> = {
-    creator: isKo ? "크리에이터" : "Creator",
-    founder: isKo ? "파운더" : "Founder",
-    genesis_founder: isKo ? "제네시스 파운더" : "Genesis Founder",
-    legend: isKo ? "레전드" : "Legend",
-    mentor: isKo ? "멘토" : "Mentor",
-    partner: isKo ? "파트너" : "Partner",
-    producer: isKo ? "프로듀서" : "Producer",
-  };
-
-  return labels[role];
+  // Collapsed to two public states (크리에이터/팬); full grade kept in the data model.
+  return getFanletterPublicRoleLabel(role, locale);
 }
 
 function resolvePrimaryStar({

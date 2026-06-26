@@ -207,8 +207,9 @@ function DirectoryHeader({
     `/${locale}/fanletter/my-ai`,
     referralCode,
   );
+  // '만들기' tab → creator activation hub (creator-unlock); hub links to /create.
   const createHref = buildPathWithReferral(
-    `/${locale}/fanletter/create`,
+    `/${locale}/fanletter/creator-unlock`,
     referralCode,
   );
 

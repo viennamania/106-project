@@ -36,6 +36,7 @@ import {
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
+import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -59,32 +60,10 @@ function getPortfolioInitials(value: string) {
 }
 
 function getRoleTone(role: FounderRole) {
+  // Public roles collapse to two states: creators are highlighted, every other
+  // grade (founder/mentor/producer/… and plain members) reads as a fan.
   if (role === "creator") {
     return "border-emerald-200 bg-emerald-50 text-emerald-800";
-  }
-
-  if (role === "genesis_founder") {
-    return "border-lime-200 bg-lime-50 text-lime-800";
-  }
-
-  if (role === "mentor") {
-    return "border-sky-200 bg-sky-50 text-sky-800";
-  }
-
-  if (role === "producer") {
-    return "border-violet-200 bg-violet-50 text-violet-800";
-  }
-
-  if (role === "partner") {
-    return "border-amber-200 bg-amber-50 text-amber-800";
-  }
-
-  if (role === "legend") {
-    return "border-zinc-400 bg-zinc-100 text-zinc-900";
-  }
-
-  if (role === "founder") {
-    return "border-zinc-300 bg-zinc-100 text-zinc-800";
   }
 
   return "border-zinc-200 bg-zinc-50 text-zinc-600";
@@ -203,7 +182,7 @@ export function FounderRoleBadge({
         getRoleTone(role),
       )}
     >
-      {copy.roles[role]}
+      {getFanletterPublicRoleLabel(role, isKoreanCopy(copy) ? "ko" : "en")}
     </span>
   );
 }

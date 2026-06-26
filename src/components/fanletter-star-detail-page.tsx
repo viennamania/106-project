@@ -38,6 +38,7 @@ import { FanletterReputationTracker } from "@/components/fanletter-reputation-tr
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
@@ -675,7 +676,7 @@ function StarViewerRelationshipCard({
         founderCaption: "회원 참여 역할",
         founderLabel: "파운더 네트워크 역할",
         founderStatus: founderRole
-          ? copy.roles[founderRole.role]
+          ? getFanletterPublicRoleLabel(founderRole.role, "ko")
           : isMockFounder
             ? "파운더"
             : isAuthenticated
@@ -727,7 +728,7 @@ function StarViewerRelationshipCard({
         founderCaption: "Member participation role",
         founderLabel: "Founder Network role",
         founderStatus: founderRole
-          ? copy.roles[founderRole.role]
+          ? getFanletterPublicRoleLabel(founderRole.role, "en")
           : isMockFounder
             ? "Founder"
             : isAuthenticated
