@@ -1,4 +1,5 @@
 import {
+  getFanletterStarsCollection,
   getMembersCollection,
   getPointBalancesCollection,
   getPointLedgerCollection,
@@ -10,6 +11,7 @@ import {
   SERVICE_SUSPENDED_ERROR_MESSAGE,
 } from "@/lib/member-suspension";
 import type {
+  ManagedMemberAIStarRecord,
   ManagedMemberReferralsResponse,
   ReferralMembershipCardTier,
   ManagedReferralTreeNodeRecord,
@@ -24,10 +26,65 @@ import {
   type MemberDocument,
 } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import type { FanletterStarDocument } from "@/lib/fanletter-founder-club";
 import type { PointBalanceDocument } from "@/lib/points";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+function dateToISOString(value: Date | string | null | undefined) {
+  const date = value instanceof Date ? value : new Date(value ?? "");
+
+  return Number.isNaN(date.getTime()) ? new Date(0).toISOString() : date.toISOString();
+}
+
+function serializeManagedMemberAIStar(
+  star: FanletterStarDocument,
+): ManagedMemberAIStarRecord {
+  return {
+    createdAt: dateToISOString(star.createdAt),
+    name: star.characterName || star.displayName || "AI 스타",
+    portraitImageUrl: star.portraitImageUrl ?? null,
+    source: star.source ?? null,
+    starId: star.starId,
+    starScore: star.starScore ?? 0,
+    status: star.status,
+  };
+}
+
+function getManagedMemberAIStarPriority(star: ManagedMemberAIStarRecord) {
+  if (star.status === "active") {
+    return 0;
+  }
+
+  if (star.status === "draft") {
+    return 1;
+  }
+
+  return 2;
+}
+
+function shouldUseManagedMemberAIStar(
+  candidate: ManagedMemberAIStarRecord,
+  current: ManagedMemberAIStarRecord | undefined,
+) {
+  if (!current) {
+    return true;
+  }
+
+  const candidatePriority = getManagedMemberAIStarPriority(candidate);
+  const currentPriority = getManagedMemberAIStarPriority(current);
+
+  if (candidatePriority !== currentPriority) {
+    return candidatePriority < currentPriority;
+  }
+
+  if (candidate.starScore !== current.starScore) {
+    return candidate.starScore > current.starScore;
+  }
+
+  return Date.parse(candidate.createdAt) > Date.parse(current.createdAt);
 }
 
 function createManagedReferralNode(
@@ -36,6 +93,7 @@ function createManagedReferralNode(
   balance?: PointBalanceDocument | null,
   membershipCardTier: ReferralMembershipCardTier = "none",
   placementSlotIndex: number | null = null,
+  ownedAIStar: ManagedMemberAIStarRecord | null = null,
 ): ManagedReferralTreeNodeRecord {
   return {
     ...serializeReferralMember(member),
@@ -44,6 +102,7 @@ function createManagedReferralNode(
     directReferralCount: 0,
     lifetimePoints: balance?.lifetimePoints ?? 0,
     membershipCardTier,
+    ownedAIStar,
     placementSlotIndex,
     spendablePoints: balance?.spendablePoints ?? 0,
     status: member.status,
@@ -243,39 +302,60 @@ async function buildManagedReferralTree(
     pointBalancesCollection,
     rewardRedemptionsCollection,
     referralPlacementSlotsCollection,
+    fanletterStarsCollection,
     pointSourceSummary,
   ] = await Promise.all([
     getPointBalancesCollection(),
     getRewardRedemptionsCollection(),
     getReferralPlacementSlotsCollection(),
+    getFanletterStarsCollection(),
     getReferralNetworkPointSourceSummary(descendantEmails),
   ]);
-  const [pointBalances, tierRewardRedemptions, placementSlots] =
-    descendantEmails.length > 0
-      ? await Promise.all([
-          pointBalancesCollection
-            .find({ memberEmail: { $in: descendantEmails } })
-            .toArray(),
-          rewardRedemptionsCollection
-            .find({
-              memberEmail: { $in: descendantEmails },
-              rewardId: { $in: ["silver-card", "gold-card"] },
-              status: "completed",
-            })
-            .project<{ memberEmail: string; rewardId: "silver-card" | "gold-card" }>({
-              memberEmail: 1,
-              rewardId: 1,
-            })
-            .toArray(),
-          referralPlacementSlotsCollection
-            .find({ claimedByEmail: { $in: descendantEmails } })
-            .project<{ claimedByEmail: string; slotIndex: number }>({
-              claimedByEmail: 1,
-              slotIndex: 1,
-            })
-            .toArray(),
-        ])
-      : [[], [], []];
+  let pointBalances: PointBalanceDocument[] = [];
+  let tierRewardRedemptions: Array<{
+    memberEmail: string;
+    rewardId: "silver-card" | "gold-card";
+  }> = [];
+  let placementSlots: Array<{ claimedByEmail: string; slotIndex: number }> = [];
+  let ownedAIStars: FanletterStarDocument[] = [];
+
+  if (descendantEmails.length > 0) {
+    [
+      pointBalances,
+      tierRewardRedemptions,
+      placementSlots,
+      ownedAIStars,
+    ] = await Promise.all([
+      pointBalancesCollection
+        .find({ memberEmail: { $in: descendantEmails } })
+        .toArray(),
+      rewardRedemptionsCollection
+        .find({
+          memberEmail: { $in: descendantEmails },
+          rewardId: { $in: ["silver-card", "gold-card"] },
+          status: "completed",
+        })
+        .project<{ memberEmail: string; rewardId: "silver-card" | "gold-card" }>({
+          memberEmail: 1,
+          rewardId: 1,
+        })
+        .toArray(),
+      referralPlacementSlotsCollection
+        .find({ claimedByEmail: { $in: descendantEmails } })
+        .project<{ claimedByEmail: string; slotIndex: number }>({
+          claimedByEmail: 1,
+          slotIndex: 1,
+        })
+        .toArray(),
+      fanletterStarsCollection
+        .find({
+          ownerEmail: { $in: descendantEmails },
+          status: { $ne: "archived" },
+        })
+        .sort({ status: 1, starScore: -1, createdAt: -1 })
+        .toArray(),
+    ]);
+  }
   const balanceByEmail = new Map(
     pointBalances.map((balance) => [normalizeEmail(balance.memberEmail), balance]),
   );
@@ -283,6 +363,7 @@ async function buildManagedReferralTree(
     placementSlots.map((slot) => [normalizeEmail(slot.claimedByEmail), slot.slotIndex]),
   );
   const membershipCardTierByEmail = new Map<string, ReferralMembershipCardTier>();
+  const ownedAIStarByEmail = new Map<string, ManagedMemberAIStarRecord>();
 
   for (const redemption of tierRewardRedemptions) {
     const memberEmail = normalizeEmail(redemption.memberEmail);
@@ -296,6 +377,21 @@ async function buildManagedReferralTree(
     membershipCardTierByEmail.set(memberEmail, candidateTier);
   }
 
+  for (const ownedAIStar of ownedAIStars) {
+    const ownerEmail = normalizeEmail(ownedAIStar.ownerEmail ?? "");
+
+    if (!ownerEmail) {
+      continue;
+    }
+
+    const serializedAIStar = serializeManagedMemberAIStar(ownedAIStar);
+    const currentAIStar = ownedAIStarByEmail.get(ownerEmail);
+
+    if (shouldUseManagedMemberAIStar(serializedAIStar, currentAIStar)) {
+      ownedAIStarByEmail.set(ownerEmail, serializedAIStar);
+    }
+  }
+
   const referrals: ManagedReferralTreeNodeRecord[] = [];
   const members: ManagedReferralTreeNodeRecord[] = [];
   const nodesByReferralCode = new Map<string, ManagedReferralTreeNodeRecord>();
@@ -307,6 +403,7 @@ async function buildManagedReferralTree(
       balanceByEmail.get(normalizeEmail(levelMember.email)),
       membershipCardTierByEmail.get(normalizeEmail(levelMember.email)) ?? "none",
       placementSlotIndexByEmail.get(normalizeEmail(levelMember.email)) ?? null,
+      ownedAIStarByEmail.get(normalizeEmail(levelMember.email)) ?? null,
     );
 
     members.push(node);

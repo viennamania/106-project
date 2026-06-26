@@ -120,6 +120,16 @@ export type ReferralMemberRecord = {
   serviceSuspendedScope: ServiceSuspensionScope | null;
 };
 
+export type ManagedMemberAIStarRecord = {
+  createdAt: string;
+  name: string;
+  portraitImageUrl: string | null;
+  source: string | null;
+  starId: string;
+  starScore: number;
+  status: string;
+};
+
 export type ReferralTreeNodeRecord = ReferralMemberRecord & {
   children: ReferralTreeNodeRecord[];
   depth: number;
@@ -162,6 +172,7 @@ export type ManagedReferralTreeNodeRecord = ReferralMemberRecord & {
   directReferralCount: number;
   lifetimePoints: number;
   membershipCardTier: ReferralMembershipCardTier;
+  ownedAIStar: ManagedMemberAIStarRecord | null;
   spendablePoints: number;
   status: MemberStatus;
   tier: ReferralMemberTier;

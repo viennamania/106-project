@@ -264,11 +264,15 @@ export function ActivateNetworkPage({
 
     return state.members.filter((member) => {
       const referralCode = member.referralCode?.toLowerCase() ?? "";
+      const aiStarName = member.ownedAIStar?.name.toLowerCase() ?? "";
+      const aiStarId = member.ownedAIStar?.starId.toLowerCase() ?? "";
 
       return (
         member.email.toLowerCase().includes(normalizedQuery) ||
         member.lastWalletAddress.toLowerCase().includes(normalizedQuery) ||
-        referralCode.includes(normalizedQuery)
+        referralCode.includes(normalizedQuery) ||
+        aiStarName.includes(normalizedQuery) ||
+        aiStarId.includes(normalizedQuery)
       );
     });
   }, [deferredSearchQuery, state.members]);
@@ -1504,6 +1508,12 @@ export function ActivateNetworkPage({
                                 ) : null}
                               </div>
 
+                              <MemberAIStarInline
+                                active={isSelected}
+                                locale={locale}
+                                member={member}
+                              />
+
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <Pill active={isSelected}>
                                   {dictionary.activateNetworkPage.labels.level} {member.depth}
@@ -1772,6 +1782,8 @@ function SelectedMemberCard({
         </div>
       </div>
 
+      <SelectedMemberAIStarCard locale={locale} member={member} />
+
       <div className="grid gap-3 sm:grid-cols-2">
         <InfoCard
           label={dictionary.activateNetworkPage.labels.memberStatus}
@@ -1959,6 +1971,194 @@ function SelectedMemberCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function MemberAIStarInline({
+  active,
+  locale,
+  member,
+}: {
+  active: boolean;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const copy = getMemberAIStarCopy(locale);
+  const star = member.ownedAIStar;
+
+  if (!star) {
+    return (
+      <div
+        className={cn(
+          "mt-3 rounded-2xl border px-3 py-2 text-xs font-medium",
+          active
+            ? "border-white/12 bg-white/8 text-white/58"
+            : "border-slate-200 bg-slate-50 text-slate-500",
+        )}
+      >
+        {copy.empty}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "mt-3 flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-2",
+        active
+          ? "border-white/12 bg-white/8"
+          : "border-violet-100 bg-[linear-gradient(135deg,#fff_0%,#faf5ff_100%)]",
+      )}
+    >
+      <AIStarPortrait
+        className="size-10 shrink-0"
+        name={star.name}
+        portraitImageUrl={star.portraitImageUrl}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.64rem] font-bold tracking-[0.12em]",
+              active
+                ? "bg-white text-slate-950"
+                : "bg-slate-950 text-white",
+            )}
+          >
+            <Hexagon className="size-3" />
+            AI STAR
+          </span>
+          <span
+            className={cn(
+              "truncate text-sm font-semibold",
+              active ? "text-white" : "text-slate-950",
+            )}
+          >
+            {star.name}
+          </span>
+        </div>
+        <p
+          className={cn(
+            "mt-1 truncate text-xs",
+            active ? "text-white/58" : "text-slate-500",
+          )}
+        >
+          {copy.scoreLabel} {formatInteger(star.starScore, locale)} ·{" "}
+          {getAIStarStatusLabel(star.status, locale)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SelectedMemberAIStarCard({
+  locale,
+  member,
+}: {
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const copy = getMemberAIStarCopy(locale);
+  const star = member.ownedAIStar;
+
+  if (!star) {
+    return (
+      <div className="rounded-[24px] border border-slate-200 bg-white/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          {copy.label}
+        </p>
+        <p className="mt-2 text-base font-semibold text-slate-950">
+          {copy.emptyTitle}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-slate-600">
+          {copy.emptyDescription}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[24px] border border-violet-100 bg-[linear-gradient(135deg,#ffffff_0%,#faf5ff_52%,#f8fafc_100%)] p-4 shadow-[0_16px_38px_rgba(88,28,135,0.08)]">
+      <div className="flex items-start gap-4">
+        <AIStarPortrait
+          className="size-16 shrink-0"
+          name={star.name}
+          portraitImageUrl={star.portraitImageUrl}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-950 px-2.5 py-1 text-[0.64rem] font-bold tracking-[0.12em] text-white">
+              <Hexagon className="size-3" />
+              AI STAR
+            </span>
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700">
+              {getAIStarStatusLabel(star.status, locale)}
+            </span>
+          </div>
+          <p className="mt-2 break-words text-lg font-semibold text-slate-950">
+            {star.name}
+          </p>
+          <p className="mt-1 break-all text-xs font-medium text-slate-500">
+            {star.starId}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white/85 px-3 py-2">
+          <p className="text-[0.66rem] uppercase tracking-[0.16em] text-slate-500">
+            {copy.scoreLabel}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">
+            {formatInteger(star.starScore, locale)}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white/85 px-3 py-2">
+          <p className="text-[0.66rem] uppercase tracking-[0.16em] text-slate-500">
+            {copy.sourceLabel}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">
+            {getAIStarSourceLabel(star.source, locale)}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white/85 px-3 py-2">
+          <p className="text-[0.66rem] uppercase tracking-[0.16em] text-slate-500">
+            {copy.createdAtLabel}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">
+            {formatDateTime(star.createdAt, locale)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AIStarPortrait({
+  className,
+  name,
+  portraitImageUrl,
+}: {
+  className?: string;
+  name: string;
+  portraitImageUrl: string | null;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center overflow-hidden rounded-2xl border border-violet-200 bg-violet-50 bg-cover bg-center text-sm font-bold text-violet-700 shadow-[0_10px_28px_rgba(124,58,237,0.12)]",
+        className,
+      )}
+      style={
+        portraitImageUrl
+          ? {
+              backgroundImage: `url(${portraitImageUrl})`,
+            }
+          : undefined
+      }
+    >
+      {portraitImageUrl ? null : getAIStarInitials(name)}
+    </span>
   );
 }
 
@@ -2557,6 +2757,78 @@ function getMembershipCardLabel(
   }
 
   return dictionary.common.notAvailable;
+}
+
+function getMemberAIStarCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      createdAtLabel: "생성",
+      empty: "AI 스타 IP 준비 중",
+      emptyDescription:
+        "이 회원의 AI 스타 IP가 아직 연결되지 않았습니다. 가입 완료 후 생성되는 AI 스타 정보가 여기 표시됩니다.",
+      emptyTitle: "AI 스타 IP 준비 중",
+      label: "AI 스타 IP",
+      scoreLabel: "스타 점수",
+      sourceLabel: "출처",
+    };
+  }
+
+  return {
+    createdAtLabel: "Created",
+    empty: "AI Star IP pending",
+    emptyDescription:
+      "This member does not have a linked AI Star IP yet. The AI Star created after activation will appear here.",
+    emptyTitle: "AI Star IP pending",
+    label: "AI Star IP",
+    scoreLabel: "Star score",
+    sourceLabel: "Source",
+  };
+}
+
+function getAIStarStatusLabel(status: string, locale: Locale) {
+  const isKorean = locale === "ko";
+
+  if (status === "active") {
+    return isKorean ? "운영 중" : "Active";
+  }
+
+  if (status === "draft") {
+    return isKorean ? "준비 중" : "Draft";
+  }
+
+  return isKorean ? "비활성" : "Inactive";
+}
+
+function getAIStarSourceLabel(source: string | null, locale: Locale) {
+  const isKorean = locale === "ko";
+
+  if (source === "member_signup") {
+    return isKorean ? "가입 생성" : "Signup";
+  }
+
+  if (source === "creator_unlock") {
+    return isKorean ? "Creator 권한 활성화" : "Creator activation";
+  }
+
+  if (source === "creator_profile") {
+    return isKorean ? "스튜디오 설정" : "Studio profile";
+  }
+
+  if (source === "manual") {
+    return isKorean ? "운영자 등록" : "Manual";
+  }
+
+  return source ?? (isKorean ? "기록 없음" : "Not recorded");
+}
+
+function getAIStarInitials(name: string) {
+  const compactName = name.trim();
+
+  if (!compactName) {
+    return "AI";
+  }
+
+  return Array.from(compactName).slice(0, 2).join("").toUpperCase();
 }
 
 function getMemberSortCopy(locale: Locale) {
