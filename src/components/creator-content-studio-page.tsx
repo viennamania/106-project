@@ -9939,68 +9939,167 @@ export function CreatorContentStudioPage({
     );
   }
 
-  function renderWorkspaceOverviewCard() {
-    const workspaceMessage = isConnectionResolving
-      ? contentCopy.messages.postsLoading
-      : isDisconnected
+  function renderStudioSignpostCard() {
+    const displayName =
+      state.profile.displayName.trim() ||
+      (locale === "ko" ? "AI 스타 프로필" : profileSummaryCopy.fallbackName);
+    const mainActionHref = !canUseWorkspace
+      ? activateHref
+      : state.profileConfigured
+        ? newPostHref
+        : profileHref;
+    const mainActionLabel = !canUseWorkspace
+      ? dictionary.referralsPage.actions.completeSignup
+      : state.profileConfigured
+        ? contentCopy.actions.createPost
+        : contentCopy.labels.creatorSettings;
+    const nextActionLabel = !canUseWorkspace
+      ? locale === "ko"
+        ? "가입 상태 확인"
+        : "Check signup"
+      : state.profileConfigured
+        ? locale === "ko"
+          ? "다음 콘텐츠 작성"
+          : "Create next post"
+        : locale === "ko"
+          ? "AI 스타 프로필 준비"
+          : "Set up AI star profile";
+    const helperText = !canUseWorkspace
       ? contentCopy.messages.connectRequired
-      : state.status === "loading"
-        ? contentCopy.messages.detailLoadingDescription
-        : state.error && state.member?.status !== "completed"
-          ? state.error
-          : contentCopy.page.studioDescription;
+      : state.profileConfigured
+        ? locale === "ko"
+          ? "프로필 준비가 끝났습니다. 지금은 새 콘텐츠를 만들 차례입니다."
+          : "Profile is ready. The next action is creating a new post."
+        : locale === "ko"
+          ? "콘텐츠를 만들기 전에 AI 스타 이름, 이미지, 소개를 먼저 정리하세요."
+          : "Set the AI star name, image, and intro before creating content.";
+    const steps = [
+      {
+        icon: <UserRound className="size-4" />,
+        label: locale === "ko" ? "AI 스타" : "AI Star",
+        status: state.profileConfigured
+          ? locale === "ko"
+            ? "준비됨"
+            : "Ready"
+          : locale === "ko"
+            ? "설정 필요"
+            : "Needs setup",
+      },
+      {
+        icon: <PenSquare className="size-4" />,
+        label: locale === "ko" ? "콘텐츠" : "Content",
+        status:
+          publishedCount > 0
+            ? `${publishedCount}${locale === "ko" ? "개 공개" : " published"}`
+            : locale === "ko"
+              ? "작성 대기"
+              : "No published posts",
+      },
+      {
+        icon: <Rss className="size-4" />,
+        label: locale === "ko" ? "피드" : "Feed",
+        status:
+          draftCount > 0
+            ? `${draftCount}${locale === "ko" ? "개 초안" : " drafts"}`
+            : locale === "ko"
+              ? "관리 가능"
+              : "Manageable",
+      },
+    ];
 
     return (
-      <div className="border-y border-slate-200/80 bg-white p-4 shadow-none sm:rounded-[30px] sm:border sm:border-white/80 sm:bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.93))] sm:p-5 sm:shadow-[0_22px_55px_rgba(15,23,42,0.08)]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="eyebrow">{contentCopy.page.studioEyebrow}</p>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-              {contentCopy.page.studioTitle}
-            </h2>
+      <section className="overflow-hidden border-y border-slate-200/80 bg-white shadow-none sm:rounded-[32px] sm:border sm:border-white/80 sm:shadow-[0_24px_70px_rgba(15,23,42,0.09)]">
+        <div className="bg-slate-950 p-4 text-white sm:p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/54">
+                {locale === "ko" ? "현재 위치" : "Current location"}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                {locale === "ko" ? "크리에이터 스튜디오" : contentCopy.page.studioTitle}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/62">
+                {helperText}
+              </p>
+            </div>
+            <CreatorProfileAvatar
+              avatarImageUrl={state.profile.avatarImageUrl}
+              displayName={displayName}
+              fallbackLabel={profileSummaryCopy.fallbackName}
+              sizeClassName="size-14"
+            />
           </div>
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
-            <LayoutGrid className="size-5" />
+
+          <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.055] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/48">
+                  {locale === "ko" ? "선택 AI 스타" : "Selected AI star"}
+                </p>
+                <p className="mt-1 truncate text-xl font-semibold tracking-tight">
+                  {displayName}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full border border-white/12 bg-white/10 px-3 py-1 text-xs font-semibold text-white/74">
+                {nextActionLabel}
+              </span>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {steps.map((step) => (
+                <div
+                  className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.045] p-3"
+                  key={step.label}
+                >
+                  <div className="flex items-center gap-2 text-white/70">
+                    {step.icon}
+                    <span className="truncate text-[0.72rem] font-semibold">
+                      {step.label}
+                    </span>
+                  </div>
+                  <p className="mt-2 truncate text-xs font-semibold text-white">
+                    {step.status}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
+
+          <Link
+            className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold !text-slate-950 shadow-[0_18px_42px_rgba(0,0,0,0.24)] transition hover:-translate-y-0.5 hover:bg-slate-100"
+            href={mainActionHref}
+          >
+            {mainActionLabel}
+            <ArrowRight className="size-4" />
+          </Link>
         </div>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">{workspaceMessage}</p>
-
-        {state.error && state.member?.status !== "completed" ? (
-          <div className="mt-3">
-            <Link
-              className="inline-flex text-sm font-semibold text-slate-950 underline"
-              href={activateHref}
-            >
-              {dictionary.referralsPage.actions.completeSignup}
-            </Link>
+        <div className="grid grid-cols-3 divide-x divide-slate-200 bg-white">
+          <div className="p-4">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              {contentCopy.labels.published}
+            </p>
+            <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+              {publishedCount}
+            </p>
           </div>
-        ) : null}
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <WorkspaceMetric
-            label={contentCopy.labels.posts}
-            value={String(state.summary.all)}
-          />
-          <WorkspaceMetric
-            label={contentCopy.labels.published}
-            value={String(publishedCount)}
-          />
-          <WorkspaceMetric
-            label={contentCopy.labels.draft}
-            value={String(draftCount)}
-          />
-          <WorkspaceMetric
-            label={contentCopy.labels.author}
-            value={state.profile.displayName || "-"}
-          />
+          <div className="p-4">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              {contentCopy.labels.draft}
+            </p>
+            <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+              {draftCount}
+            </p>
+          </div>
+          <div className="p-4">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              {contentCopy.labels.posts}
+            </p>
+            <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+              {state.summary.all}
+            </p>
+          </div>
         </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <StatusBadge status={contentCopy.labels.studioHome} />
-          <StatusBadge status={`${state.summary.all} ${contentCopy.labels.posts}`} />
-        </div>
-      </div>
+      </section>
     );
   }
 
@@ -10058,6 +10157,33 @@ export function CreatorContentStudioPage({
   }
 
   function renderHubActionCards() {
+    if (!canUseWorkspace) {
+      return (
+        <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
+          <div className="flex items-start gap-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+              <Check className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="eyebrow">
+                {locale === "ko" ? "사용 준비" : "Before using Studio"}
+              </p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+                {locale === "ko"
+                  ? "가입 상태를 먼저 완료하세요"
+                  : "Complete signup first"}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {locale === "ko"
+                  ? "크리에이터 스튜디오는 같은 회원 이메일로 가입과 지갑 준비가 완료된 뒤 사용할 수 있습니다."
+                  : "Creator Studio becomes available after signup and wallet readiness are completed with the same member email."}
+              </p>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
     return (
       <section className="space-y-3">
         <div>
@@ -10592,6 +10718,7 @@ export function CreatorContentStudioPage({
   function renderMobileHub() {
     return (
       <section className="grid gap-3 lg:hidden">
+        {renderStudioSignpostCard()}
         {renderRecentPostsPanel({ compact: true, hideManageLink: true })}
       </section>
     );
@@ -10773,9 +10900,9 @@ export function CreatorContentStudioPage({
       {view === "hub" ? (
         <>
           {renderMobileHub()}
-          <section className="hidden gap-5 lg:grid lg:grid-cols-[0.88fr_1.12fr]">
+          <section className="hidden gap-5 lg:grid lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
             <div className="space-y-3 sm:space-y-5">
-              {renderWorkspaceOverviewCard()}
+              {renderStudioSignpostCard()}
               {renderHubActionCards()}
             </div>
             {renderRecentPostsPanel({ compact: true })}
@@ -11039,25 +11166,6 @@ function TextAreaField({
       ) : null}
       <span className="mt-2 block text-xs leading-5 text-slate-500">{hint}</span>
     </label>
-  );
-}
-
-function WorkspaceMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-white/80 bg-white/90 px-4 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
-      <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 truncate text-lg font-semibold tracking-tight text-slate-950">
-        {value}
-      </p>
-    </div>
   );
 }
 
