@@ -722,7 +722,7 @@ export function FanletterStarReferralPanel({
                 {[
                   copy.labels.aiStarDiscovery,
                   copy.actions.joinAsFounder,
-                  "AgentRank",
+                  locale === "ko" ? "활동 기록" : "Activity log",
                 ].map((step, index) => (
                   <div
                     className="rounded-lg border border-zinc-200 bg-white p-2 text-center"

@@ -655,18 +655,18 @@ function FanletterAgentRankHomeCard({
   const copy = isKo
     ? {
         body: "발견, 참여, 초대, 기여 포인트 보상이 활동 기록으로 쌓입니다.",
-        cta: "AgentRank 보기",
+        cta: "활동 기록 보기",
         events: "활동 기록",
         network: "네트워크",
-        title: "Reputation Event Factory",
+        title: "행동이 활동 기록이 됩니다",
       }
     : {
         body:
-          "Discovery, joins, invites, and Contribution Point rewards are recorded as AgentRank reputation events.",
-        cta: "View AgentRank",
-        events: "Reputation Events",
+          "Discovery, joins, invites, and Contribution Point rewards are saved to your activity log.",
+        cta: "View activity log",
+        events: "Activity records",
         network: "Network",
-        title: "Reputation Event Factory",
+        title: "Your actions become activity records",
       };
   const scorePercent = Math.round(
     (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
@@ -692,7 +692,7 @@ function FanletterAgentRankHomeCard({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-700">
             <ShieldCheck className="size-4 shrink-0" />
-            AgentRank ERS
+            {copy.events}
           </p>
           <h2 className="mt-2 break-words text-base font-semibold text-[#12041f] [word-break:keep-all]">
             {copy.title}

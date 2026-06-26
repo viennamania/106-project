@@ -65,7 +65,7 @@ function getCopy(locale: Locale) {
           label: "AI 스타 채널",
         },
         {
-          detail: "연결 행동이 AgentRank 증거로 남는지",
+          detail: "연결 행동이 활동 기록으로 남는지",
           label: "활동 기록",
         },
       ],
@@ -147,7 +147,7 @@ function getCopy(locale: Locale) {
         label: "AI Star channel",
       },
       {
-        detail: "Whether the action becomes AgentRank evidence",
+        detail: "Whether the action becomes an activity record",
         label: "Activity record",
       },
     ],
@@ -194,7 +194,7 @@ function getCopy(locale: Locale) {
     steps: ["Operate", "TikTok", "Content", "Reputation"],
     tiktok: "TikTok",
     tiktokFocusBody:
-      "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an AgentRank activity record.",
+      "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an activity record.",
     tiktokFocusReady:
       "All operated AI Stars have TikTok connected. Next, review the activity records.",
     tiktokFocusTitle: "TikTok Next Action",
@@ -490,7 +490,7 @@ export function FanletterMyAIPage({
                     <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
                       <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold text-zinc-500">
                         <Sparkles className="size-3.5" />
-                        AgentRank
+                        {locale === "ko" ? "활동 기록" : "Activity log"}
                       </p>
                       <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
                         {account ? copy.eventConnected : copy.eventPending}

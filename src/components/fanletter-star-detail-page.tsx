@@ -1570,24 +1570,24 @@ function StarAgentRankJoinSignal({
   const isKorean = locale === "ko";
   const labels = isKorean
     ? {
-        cta: "AgentRank 보기",
+        cta: "활동 기록 보기",
         edges: "네트워크",
         events: "활동 기록",
         join: "파운더 참여",
         ledger: "이벤트 원장",
         referral: "추천 코드",
         reward: "기여 포인트 보상",
-        title: "이 참여가 AgentRank 신호가 됩니다",
+        title: "이 참여가 활동 기록이 됩니다",
       }
     : {
-        cta: "View AgentRank",
+        cta: "View activity log",
         edges: "Network",
-        events: "Reputation Events",
+        events: "Activity records",
         join: "Founder Join",
         ledger: "Event Ledger",
         referral: "Referral Code",
         reward: "Contribution Point Reward",
-        title: "This join becomes an AgentRank signal",
+        title: "This join becomes an activity record",
       };
   const scorePercent = Math.round(
     (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
@@ -1599,7 +1599,7 @@ function StarAgentRankJoinSignal({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
             <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
-            AgentRank ERS {snapshot.ers.score}
+            {isKorean ? "활동 점수" : "Activity score"} {snapshot.ers.score}
           </p>
           <h2 className="mt-1 break-words text-sm font-semibold text-[#12041f] [word-break:keep-all]">
             {labels.title}

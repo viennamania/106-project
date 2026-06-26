@@ -292,12 +292,12 @@ function getConfirmCopy(locale: Locale) {
     return {
       aiStar: "AI Star",
       body:
-        "This step records a 10 USDT creation intent and a new AI Star draft as AgentRank reputation events without real payment.",
+        "This step records a 10 USDT creation intent and a new AI Star draft as activity records without real payment.",
       cancel: "キャンセル",
       close: "Mock作成確認を閉じる",
       confirm: "Mock作成を確定",
       cost: "Cost",
-      event: "AgentRank event",
+      event: "Activity record",
       eventValue: "x402 mock payment intent",
       next: "After creation",
       nextValue: "AI Star draft + portfolio update",
@@ -311,12 +311,12 @@ function getConfirmCopy(locale: Locale) {
   return {
     aiStar: "AI Star",
     body:
-      "This step records a 10 USDT creation intent and a new AI Star draft as AgentRank reputation events without real payment.",
+      "This step records a 10 USDT creation intent and a new AI Star draft as activity records without real payment.",
     cancel: "Cancel",
     close: "Close mock launch confirmation",
     confirm: "Confirm mock launch",
     cost: "Cost",
-    event: "AgentRank event",
+    event: "Activity record",
     eventValue: "x402 mock payment intent",
     next: "After creation",
     nextValue: "AI Star draft + portfolio update",
