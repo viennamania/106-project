@@ -1515,6 +1515,18 @@ export function FanletterHomePage({
           title: "Where to next?",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
+  // Content-first: the Founder Club 2.0 growth-loop bar shows only after the
+  // member has acted at least once (same activity-history rule as the dashboard).
+  // New visitors get a clean first viewport (hero + AI star cards only).
+  const hasHomeActivityHistory = Boolean(
+    founderClubMemberPortfolio &&
+      (founderClubMemberPortfolio.roles.length > 0 ||
+        founderClubMemberPortfolio.ownedStars.length > 0 ||
+        founderClubMemberPortfolio.cpBalance > 0 ||
+        founderClubMemberPortfolio.scoutScore > 0 ||
+        founderClubMemberPortfolio.directInvites > 0 ||
+        founderClubMemberPortfolio.successfulInvites > 0),
+  );
   const shareContextLabels =
     locale === "ko"
       ? {
@@ -1712,16 +1724,18 @@ export function FanletterHomePage({
             topGrowingStarsHref={topGrowingStarsHref}
           />
 
-          <div className="mt-6 hidden items-center justify-between gap-3 rounded-full border border-zinc-200 bg-white/86 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:bg-white/76 sm:py-2 sm:text-xs sm:shadow-none">
-            <div className="flex min-w-0 items-center gap-2">
-              <Sparkles className="size-3.5 shrink-0 text-black" />
-              <span className="truncate">{copy.announcement.label}</span>
+          {hasHomeActivityHistory ? (
+            <div className="mt-6 hidden items-center justify-between gap-3 rounded-full border border-zinc-200 bg-white/86 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:bg-white/76 sm:py-2 sm:text-xs sm:shadow-none">
+              <div className="flex min-w-0 items-center gap-2">
+                <Sparkles className="size-3.5 shrink-0 text-black" />
+                <span className="truncate">{copy.announcement.label}</span>
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-zinc-50 px-3 py-1 text-[0.68rem] font-semibold text-black sm:bg-transparent sm:px-0 sm:py-0 sm:text-xs">
+                <span className="sm:hidden">{mobileAnnouncementCta}</span>
+                <span className="hidden sm:inline">{copy.announcement.prize}</span>
+              </span>
             </div>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-zinc-50 px-3 py-1 text-[0.68rem] font-semibold text-black sm:bg-transparent sm:px-0 sm:py-0 sm:text-xs">
-              <span className="sm:hidden">{mobileAnnouncementCta}</span>
-              <span className="hidden sm:inline">{copy.announcement.prize}</span>
-            </span>
-          </div>
+          ) : null}
         </div>
       </section>
 
