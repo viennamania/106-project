@@ -804,26 +804,19 @@ function FanletterProductHomeDashboard({
         memberPortfolio.directInvites > 0 ||
         memberPortfolio.successfulInvites > 0),
   );
+  // Single user-facing member score = CP (Contribution Points). Invite score and
+  // creator-eligibility % stay internal (used for creator-unlock gating) and are
+  // surfaced only inside the 만들기/creator-unlock funnel, not on the dashboard.
   const portfolioStats = [
-    {
-      label: isKo ? "초대 점수" : "Invite Score",
-      value: memberPortfolio?.scoutScore ?? 0,
-      suffix: "",
-    },
-    {
-      label: isKo ? "직접 초대" : "Direct Invites",
-      value: memberPortfolio?.directInvites ?? 0,
-      suffix: isKo ? "명" : "",
-    },
     {
       label: isKo ? "기여 포인트" : "Contribution Points",
       value: memberPortfolio?.cpBalance ?? 0,
       suffix: "",
     },
     {
-      label: isKo ? "Creator 가능성" : "Creator Eligibility",
-      value: memberPortfolio?.creatorEligibilityPercent ?? 0,
-      suffix: "%",
+      label: isKo ? "직접 초대" : "Direct Invites",
+      value: memberPortfolio?.directInvites ?? 0,
+      suffix: isKo ? "명" : "",
     },
   ];
   const productCopy = isKo
