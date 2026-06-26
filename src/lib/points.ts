@@ -170,6 +170,13 @@ export type RewardRedemptionRecord = {
   txHash: string | null;
 };
 
+export type PointSourceTotalsRecord = {
+  contentActivityPoints: number;
+  operationAdjustmentPoints: number;
+  otherEarnedPoints: number;
+  referralRewardPoints: number;
+};
+
 export type PointsSummaryRecord = {
   history: PointLedgerRecord[];
   lifetimePoints: number;
@@ -178,6 +185,7 @@ export type PointsSummaryRecord = {
   pointsToNextTier: number;
   progressPercent: number;
   reservedPoints: number;
+  sourceTotals: PointSourceTotalsRecord;
   spendablePoints: number;
   tier: PointTier;
   updatedAt: string | null;
@@ -218,6 +226,12 @@ export function createEmptyPointsSummary(): PointsSummaryRecord {
     pointsToNextTier: 1_000,
     progressPercent: 0,
     reservedPoints: 0,
+    sourceTotals: {
+      contentActivityPoints: 0,
+      operationAdjustmentPoints: 0,
+      otherEarnedPoints: 0,
+      referralRewardPoints: 0,
+    },
     spendablePoints: 0,
     tier: "basic",
     updatedAt: null,

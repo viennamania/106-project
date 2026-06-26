@@ -21,6 +21,7 @@ import {
   type PointBalanceDocument,
   type PointLedgerDocument,
   type PointLedgerSourceType,
+  type PointSourceTotalsRecord,
   type PointsSummaryRecord,
   type RewardCatalogResponse,
   type RewardCatalogId,
@@ -169,9 +170,11 @@ async function rollbackRewardRedemption({
 function buildPointsSummary({
   balance,
   history,
+  sourceTotals,
 }: {
   balance: PointBalanceDocument;
   history: PointLedgerDocument[];
+  sourceTotals?: PointSourceTotalsRecord;
 }): PointsSummaryRecord {
   const progress = getPointTierProgress(balance.spendablePoints);
 
@@ -183,6 +186,12 @@ function buildPointsSummary({
     pointsToNextTier: progress.pointsToNextTier,
     progressPercent: progress.progressPercent,
     reservedPoints: balance.reservedPoints,
+    sourceTotals: sourceTotals ?? {
+      contentActivityPoints: 0,
+      operationAdjustmentPoints: 0,
+      otherEarnedPoints: 0,
+      referralRewardPoints: 0,
+    },
     spendablePoints: balance.spendablePoints,
     tier: balance.tier,
     updatedAt: balance.updatedAt.toISOString(),
@@ -204,7 +213,11 @@ async function createOrUpdatePointBalance({
     ledgerCollection
       .aggregate<{
         _id: null;
+        contentActivityPoints: number;
         lifetimePoints: number;
+        operationAdjustmentPoints: number;
+        otherEarnedPoints: number;
+        referralRewardPoints: number;
         spendablePoints: number;
       }>([
         {
@@ -231,6 +244,66 @@ async function createOrUpdatePointBalance({
             },
             spendablePoints: {
               $sum: "$delta",
+            },
+            referralRewardPoints: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$delta", 0] },
+                      { $eq: ["$sourceType", "referral_reward"] },
+                      { $ne: ["$type", "rollback"] },
+                    ],
+                  },
+                  "$delta",
+                  0,
+                ],
+              },
+            },
+            contentActivityPoints: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$delta", 0] },
+                      { $eq: ["$sourceType", "bonus"] },
+                      { $ne: ["$type", "rollback"] },
+                    ],
+                  },
+                  "$delta",
+                  0,
+                ],
+              },
+            },
+            operationAdjustmentPoints: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$delta", 0] },
+                      { $eq: ["$sourceType", "admin"] },
+                      { $ne: ["$type", "rollback"] },
+                    ],
+                  },
+                  "$delta",
+                  0,
+                ],
+              },
+            },
+            otherEarnedPoints: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gt: ["$delta", 0] },
+                      { $not: [{ $in: ["$sourceType", ["referral_reward", "bonus", "admin"]] }] },
+                      { $ne: ["$type", "rollback"] },
+                    ],
+                  },
+                  "$delta",
+                  0,
+                ],
+              },
             },
           },
         },
@@ -270,7 +343,16 @@ async function createOrUpdatePointBalance({
     { upsert: true },
   );
 
-  return buildPointsSummary({ balance, history });
+  return buildPointsSummary({
+    balance,
+    history,
+    sourceTotals: {
+      contentActivityPoints: aggregate?.contentActivityPoints ?? 0,
+      operationAdjustmentPoints: aggregate?.operationAdjustmentPoints ?? 0,
+      otherEarnedPoints: aggregate?.otherEarnedPoints ?? 0,
+      referralRewardPoints: aggregate?.referralRewardPoints ?? 0,
+    },
+  });
 }
 
 export async function syncPointLedgerForMemberEmail(memberEmail: string) {

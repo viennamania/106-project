@@ -425,8 +425,6 @@ export function RewardsPage({
 
     return accumulator;
   }, {});
-  const membershipCardTier = getMembershipCardTier(state.redemptions);
-
   function handleRedeemReward(rewardId: RewardCatalogId) {
     const reward = state.catalog.find((item) => item.rewardId === rewardId);
 
@@ -697,24 +695,26 @@ export function RewardsPage({
 
                   <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
                     <MiniStat
+                      label={dictionary.rewardsPage.labels.referralRewardPoints}
+                      value={formatPoints(
+                        state.summary.sourceTotals.referralRewardPoints,
+                        locale,
+                      )}
+                    />
+                    <MiniStat
+                      label={dictionary.rewardsPage.labels.contentActivityPoints}
+                      value={formatPoints(
+                        state.summary.sourceTotals.contentActivityPoints,
+                        locale,
+                      )}
+                    />
+                    <MiniStat
                       label={dictionary.rewardsPage.labels.lifetimePoints}
                       value={formatPoints(state.summary.lifetimePoints, locale)}
                     />
                     <MiniStat
                       label={dictionary.rewardsPage.labels.pointTier}
                       value={getTierLabel(state.summary.tier, dictionary)}
-                    />
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.membershipCard}
-                      value={getMembershipCardLabel(membershipCardTier, dictionary)}
-                    />
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.nextTier}
-                      value={
-                        state.summary.nextTier
-                          ? getTierLabel(state.summary.nextTier, dictionary)
-                          : dictionary.rewardsPage.labels.maxTier
-                      }
                     />
                   </div>
 
@@ -2143,43 +2143,6 @@ function getTierLabel(tier: PointTier, dictionary: Dictionary) {
   }
 
   return dictionary.rewardsPage.tiers.basic;
-}
-
-function getMembershipCardTier(redemptions: RewardRedemptionRecord[]) {
-  if (
-    redemptions.some(
-      (redemption) =>
-        redemption.rewardId === "gold-card" && redemption.status === "completed",
-    )
-  ) {
-    return "gold" as const;
-  }
-
-  if (
-    redemptions.some(
-      (redemption) =>
-        redemption.rewardId === "silver-card" && redemption.status === "completed",
-    )
-  ) {
-    return "silver" as const;
-  }
-
-  return "none" as const;
-}
-
-function getMembershipCardLabel(
-  membershipCardTier: ReturnType<typeof getMembershipCardTier>,
-  dictionary: Dictionary,
-) {
-  if (membershipCardTier === "gold") {
-    return dictionary.rewardsPage.catalog.goldCard.title;
-  }
-
-  if (membershipCardTier === "silver") {
-    return dictionary.rewardsPage.catalog.silverCard.title;
-  }
-
-  return dictionary.common.notAvailable;
 }
 
 function formatDateTime(value: string, locale: string) {

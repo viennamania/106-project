@@ -529,6 +529,8 @@ export type Dictionary = {
     labels: {
       spendablePoints: string;
       lifetimePoints: string;
+      referralRewardPoints: string;
+      contentActivityPoints: string;
       currentTier: string;
       membershipCard: string;
       nextTier: string;
@@ -1416,11 +1418,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       labels: {
         spendablePoints: "사용 가능 포인트",
         lifetimePoints: "누적 적립 포인트",
+        referralRewardPoints: "추천 보상 포인트",
+        contentActivityPoints: "콘텐츠 활동 포인트",
         currentTier: "현재 등급",
         membershipCard: "보유 멤버 카드",
         nextTier: "다음 등급",
         pointTier: "현재 포인트 등급",
-        pointsToNextTier: "{points}P 남음",
+        pointsToNextTier: "다음 등급까지 {points}P",
         progress: "등급 진행도",
         rewardCatalog: "리워드 카탈로그",
         rewardCost: "필요 포인트",
@@ -2327,11 +2331,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       labels: {
         spendablePoints: "Spendable points",
         lifetimePoints: "Lifetime points",
+        referralRewardPoints: "Referral reward points",
+        contentActivityPoints: "Content activity points",
         currentTier: "Current tier",
         membershipCard: "Member card",
         nextTier: "Next tier",
         pointTier: "Current point tier",
-        pointsToNextTier: "{points}P left",
+        pointsToNextTier: "{points}P to next tier",
         progress: "Tier progress",
         rewardCatalog: "Reward catalog",
         rewardCost: "Required points",
@@ -3245,11 +3251,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       labels: {
         spendablePoints: "利用可能ポイント",
         lifetimePoints: "累計ポイント",
+        referralRewardPoints: "紹介報酬ポイント",
+        contentActivityPoints: "コンテンツ活動ポイント",
         currentTier: "現在の等級",
         membershipCard: "保有メンバーカード",
         nextTier: "次の等級",
         pointTier: "現在のポイント等級",
-        pointsToNextTier: "あと {points}P",
+        pointsToNextTier: "次の等級まで {points}P",
         progress: "等級進行度",
         rewardCatalog: "リワードカタログ",
         rewardCost: "必要ポイント",
@@ -4148,11 +4156,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       labels: {
         spendablePoints: "可用积分",
         lifetimePoints: "累计积分",
+        referralRewardPoints: "推荐奖励积分",
+        contentActivityPoints: "内容活动积分",
         currentTier: "当前等级",
         membershipCard: "已持有会员卡",
         nextTier: "下一等级",
         pointTier: "当前积分等级",
-        pointsToNextTier: "还差 {points}P",
+        pointsToNextTier: "距下一等级 {points}P",
         progress: "等级进度",
         rewardCatalog: "奖励目录",
         rewardCost: "所需积分",
