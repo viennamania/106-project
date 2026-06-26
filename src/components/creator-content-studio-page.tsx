@@ -10827,15 +10827,11 @@ export function CreatorContentStudioPage({
     : null;
   const headerDescription = isFanletterPaidUpload
     ? pageDescription
-    : isConnectionResolving || state.status === "loading"
-      ? contentCopy.messages.detailLoadingDescription
-      : view === "hub"
+    : view === "hub"
         ? locale === "ko"
           ? "AI 스타 프로필, 콘텐츠 작성, 게시물 관리를 한 곳에서 진행합니다."
           : "Manage AI star profile, content creation, and posts in one place."
-      : isDisconnected
-        ? contentCopy.messages.connectRequired
-        : pageDescription;
+      : pageDescription;
   const headerStats: CreatorStudioHeaderStat[] =
     view === "hub"
       ? [
@@ -10919,8 +10915,12 @@ export function CreatorContentStudioPage({
               {renderProfileCard()}
             </div>
             <div className="space-y-3 sm:space-y-5">
-              {renderAutomationPanel()}
-              {renderAutomationJobsPanel()}
+              {isDisconnected || isConnectionResolving ? null : (
+                <>
+                  {renderAutomationPanel()}
+                  {renderAutomationJobsPanel()}
+                </>
+              )}
             </div>
           </div>
         </section>
