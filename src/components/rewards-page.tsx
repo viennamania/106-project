@@ -1597,107 +1597,84 @@ function LedgerHistoryTable({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <div className="w-full max-w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-        <div className="w-full overflow-hidden">
-          <table className="w-full table-fixed border-separate border-spacing-0">
-            <thead>
-              <tr className="bg-slate-50/90">
-                <th
-                  className="w-[4.75rem] whitespace-nowrap border-b border-slate-200 px-2 py-3 text-left text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:w-[7rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
-                  scope="col"
-                >
-                  {dictionary.rewardsPage.history.typeLabel}
-                </th>
-                <th
-                  className="w-[8.25rem] border-b border-slate-200 px-2 py-3 text-left text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:w-[15rem] md:px-4 md:text-[0.68rem] md:tracking-[0.18em]"
-                  scope="col"
-                >
-                  {dictionary.rewardsPage.history.sourceLabel}
-                </th>
-                <th
-                  className="w-auto border-b border-slate-200 px-2 py-3 text-right text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-slate-500 md:px-4 md:text-[0.68rem] md:tracking-[0.18em] md:text-left"
-                  scope="col"
-                >
-                  <div className="flex flex-col items-end gap-1 text-right md:items-start md:text-left">
-                    <span className="whitespace-nowrap">
-                      {dictionary.rewardsPage.history.detailsLabel}
-                    </span>
-                    <span className="whitespace-nowrap text-[0.62rem] text-slate-400">
-                      {dictionary.rewardsPage.history.pointsLabel}
-                    </span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((entry, index) => {
-                const isPositive = entry.delta >= 0;
-                const typeLabel =
-                  entry.type === "earn"
-                    ? dictionary.rewardsPage.history.earn
-                    : dictionary.rewardsPage.history.adjustment;
-                const sourceLabel =
-                  entry.sourceMemberEmail ??
-                  (entry.sourceType === "referral_reward"
-                    ? dictionary.rewardsPage.history.referralReward
-                    : entry.sourceType === "admin"
-                      ? dictionary.rewardsPage.history.adminAdjustment
-                      : dictionary.rewardsPage.history.other);
-                const detailsLabel =
-                  entry.sourceType === "referral_reward" && entry.rewardLevel
-                    ? formatTemplate(dictionary.rewardsPage.history.levelReward, {
-                        level: entry.rewardLevel,
-                      })
-                    : entry.memo ?? dictionary.rewardsPage.history.other;
-                const rowBorderClass =
-                  index < entries.length - 1 ? "border-b border-slate-100" : "";
+      <div className="space-y-2">
+        {entries.map((entry) => {
+          const isPositive = entry.delta >= 0;
+          const typeLabel =
+            entry.type === "earn"
+              ? dictionary.rewardsPage.history.earn
+              : dictionary.rewardsPage.history.adjustment;
+          const sourceLabel =
+            entry.sourceMemberEmail ??
+            (entry.sourceType === "referral_reward"
+              ? dictionary.rewardsPage.history.referralReward
+              : entry.sourceType === "admin"
+                ? dictionary.rewardsPage.history.adminAdjustment
+                : dictionary.rewardsPage.history.other);
+          const detailsLabel =
+            entry.sourceType === "referral_reward" && entry.rewardLevel
+              ? formatTemplate(dictionary.rewardsPage.history.levelReward, {
+                  level: entry.rewardLevel,
+                })
+              : entry.memo ?? dictionary.rewardsPage.history.other;
+          const sourceIdLabel = entry.sourceId
+            ? compactLedgerSourceId(entry.sourceId)
+            : null;
 
-                return (
-                  <tr className="align-middle" key={entry.ledgerEntryId}>
-                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
-                      <div className="flex flex-col items-start gap-1.5 whitespace-nowrap sm:flex-row sm:items-center sm:gap-2">
-                        <InfoBadge>{typeLabel}</InfoBadge>
-                        {entry.rewardLevel ? (
-                          <InfoBadge>{`G${entry.rewardLevel}`}</InfoBadge>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className={cn("px-2 py-3.5 md:px-4", rowBorderClass)}>
-                      <div className="space-y-1.5">
-                        <p className="break-all text-[0.82rem] leading-5 font-medium text-slate-950 md:text-sm md:leading-6">
-                          {sourceLabel}
-                        </p>
-                        <p className="text-[0.68rem] leading-4 text-slate-500 md:text-xs md:leading-5">
-                          {formatDateTime(entry.createdAt, locale)}
-                        </p>
-                      </div>
-                    </td>
-                    <td className={cn("px-2 py-3.5 text-right md:px-4 md:text-left", rowBorderClass)}>
-                      <div className="space-y-2">
-                        <p className="break-words text-[0.8rem] leading-5 text-slate-600 md:text-sm md:leading-6">
-                          {detailsLabel}
-                        </p>
-                        <div className="flex justify-end">
-                          <span
-                            className={cn(
-                              "inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.82rem] font-semibold tabular-nums md:px-3 md:text-sm",
-                              isPositive
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                                : "border-rose-200 bg-rose-50 text-rose-900",
-                            )}
-                          >
-                            {isPositive ? "+" : ""}
-                            {formatPoints(entry.delta, locale)}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+          return (
+            <article
+              className="min-w-0 rounded-[22px] border border-slate-200 bg-white/95 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-4"
+              key={entry.ledgerEntryId}
+            >
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0 space-y-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <InfoBadge>{typeLabel}</InfoBadge>
+                    {entry.rewardLevel ? (
+                      <InfoBadge>{`G${entry.rewardLevel}`}</InfoBadge>
+                    ) : null}
+                    <InfoBadge className="max-w-full truncate">
+                      {sourceTypeLabel(entry.sourceType, dictionary)}
+                    </InfoBadge>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-950">
+                      {sourceLabel}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      {formatDateTime(entry.createdAt, locale)}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold tabular-nums",
+                    isPositive
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                      : "border-rose-200 bg-rose-50 text-rose-900",
+                  )}
+                >
+                  {isPositive ? "+" : ""}
+                  {formatPoints(entry.delta, locale)}
+                </span>
+              </div>
+
+              <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
+                  {dictionary.rewardsPage.history.detailsLabel}
+                </p>
+                <p className="mt-1 line-clamp-2 break-keep text-sm leading-6 text-slate-700">
+                  {humanizeLedgerMemo(detailsLabel)}
+                </p>
+                {sourceIdLabel ? (
+                  <p className="mt-1 truncate font-mono text-[0.68rem] text-slate-400">
+                    ID {sourceIdLabel}
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1799,6 +1776,42 @@ function shortenHash(value: string) {
   }
 
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
+function compactLedgerSourceId(value: string) {
+  const normalized = value.trim();
+  const lastSegment = normalized.split(":").filter(Boolean).at(-1) ?? normalized;
+
+  if (lastSegment.length <= 18) {
+    return lastSegment;
+  }
+
+  return `${lastSegment.slice(0, 8)}...${lastSegment.slice(-6)}`;
+}
+
+function humanizeLedgerMemo(value: string) {
+  return value
+    .replace(/^AIAVpark News source reveal vote$/i, "뉴스 출처 투표 보상")
+    .replace(/^AIAVpark News source reveal unlock$/i, "뉴스 출처 열람 보상")
+    .replace(/^AIAVpark News fan source reveal unlock$/i, "뉴스 출처 열람 참여 보상")
+    .replace(/^FanLetter News source reveal vote$/i, "뉴스 출처 투표 보상")
+    .replace(/^FanLetter News source reveal unlock$/i, "뉴스 출처 열람 보상")
+    .replace(/^FanLetter News fan source reveal unlock$/i, "뉴스 출처 열람 참여 보상");
+}
+
+function sourceTypeLabel(
+  sourceType: PointLedgerRecord["sourceType"],
+  dictionary: Dictionary,
+) {
+  if (sourceType === "referral_reward") {
+    return dictionary.rewardsPage.history.referralReward;
+  }
+
+  if (sourceType === "admin") {
+    return dictionary.rewardsPage.history.adminAdjustment;
+  }
+
+  return dictionary.rewardsPage.history.other;
 }
 
 function MessageCard({
