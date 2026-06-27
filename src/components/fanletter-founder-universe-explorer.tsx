@@ -155,8 +155,8 @@ const explorerCopy = {
     edge: "Edges",
     empty: "No members match this filter.",
     expansion: "AI Star Universe Expansion",
-    founderUniverse: "Founder Network",
-    founderJoins: "Founder Joins",
+    founderUniverse: "Creator Network",
+    founderJoins: "Joins",
     generatedBy: "Launched by",
     source: "Source AI Star Universe",
     member: "Member",
@@ -173,7 +173,7 @@ const explorerCopy = {
     scoreConfidence: "Confidence",
     spawned: "Spawned Stars",
     trustScore: "Reputation Score",
-    title: "Founder Network Explorer",
+    title: "Creator Network Explorer",
     viewAgentRank: "View activity",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
@@ -190,8 +190,8 @@ const explorerCopy = {
     edge: "Edges",
     empty: "条件に合うメンバーがいません。",
     expansion: "AI Star Universe Expansion",
-    founderUniverse: "Founder Network",
-    founderJoins: "Founder Joins",
+    founderUniverse: "Creator Network",
+    founderJoins: "Joins",
     generatedBy: "生成者",
     source: "Source AI Star Universe",
     member: "Member",
@@ -208,7 +208,7 @@ const explorerCopy = {
     scoreConfidence: "Confidence",
     spawned: "Spawned Stars",
     trustScore: "Reputation Score",
-    title: "Founder Network Explorer",
+    title: "Creator Network Explorer",
     viewAgentRank: "活動ログを見る",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
@@ -225,8 +225,8 @@ const explorerCopy = {
     edge: "연결",
     empty: "조건에 맞는 멤버가 없습니다.",
     expansion: "AI 스타 유니버스 확장",
-    founderUniverse: "파운더 네트워크",
-    founderJoins: "파운더 참여",
+    founderUniverse: "크리에이터 네트워크",
+    founderJoins: "참여",
     generatedBy: "배출 멤버",
     source: "출처 AI 스타 유니버스",
     member: "멤버",
@@ -243,7 +243,7 @@ const explorerCopy = {
     scoreConfidence: "집계 신뢰도",
     spawned: "파생 AI 스타",
     trustScore: "평판 점수",
-    title: "파운더 네트워크 탐색",
+    title: "크리에이터 네트워크 탐색",
     viewAgentRank: "활동 기록 보기",
     viewCoverage: "커버리지 감사",
     viewEvidencePacket: "증거 패킷",
@@ -267,9 +267,9 @@ function getDashboardCopy(locale: Locale) {
       allView: "전체 보기",
       contribution: "기여도",
       cpRewardThisMonth: "이번 달 보상 포인트",
-      directFounder: "직속 파운더",
+      directFounder: "직속 참여자",
       fanGrowth: "팬 증가",
-      founderClub: "파운더 네트워크",
+      founderClub: "크리에이터 네트워크",
       graphLegend: {
         active: "활성",
         direct: "나의 직속",
@@ -300,7 +300,7 @@ function getDashboardCopy(locale: Locale) {
         "홈",
         "AI 스타 데뷔",
         "성장 센터",
-        "파운더 네트워크",
+        "크리에이터 네트워크",
         "AI 스타관",
         "내 AI 스타",
         "AI 스타 마켓",
@@ -317,9 +317,9 @@ function getDashboardCopy(locale: Locale) {
     allView: "View All",
     contribution: "Contribution",
     cpRewardThisMonth: "This Month Reward Points",
-    directFounder: "Direct Founders",
+    directFounder: "Direct Participants",
     fanGrowth: "Fan Growth",
-    founderClub: "Founder Network",
+    founderClub: "Creator Network",
     graphLegend: {
       active: "Active",
       direct: "My Direct",
@@ -350,7 +350,7 @@ function getDashboardCopy(locale: Locale) {
       "Home",
       "AI Star Debut",
       "Growth Center",
-      "Founder Network",
+      "Creator Network",
       "AI Star Hall",
       "My AI Stars",
       "AI Star Market",
@@ -650,7 +650,7 @@ function FounderDashboardSidebar({
     {
       href: `/${locale}/fanletter/${encodedStarId}/universe`,
       icon: Network,
-      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      label: isKorean ? "크리에이터 네트워크" : "Creator Network",
       meta: isKorean ? "현재 화면" : "Current view",
     },
     {
@@ -697,7 +697,7 @@ function FounderDashboardSidebar({
           </span>
           <span className="inline-flex items-center gap-2 text-zinc-950">
             <Network className="size-3.5 text-zinc-700" />
-            {isKorean ? "파운더 네트워크" : "Founder Network"}
+            {isKorean ? "크리에이터 네트워크" : "Creator Network"}
           </span>
         </div>
       </div>
@@ -890,7 +890,7 @@ function FounderUniverseMobileSignpost({
               {starName}
             </h2>
             <p className="mt-0.5 text-sm font-semibold text-zinc-500">
-              {isKorean ? "파운더 네트워크" : "Founder Network"}
+              {isKorean ? "크리에이터 네트워크" : "Creator Network"}
             </p>
           </div>
         </div>
@@ -1092,7 +1092,7 @@ function FounderNetworkRelationshipSummary({
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              {isKorean ? "파운더 네트워크 관계" : "Founder Network"}
+              {isKorean ? "크리에이터 네트워크 관계" : "Creator Network"}
             </p>
             <p className="mt-1 truncate text-base font-semibold text-zinc-950">
               {selectedNode?.label ?? starName}
@@ -1143,7 +1143,7 @@ function FounderNetworkTierStructureCard({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
             <Users className="size-3.5" />
-            {isKorean ? "파운더 네트워크" : "Founder Network"}
+            {isKorean ? "크리에이터 네트워크" : "Creator Network"}
           </p>
           <h2 className="mt-1 text-lg font-semibold tracking-normal">
             {isKorean ? "6단계 구조" : "6-tier structure"}
@@ -1456,7 +1456,7 @@ function FounderNetworkContextGraphCard({
     },
     {
       icon: Network,
-      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      label: isKorean ? "크리에이터 네트워크" : "Creator Network",
       value: selectedRoleLabel,
     },
     {
@@ -1637,8 +1637,8 @@ function FounderStarHero({
             <p className="mt-6 max-w-md text-sm font-medium leading-6 text-slate-500">
               {starName}
               {locale === "ko"
-                ? "는 파운더와 함께 성장하는 AI 스타입니다."
-                : " is an AI Star growing with Founders."}
+                ? "는 팬과 함께 성장하는 AI 스타입니다."
+                : " is an AI Star growing with Fans."}
             </p>
             <div className="mt-5 grid gap-2 sm:grid-cols-3">
               <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
@@ -1647,7 +1647,7 @@ function FounderStarHero({
                   {formatNumber(universe.star.founderCount, locale)}
                 </p>
                 <p className="text-xs font-semibold text-slate-500">
-                  {locale === "ko" ? "파운더" : "Founder"}
+                  {locale === "ko" ? "참여자" : "Participants"}
                 </p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
@@ -2158,7 +2158,7 @@ function FounderUniverseDashboardPanel({
   const metricStrip = [
     {
       icon: Users,
-      label: locale === "ko" ? "파운더" : "Founders",
+      label: locale === "ko" ? "참여자" : "Participants",
       sublabel: locale === "ko" ? "활동 중" : "active",
       value: formatNumber(universe.totals.totalMembers, locale),
     },
@@ -2211,8 +2211,8 @@ function FounderUniverseDashboardPanel({
           </h2>
           <p className="mt-4 hidden max-w-sm text-sm font-medium leading-6 text-white/64 sm:block">
             {locale === "ko"
-              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 행동 결과가 활동 기록으로 남습니다.`
-              : `${starName}'s AI Star Universe contains the Founder Network that grows members and records action results.`}
+              ? `${starName}의 AI 스타 유니버스 안에서 크리에이터 네트워크가 성장하고, 행동 결과가 활동 기록으로 남습니다.`
+              : `${starName}'s AI Star Universe contains the Creator Network that grows members and records action results.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -2302,8 +2302,8 @@ function FounderUniverseDashboardPanel({
             </p>
             <p className="mt-1 text-xs font-medium text-white/48">
               {locale === "ko"
-                ? "AI 스타 유니버스 안의 6단계 파운더 네트워크"
-                : "6-tier Founder Network inside the AI Star Universe"}
+                ? "AI 스타 유니버스 안의 6단계 크리에이터 네트워크"
+                : "6-tier Creator Network inside the AI Star Universe"}
             </p>
           </div>
           <FounderUniverseOrbitMap
@@ -2667,8 +2667,8 @@ function SelectedMemberDetailPanel({
   const roleLabel = node ? v2Copy.roles[node.role] : dashboardCopy.selectedMember;
   const description =
     locale === "ko"
-      ? "보고 있는 멤버의 파운더 네트워크 위치, 기여도, 직접 하위 멤버를 확인합니다."
-      : "Review this member's Founder Network position, contribution, and direct downstream members.";
+      ? "보고 있는 멤버의 크리에이터 네트워크 위치, 기여도, 직접 하위 멤버를 확인합니다."
+      : "Review this member's Creator Network position, contribution, and direct downstream members.";
 
   return (
     <FanletterResponsiveActionPanel
@@ -3373,8 +3373,8 @@ function FounderNetworkReputationRecordFlow({
             </h2>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500 [word-break:keep-all]">
               {locale === "ko"
-                ? "AI 스타 유니버스 안에서 참여와 추천이 발생하면, 파운더 네트워크 성장 기록과 기여 포인트 변화로 남습니다."
-                : "When joins and referrals happen inside this AI Star Universe, they become Founder Network growth records and Contribution Point changes."}
+                ? "AI 스타 유니버스 안에서 참여와 추천이 발생하면, 크리에이터 네트워크 성장 기록과 기여 포인트 변화로 남습니다."
+                : "When joins and referrals happen inside this AI Star Universe, they become Creator Network growth records and Contribution Point changes."}
             </p>
           </div>
           <div className="grid gap-2 sm:flex sm:shrink-0">
@@ -4047,7 +4047,7 @@ export function FanletterFounderUniverseExplorer({
                     className="rounded-full bg-zinc-100 px-2.5 py-1 !text-zinc-700 transition hover:bg-zinc-200"
                     href={`/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`}
                   >
-                    Founder Club
+                    Creator Club
                   </Link>
                   <ChevronRight className="size-3.5 text-zinc-300" />
                   <span className="rounded-full bg-zinc-100 px-2.5 py-1">
@@ -4055,7 +4055,7 @@ export function FanletterFounderUniverseExplorer({
                   </span>
                   <ChevronRight className="size-3.5 text-zinc-300" />
                   <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-white">
-                    {locale === "ko" ? "파운더 네트워크" : "Founder Network"}
+                    {locale === "ko" ? "크리에이터 네트워크" : "Creator Network"}
                   </span>
                 </div>
                 <p className="mt-3 truncate text-xl font-semibold text-zinc-950">
