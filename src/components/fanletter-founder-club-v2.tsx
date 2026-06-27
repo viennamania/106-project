@@ -1357,10 +1357,10 @@ function FounderSlotPlaceholder({
 function FounderUniverseTierRail({ locale }: { locale: Locale }) {
   return (
     <div className="mt-4 rounded-lg border border-violet-100 bg-violet-50/60 p-3">
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
         {founderUniverseTierCapacities.map((capacity, index) => (
           <div
-            className="rounded-md border border-white bg-white/80 px-1.5 py-2 text-center shadow-[0_8px_18px_rgba(88,28,135,0.06)]"
+            className="min-w-0 rounded-md border border-white bg-white/80 px-1.5 py-2 text-center shadow-[0_8px_18px_rgba(88,28,135,0.06)]"
             key={capacity}
           >
             <p className="text-[0.66rem] font-semibold text-violet-500">
