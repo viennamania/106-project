@@ -502,7 +502,7 @@ function getCopy(locale: Locale) {
         reporterPartner: {
           attributedRevenue: "기여 매출",
           body:
-            "독자가 이 리포트에서 보고싶어요, 언락, 유료 구매를 하면 팬 기자 성과로 기록되어 캐릭터 성장과 수익 공유 기준이 누적됩니다.",
+            "독자가 이 리포트에서 보고싶어요, 언락, 유료 구매를 하면 팬 기자 성과로 기록되어 캐릭터 성장과 보상 기준이 누적됩니다.",
           eyebrow: "Fan Reporter Partner",
           paidPurchases: "구매 기여",
           rewardPoints: "보상 포인트",
@@ -829,7 +829,7 @@ function getCopy(locale: Locale) {
         reporterPartner: {
           attributedRevenue: "Attributed revenue",
           body:
-            "When readers want-to-watch, unlock, or buy from this report, that contribution is recorded toward character growth and revenue-sharing basis.",
+            "When readers want-to-watch, unlock, or buy from this report, that contribution is recorded toward character growth and reward basis.",
           eyebrow: "Fan Reporter Partner",
           paidPurchases: "Purchase contribution",
           rewardPoints: "Reward points",

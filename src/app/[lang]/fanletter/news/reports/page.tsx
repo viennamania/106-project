@@ -77,12 +77,12 @@ function getCopy(locale: Locale) {
         newReportCta: "새 리포트 작성",
         newReportTitle: "티저 기반 리포트 작성실",
         partnerModel: {
-          attributedRevenue: "수익 공유 기준 매출",
+          attributedRevenue: "보상 기준 매출",
           body:
             "리포터가 작성한 뉴스가 캐릭터 팬을 만들고 원본 브이로그 구매까지 이어지면 해당 리포트의 기여 성과로 기록됩니다.",
           eyebrow: "Fan Reporter Partner",
           paidPurchases: "유료 구매 기여",
-          steps: ["리포트 작성", "팬 반응 유도", "포인트·수익 공유 기준 누적"],
+          steps: ["리포트 작성", "팬 반응 유도", "포인트·보상 기준 누적"],
           title: "팬 기자가 AI 캐릭터 IP 성장 파트너가 됩니다",
         },
         memberOnly: "회원 전용",
@@ -179,12 +179,12 @@ function getCopy(locale: Locale) {
         newReportCta: "Create new report",
         newReportTitle: "Teaser-based report desk",
         partnerModel: {
-          attributedRevenue: "Revenue-share basis",
+          attributedRevenue: "Reward basis",
           body:
             "When a report helps readers become fans and purchase the source vlog, that purchase is attributed back to the fan reporter's report.",
           eyebrow: "Fan Reporter Partner",
           paidPurchases: "Paid purchase contribution",
-          steps: ["Publish reports", "Drive fan actions", "Accumulate points and revenue-share basis"],
+          steps: ["Publish reports", "Drive fan actions", "Accumulate points and reward basis"],
           title: "Fan reporters grow AI character IP as partners",
         },
         memberOnly: "Members only",

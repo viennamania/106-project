@@ -367,7 +367,7 @@ const koCopy: FanletterCopy = {
     eyebrow: "숏폼 게시 패키지",
   },
   proof: {
-    title: "팬 요청부터 캐릭터 성장과 수익 공유까지",
+    title: "팬 요청부터 캐릭터 성장과 창작 보상까지",
     stats: [
       { label: "팬 요청", value: "01" },
       { label: "성장 단계", value: "05" },
@@ -583,7 +583,7 @@ const enCopy: FanletterCopy = {
     eyebrow: "Short-form posting package",
   },
   proof: {
-    title: "From fan requests to character growth and revenue sharing",
+    title: "From fan requests to character growth and creator rewards",
     stats: [
       { label: "fan requests", value: "01" },
       { label: "growth stage", value: "05" },

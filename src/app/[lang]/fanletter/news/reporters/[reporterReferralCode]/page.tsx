@@ -69,7 +69,7 @@ function getCopy(locale: Locale) {
         },
         hero: {
           body:
-            "팬 기자가 AI 캐릭터의 팬이 되어 뉴스를 만들고, 독자의 보고싶어요·언락·구매 행동을 캐릭터 IP 성장과 수익 공유 기준으로 연결합니다.",
+            "팬 기자가 AI 캐릭터의 팬이 되어 뉴스를 만들고, 독자의 보고싶어요·언락·구매 행동을 캐릭터 IP 성장과 보상 기준으로 연결합니다.",
           eyebrow: "Fan Reporter Channel",
           fallbackName: (code: string) => `${code} 팬 기자`,
           kicker: "AI 캐릭터 IP 성장 파트너",
@@ -90,7 +90,7 @@ function getCopy(locale: Locale) {
         model: {
           body:
             "리포터 채널은 단순 작성자 목록이 아니라, 어떤 팬 기자가 어떤 AI 캐릭터의 팬덤과 유료 콘텐츠 소비를 만들어내는지 보여주는 공개 신뢰 지표입니다.",
-          steps: ["뉴스 작성", "팬 반응 유도", "수익 공유 기준 누적"],
+          steps: ["뉴스 작성", "팬 반응 유도", "보상 기준 누적"],
           title: "팬 기자가 캐릭터 성장 루프를 만듭니다",
         },
         nsfwExcluded: (count: string) =>
@@ -146,7 +146,7 @@ function getCopy(locale: Locale) {
         },
         hero: {
           body:
-            "Fan reporters become fans of AI characters, publish news, and connect reader want-to-watch, unlock, and purchase actions to character growth and revenue-sharing basis.",
+            "Fan reporters become fans of AI characters, publish news, and connect reader want-to-watch, unlock, and purchase actions to character growth and reward basis.",
           eyebrow: "Fan Reporter Channel",
           fallbackName: (code: string) => `Fan reporter ${code}`,
           kicker: "AI character IP growth partner",
