@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { FanletterContentVideoStructuredData } from "@/components/fanletter-content-video-structured-data";
 import { FanletterContentDetailPage } from "@/components/fanletter-subpages";
 import { getFanletterPublicContentDetail } from "@/lib/fanletter-content-service";
 import { getPublishedContentShareMetadata } from "@/lib/content-service";
@@ -129,29 +130,45 @@ export default async function LocalizedFanletterContentDetailPage({
     ? getLegacyFanletterStarId(content.authorReferralCode)
     : null;
   const trackingStarId = readFanletterStarId(query.starId) ?? authorStarId;
+  const videoShareMeta = await getPublishedContentShareMetadata(contentId);
 
   return (
-    <FanletterContentDetailPage
-      content={content}
-      coverageAction={normalizeAgentRankCoverageAction(query.coverageAction)}
-      locale={locale}
-      newsReportCount={newsReportResult.reportCount}
-      newsReports={newsReportResult.reports.map((report) => ({
-        coverImageUrl: report.coverImageUrl,
-        createdAt: report.createdAt.toISOString(),
-        dek: report.dek,
-        href: createFanletterNewsReportShareHref(report),
-        isViewerReport:
-          Boolean(viewerReporterReferralCode) &&
-          report.reporterReferralCode === viewerReporterReferralCode,
-        reporterName: report.reporterName,
-        reportId: report.reportId,
-        title: report.title,
-      }))}
-      referralCode={readFanletterReferralCode(query.ref)}
-      returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
-      trackingStarId={trackingStarId}
-      viewerReporterReferralCode={viewerReporterReferralCode}
-    />
+    <>
+      <FanletterContentVideoStructuredData
+        contentUrl={videoShareMeta?.contentVideoUrl}
+        creatorName={videoShareMeta?.authorDisplayName}
+        description={videoShareMeta?.summary}
+        name={videoShareMeta?.title}
+        pageUrl={`/${locale}/fanletter/content/${contentId}`}
+        thumbnailUrl={videoShareMeta?.coverImageUrl}
+        uploadDate={
+          videoShareMeta?.publishedAt
+            ? new Date(videoShareMeta.publishedAt).toISOString()
+            : null
+        }
+      />
+      <FanletterContentDetailPage
+        content={content}
+        coverageAction={normalizeAgentRankCoverageAction(query.coverageAction)}
+        locale={locale}
+        newsReportCount={newsReportResult.reportCount}
+        newsReports={newsReportResult.reports.map((report) => ({
+          coverImageUrl: report.coverImageUrl,
+          createdAt: report.createdAt.toISOString(),
+          dek: report.dek,
+          href: createFanletterNewsReportShareHref(report),
+          isViewerReport:
+            Boolean(viewerReporterReferralCode) &&
+            report.reporterReferralCode === viewerReporterReferralCode,
+          reporterName: report.reporterName,
+          reportId: report.reportId,
+          title: report.title,
+        }))}
+        referralCode={readFanletterReferralCode(query.ref)}
+        returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
+        trackingStarId={trackingStarId}
+        viewerReporterReferralCode={viewerReporterReferralCode}
+      />
+    </>
   );
 }
