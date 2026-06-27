@@ -281,7 +281,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
                 className={cn(
                   "group flex h-[3.45rem] min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[0.64rem] font-semibold text-zinc-500 transition hover:bg-zinc-100 hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
                   active &&
-                    "bg-zinc-950 text-white shadow-[0_12px_26px_rgba(15,23,42,0.18)] hover:bg-zinc-900 hover:text-white",
+                    "bg-zinc-950 !text-white shadow-[0_12px_26px_rgba(15,23,42,0.18)] hover:bg-zinc-900 hover:!text-white",
                 )}
                 href={item.href}
                 key={item.key}
@@ -289,7 +289,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
                 <span
                   className={cn(
                     "inline-flex size-7 shrink-0 items-center justify-center rounded-full transition",
-                    active ? "text-white" : "text-zinc-700 group-hover:text-black",
+                    active ? "!text-white" : "text-zinc-700 group-hover:text-black",
                   )}
                 >
                   <Icon className="size-5" />
