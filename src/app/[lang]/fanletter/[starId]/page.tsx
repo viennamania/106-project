@@ -8,6 +8,12 @@ import {
 } from "@/lib/agentrank/coverage-action";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
+  buildFanletterOgImagePath,
+  buildFanletterOgVersionToken,
+  FANLETTER_OG_IMAGE_SIZE,
+  getFanletterOgAlt,
+} from "@/lib/fanletter-og";
+import {
   getFanletterFounderClubHomeStars,
   getFanletterFounderClubMemberPortfolio,
   getFanletterFounderClubStarScoutShareLoop,
@@ -181,6 +187,25 @@ export async function generateMetadata({
     locale === "ko"
       ? `${star.name} ${specialty} AI 스타 유니버스입니다. 팬으로 참여하고 추천 코드를 만들어 크리에이터 네트워크 안에서 성장하세요.`
       : `${star.name} ${specialty} AI Star Universe. Join as a Fan, create a referral code, and grow through the Creator Network.`;
+  const ogImage = {
+    alt: getFanletterOgAlt(locale, "creator"),
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    type: "image/png",
+    url: buildFanletterOgImagePath({
+      description,
+      locale,
+      title,
+      variant: "creator",
+      version:
+        buildFanletterOgVersionToken(
+          "star-universe-og-v1",
+          star.id,
+          title,
+          description,
+        ) ?? star.id,
+    }),
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title,
@@ -190,6 +215,7 @@ export async function generateMetadata({
     },
     openGraph: {
       description,
+      images: [ogImage],
       siteName: "AIAVpark",
       title,
       type: "website",
@@ -198,6 +224,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       description,
+      images: [ogImage],
       title,
     },
   };
