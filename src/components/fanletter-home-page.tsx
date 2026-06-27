@@ -718,7 +718,7 @@ function FanletterAgentRankHomeCard({
             <p className="truncate text-sm font-semibold text-[#12041f]">
               {formatMetric(metric.value, locale)}
             </p>
-            <p className="mt-1 truncate text-[0.58rem] font-semibold text-slate-400">
+            <p className="mt-1 truncate text-[0.66rem] font-semibold text-slate-400">
               {metric.label}
             </p>
           </div>
@@ -1138,7 +1138,7 @@ function FanletterProductHomeDashboard({
                               <span className="block truncate text-sm font-semibold text-zinc-950">
                                 {value}
                               </span>
-                              <span className="mt-0.5 block break-words text-[0.54rem] font-semibold leading-tight tracking-normal text-slate-400">
+                              <span className="mt-0.5 block break-words text-[0.66rem] font-semibold leading-tight tracking-normal text-slate-400">
                                 {label}
                               </span>
                             </span>
@@ -1305,7 +1305,7 @@ function FanletterProductHomeDashboard({
                       value={Number(value)}
                     />
                   </p>
-                  <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  <p className="mt-1 text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
                     {label}
                   </p>
                 </div>
