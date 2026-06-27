@@ -808,7 +808,9 @@ function FanletterProductHomeDashboard({
         referralCode,
       )
     : aiStarGenealogyHref;
-  const topStars = starList.slice(0, 3);
+  // Show up to 4 cards so the desktop carousel row fills its width (≈4 fit) and
+  // the strip matches the home star set (HOME_STAR_LIMIT); mobile scrolls as before.
+  const topStars = starList.slice(0, 4);
   // Content-first home: the progress / score / next-action dashboard + community
   // stats render only for a logged-in member with real activity. Guests and
   // brand-new members lead with AI-star discovery instead of a zeroed dashboard.
