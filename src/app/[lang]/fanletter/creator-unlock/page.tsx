@@ -21,23 +21,23 @@ function getCreatorUnlockMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "Founder Club 2.0에서 크리에이터 권한 활성화 후 새 AI 스타를 출시하는 10 USDT 미리보기 흐름입니다.",
-      title: "크리에이터 권한 활성화 | FanLetter Founder Club 2.0",
+        "Creator Club 2.0에서 크리에이터 권한 활성화 후 새 AI 스타를 출시하는 10 USDT 미리보기 흐름입니다.",
+      title: "크리에이터 권한 활성화 | FanLetter Creator Club 2.0",
     };
   }
 
   if (locale === "ja") {
     return {
       description:
-        "Preview the Founder Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
-      title: "Creator Permission Activation | FanLetter Founder Club 2.0",
+        "Preview the Creator Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
+      title: "Creator Permission Activation | FanLetter Creator Club 2.0",
     };
   }
 
   return {
     description:
-      "Preview the Founder Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
-    title: "Creator Permission Activation | FanLetter Founder Club 2.0",
+      "Preview the Creator Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
+    title: "Creator Permission Activation | FanLetter Creator Club 2.0",
   };
 }
 
