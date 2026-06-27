@@ -679,13 +679,9 @@ export function MemberPortfolio({
             : copy.memberPortfolio.manageStarCta,
         }
       : null;
-  // Single user-facing member score = CP. Invite score / creator-eligibility %
-  // stay internal (creator-unlock gating); only CP + factual invite counts show here.
+  // CP (기여 포인트) is internal-only and never shown as a member score (#135);
+  // only factual invite counts are surfaced here.
   const metrics = [
-    {
-      label: copy.labels.cpBalance,
-      value: formatNumber(portfolio.cpBalance, locale),
-    },
     {
       label: copy.labels.directInvites,
       value: portfolio.directInvites,
@@ -771,7 +767,7 @@ export function MemberPortfolio({
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="mt-5 grid grid-cols-2 gap-2">
         {metrics.map((metric) => (
           <div
             className="min-w-0 rounded-lg border border-black/8 bg-white p-3"
