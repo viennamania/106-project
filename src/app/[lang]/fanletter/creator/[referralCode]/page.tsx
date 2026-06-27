@@ -8,7 +8,6 @@ import {
   type FanletterCreatorPageData,
 } from "@/lib/fanletter-content-service";
 import {
-  buildFanletterLocaleAlternates,
   buildFanletterOgImagePath,
   buildFanletterOgVersionToken,
   FANLETTER_OG_IMAGE_SIZE,
@@ -141,7 +140,9 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: buildFanletterLocaleAlternates(locale, url),
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description: shareMetadata.description,
       images: [ogImage],
