@@ -109,7 +109,7 @@ export function FanletterNsfwOptInControl({
                   : "bg-rose-400 text-black"
                 : isDarkTone
                   ? "bg-white text-rose-950"
-                  : "bg-black text-white",
+                  : "bg-black !text-white",
             )}
           >
             <AlertTriangle className="size-5" />

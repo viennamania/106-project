@@ -932,7 +932,7 @@ function SourceUniverseSelector({
   return (
     <section className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
           <GitBranch className="size-5" />
         </span>
         <div>
@@ -1479,7 +1479,7 @@ function PortfolioReflectionPreview({
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
           <BadgeCheck className="size-5" />
         </span>
         <div>
@@ -1640,7 +1640,7 @@ function MockLaunchEventReceiptCard({
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
           <RocketIcon />
         </span>
         <div className="min-w-0">
@@ -1919,7 +1919,7 @@ function AccountConnectionNotice({
     <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
             <BadgeCheck className="size-5" />
           </span>
           <div className="min-w-0">
@@ -2066,7 +2066,7 @@ function CreatorUnlockStateStrip({
           <div
             className={joinClasses(
               "min-w-0 rounded-lg border px-3 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.055)]",
-              item.priority && "border-black bg-black text-white",
+              item.priority && "border-black bg-black !text-white",
               !item.priority && "bg-white",
               !item.priority && item.tone === "emerald" && "border-emerald-200",
               !item.priority && item.tone === "amber" && "border-amber-200",
@@ -2626,7 +2626,7 @@ function CreatorJourneyEventPath({
                 "min-w-0 rounded-lg border p-3 transition",
                 isDone && "border-emerald-200 bg-emerald-50",
                 isActive &&
-                  "border-black bg-black text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)]",
+                  "border-black bg-black !text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)]",
                 !isDone && !isActive && "border-zinc-200 bg-white",
               )}
               key={step.eventType}
@@ -2636,7 +2636,7 @@ function CreatorJourneyEventPath({
                   className={joinClasses(
                     "flex size-9 shrink-0 items-center justify-center rounded-lg",
                     isDone && "bg-emerald-600 text-white",
-                    isActive && "bg-black text-white",
+                    isActive && "bg-black !text-white",
                     !isDone && !isActive && "bg-zinc-100 text-zinc-500",
                   )}
                 >
@@ -3026,7 +3026,7 @@ function CreatorTikTokContextBridgeCard({
                   className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3"
                   key={item.label}
                 >
-                  <span className="flex size-8 items-center justify-center rounded-lg bg-black text-white">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-black !text-white">
                     <Icon className="size-4" />
                   </span>
                   <p className="mt-3 truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
@@ -3216,7 +3216,7 @@ function CreatorJourneyStepLinks({
               className={joinClasses(
                 "group flex min-w-0 items-start gap-3 rounded-lg border p-3 transition sm:p-4",
                 highlighted
-                  ? "border-black bg-black text-white"
+                  ? "border-black bg-black !text-white"
                   : done
                     ? "border-emerald-200 bg-emerald-50 text-emerald-950"
                   : "border-zinc-200 bg-zinc-50 text-zinc-950 hover:border-zinc-300 hover:bg-white",
@@ -3483,7 +3483,7 @@ function CreatorJourneyProductHero({
               className={joinClasses(
                 "grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 rounded-lg border px-3 py-2.5",
                 index === 1
-                  ? "border-black bg-black text-white"
+                  ? "border-black bg-black !text-white"
                   : "border-zinc-200 bg-zinc-50 text-zinc-950",
               )}
               key={item.label}
@@ -3590,7 +3590,7 @@ function CreatorJourneyProductHero({
                 className={joinClasses(
                   "min-w-0 rounded-xl border px-2 py-2 text-center",
                   item.active
-                    ? "border-black bg-black text-white"
+                    ? "border-black bg-black !text-white"
                     : item.done
                       ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                       : "border-zinc-200 bg-zinc-50 text-zinc-600",
@@ -4581,7 +4581,7 @@ export function FanletterCreatorUnlockPage({
               id="mock-launch-panel"
             >
               <div className="flex items-start gap-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
                   <Sparkles className="size-5" />
                 </span>
                 <div>
@@ -4705,7 +4705,7 @@ export function FanletterCreatorUnlockPage({
           <div className="grid min-w-0 gap-4">
             <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
               <div className="mb-4 flex items-center gap-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
                   <Bot className="size-5" />
                 </span>
                 <div>

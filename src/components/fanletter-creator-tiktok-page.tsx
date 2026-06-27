@@ -531,7 +531,7 @@ export function FanletterCreatorTikTokPage({
                   className={joinClasses(
                     "rounded-xl px-2 py-3 text-center transition",
                     item.active
-                      ? "bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+                      ? "bg-black !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
                       : item.done
                         ? "bg-emerald-50 text-emerald-950"
                         : "bg-white text-zinc-600",
@@ -819,7 +819,7 @@ export function FanletterCreatorTikTokPage({
                         className={joinClasses(
                           "flex min-h-12 items-center justify-between gap-3 rounded-xl border px-3 text-sm font-semibold transition",
                           isSelected
-                            ? "border-black bg-black text-white"
+                            ? "border-black bg-black !text-white"
                             : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
                         )}
                         href={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(star.id)}`}
