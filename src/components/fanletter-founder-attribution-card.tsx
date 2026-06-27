@@ -19,15 +19,15 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI 스타",
       body:
-        "계정 연결 후 이 가입은 아래 AI 스타 유니버스의 파운더 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
+        "계정 연결 후 이 가입은 아래 AI 스타 유니버스의 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
       connectedBody:
-        "계정 연결이 확인되었습니다. 파운더 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
-      connectedTitle: "파운더 참여 확정 대기",
+        "계정 연결이 확인되었습니다. 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
+      connectedTitle: "참여 확정 대기",
       completedBody:
-        "이미 이 AI 스타 유니버스의 파운더입니다. 내 추천 링크로 새 파운더를 초대하면 기여 포인트와 영향력이 누적됩니다.",
-      completedTitle: "파운더 가입 완료",
-      founderBadge: "파운더",
-      founderClubLabel: "파운더 클럽 2.0",
+        "이미 이 AI 스타 유니버스에 참여 중입니다. 내 추천 링크로 새 팬을 초대하면 기여 포인트와 영향력이 누적됩니다.",
+      completedTitle: "참여 완료",
+      founderBadge: "팬",
+      founderClubLabel: "크리에이터 클럽 2.0",
       growth: "성장률",
       memberBadge: "멤버",
       memberLabel: "신규 회원",
@@ -37,7 +37,7 @@ function getCopy(locale: Locale) {
       sharePlatforms: "SNS 공유",
       shareCta: "내 추천 링크 공유",
       starScore: "스타 점수",
-      title: "파운더 참여 귀속",
+      title: "참여 귀속",
       universeCta: "AI 스타 유니버스 보기",
       rewards: {
         cp: "기여 포인트",
@@ -51,15 +51,15 @@ function getCopy(locale: Locale) {
   return {
     aiStarBadge: "AI STAR",
     body:
-      "After account connection, this signup is saved as a Founder join in the AI Star Universe below. No real payment is processed.",
+      "After account connection, this signup is saved as a join in the AI Star Universe below. No real payment is processed.",
     connectedBody:
-      "Your account is connected. Confirm Founder join to save membership and referral code for this AI Star Universe.",
-    connectedTitle: "Founder join pending",
+      "Your account is connected. Confirm join to save membership and referral code for this AI Star Universe.",
+    connectedTitle: "Join pending",
     completedBody:
-      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow Contribution Points and influence.",
-    completedTitle: "Founder join complete",
-    founderBadge: "FOUNDER",
-    founderClubLabel: "Founder Club 2.0",
+      "You are already a Fan in this AI Star Universe. Invite new Fans with your link to grow Contribution Points and influence.",
+    completedTitle: "Join complete",
+    founderBadge: "FAN",
+    founderClubLabel: "Creator Club 2.0",
     growth: "Growth",
     memberBadge: "MEMBER",
     memberLabel: "New Member",
@@ -67,9 +67,9 @@ function getCopy(locale: Locale) {
     referralCode: "Referral Code",
     shareLink: "Share Link",
     sharePlatforms: "SNS Share",
-    shareCta: "Share my Founder link",
+    shareCta: "Share my referral link",
     starScore: "Star Score",
-    title: "Founder join attribution",
+    title: "Join attribution",
     universeCta: "View AI Star Universe",
     rewards: {
       cp: "Contribution Points",
