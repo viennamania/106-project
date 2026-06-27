@@ -110,7 +110,7 @@ function getCoverageAuditCopy(locale: Locale) {
       backfillGaps: "Backfill 보강 항목",
       backfillReadiness: "Backfill 준비도",
       backfillReadinessBody:
-        "기존 회원 추천 구조, AI 스타, 파운더 멤버십, 추천 엣지, CP 원장을 AgentRank 이벤트로 전환할 수 있는지 점검합니다.",
+        "기존 회원 추천 구조, AI 스타, 크리에이터 멤버십, 추천 엣지, CP 원장을 AgentRank 이벤트로 전환할 수 있는지 점검합니다.",
       backfillSamples: "샘플 이슈",
       aiStars: "AI 스타",
       actionAfter: "완료 후",
@@ -560,7 +560,7 @@ function getBackfillActionPlanText(
     },
     "backfill-member-starter-star": {
       description:
-        "추천 가입, 첫 파운더 멤버십, 소유 AI 스타, 기본 시작 스타 순서로 회원의 시작 AI 스타를 결정합니다.",
+        "추천 가입, 첫 크리에이터 멤버십, 소유 AI 스타, 기본 시작 스타 순서로 회원의 시작 AI 스타를 결정합니다.",
       title: "회원 시작 AI 스타 지정",
     },
     "backfill-star-creator-membership": {
