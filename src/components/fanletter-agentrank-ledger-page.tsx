@@ -168,7 +168,7 @@ function getLedgerCopy(locale: Locale) {
       graphScope: "그래프 범위",
       graphReady: "그래프 준비",
       heroBody:
-        "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 활동 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
+        "AI 스타 발견, 참여, 추천 공유, Creator Journey 행동이 어떤 활동 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
       heroEyebrow: "활동 기록",
       heroTitle: "FanLetter 활동 기록",
       impact: "활동 영향",
@@ -267,7 +267,7 @@ function getLedgerCopy(locale: Locale) {
     graphScope: "Graph Scope",
     graphReady: "Graph-ready",
     heroBody:
-      "Review which AI Star discovery, Founder participation, referral, and Creator Journey actions became activity records. Operator verification is separated below.",
+      "Review which AI Star discovery, participation, referral, and Creator Journey actions became activity records. Operator verification is separated below.",
     heroEyebrow: "Activity log",
     heroTitle: "FanLetter Activity Records",
     impact: "Activity impact",
@@ -811,7 +811,7 @@ function getActionCoverageLabel(
   const labels = {
     creator: "권한 활성화/AI 스타 생성",
     discovery: "AI 스타 발견",
-    founder: "파운더 참여",
+    founder: "참여",
     payment: "x402 Mock/CP Pool",
     referral: "추천 코드/공유/전환",
     star_detail: "AI 스타 상세/콘텐츠",
@@ -960,8 +960,8 @@ function AgentRankLedgerContextAssetCard({
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
             {isKo
-              ? "이 원장은 AI 스타 발견, Founder 참여, TikTok 연결, CP 보상 같은 행동을 AgentRank가 평가할 수 있는 관계 증거로 정리합니다."
-              : "This ledger converts discovery, Founder joins, TikTok connections, and CP rewards into relationship evidence AgentRank can evaluate."}
+              ? "이 원장은 AI 스타 발견, 참여, TikTok 연결, CP 보상 같은 행동을 AgentRank가 평가할 수 있는 관계 증거로 정리합니다."
+              : "This ledger converts discovery, joins, TikTok connections, and CP rewards into relationship evidence AgentRank can evaluate."}
           </p>
         </div>
 
@@ -1044,9 +1044,9 @@ function FounderJourneyTimeline({
   }> = [
     {
       body: isKorean
-        ? "AI 스타 유니버스에 Founder로 참여"
-        : "Join an AI Star Universe as Founder",
-      label: isKorean ? "Founder 참여" : "Founder joined",
+        ? "AI 스타 유니버스에 팬으로 참여"
+        : "Join an AI Star Universe as a Fan",
+      label: isKorean ? "참여" : "Joined",
       type: "founder_joined",
     },
     {
@@ -1080,12 +1080,12 @@ function FounderJourneyTimeline({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase text-zinc-600">
-            {isKorean ? "Founder Journey" : "Founder Journey"}
+            {isKorean ? "팬 여정" : "Fan Journey"}
           </p>
           <h2 className="mt-1 text-2xl font-semibold text-[#11132d]">
             {isKorean
-              ? "Founder 참여 흐름"
-              : "Founder participation flow"}
+              ? "참여 흐름"
+              : "participation flow"}
           </h2>
         </div>
         <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-700">
@@ -1471,7 +1471,7 @@ function LedgerJourneyQuickFilters({
     types: AgentRankReputationEventType[];
   }> = [
     {
-      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      label: isKorean ? "크리에이터 네트워크" : "Creator Network",
       types: [
         "founder_joined",
         "referral_code_created",
@@ -1502,8 +1502,8 @@ function LedgerJourneyQuickFilters({
           </p>
           <p className="mt-1 text-sm font-medium leading-5 text-slate-500 [word-break:keep-all]">
             {isKorean
-              ? "Founder 참여와 Creator 권한 활성화 흐름을 먼저 확인합니다."
-              : "Inspect Founder and Creator event flows first."}
+              ? "참여와 Creator 권한 활성화 흐름을 먼저 확인합니다."
+              : "Inspect Fan and Creator event flows first."}
           </p>
         </div>
         <Link
@@ -2394,8 +2394,8 @@ export function FanletterAgentRankLedgerPage({
           ]}
           subtitle={
             locale === "ko"
-              ? "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 평판 기록으로 남았는지 먼저 확인합니다."
-              : "Start by checking which AI Star, Founder, referral, and Creator Journey actions became reputation records."
+              ? "AI 스타 발견, 참여, 추천 공유, Creator Journey 행동이 어떤 평판 기록으로 남았는지 먼저 확인합니다."
+              : "Start by checking which AI Star, Fan, referral, and Creator Journey actions became reputation records."
           }
           title={
             locale === "ko"
