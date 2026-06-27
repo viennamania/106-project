@@ -46,7 +46,7 @@ export async function generateMetadata({
 
   if (!universe) {
     return {
-      title: "Founder Network | FanLetter",
+      title: "Creator Network | FanLetter",
     };
   }
 
@@ -54,12 +54,12 @@ export async function generateMetadata({
     universe.star.name?.trim() || universe.star.displayName?.trim() || "AI Star";
   const title =
     locale === "ko"
-      ? `${starName} 파운더 네트워크 탐색`
-      : `${starName} Founder Network Explorer`;
+      ? `${starName} 크리에이터 네트워크 탐색`
+      : `${starName} Creator Network Explorer`;
   const description =
     locale === "ko"
-      ? `${starName} AI 스타 유니버스 안의 파운더 네트워크입니다. 멤버 ${universe.totals.totalMembers}명과 추천 연결 ${universe.totals.edgeCount}개를 보여줍니다.`
-      : `${starName} AI Star Universe Founder Network with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
+      ? `${starName} AI 스타 유니버스 안의 크리에이터 네트워크입니다. 멤버 ${universe.totals.totalMembers}명과 추천 연결 ${universe.totals.edgeCount}개를 보여줍니다.`
+      : `${starName} AI Star Universe Creator Network with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
 
   return {
     title,

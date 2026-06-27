@@ -243,24 +243,24 @@ function getContextCopy(
 
     if (isFounderOnboarding && starContext) {
       return {
-        accountBody: `계정 연결이 확인되면 ${starContext.universeName}의 파운더 네트워크 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
-        completedBody: `계정 연결이 확인되었습니다. 이제 ${starContext.universeName} 파운더 참여를 확정하고 추천 링크 생성을 이어가세요.`,
-        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} Founder 역할, 추천 코드, 기여 포인트와 활동 기록이 같은 계정에 저장됩니다.`,
-        helper: `${starContext.universeName}의 파운더 네트워크 참여 상태를 이 계정 기준으로 확인합니다.`,
+        accountBody: `계정 연결이 확인되면 ${starContext.universeName}의 크리에이터 네트워크 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
+        completedBody: `계정 연결이 확인되었습니다. 이제 ${starContext.universeName} 참여를 확정하고 추천 링크 생성을 이어가세요.`,
+        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} 팬 역할, 추천 코드, 기여 포인트와 활동 기록이 같은 계정에 저장됩니다.`,
+        helper: `${starContext.universeName}의 크리에이터 네트워크 참여 상태를 이 계정 기준으로 확인합니다.`,
         onboardingBody:
-          "Founder 참여가 확인되면 추천 코드 생성, SNS 공유, 기여 포인트와 활동 기록 흐름으로 이어집니다.",
-        onboardingCta: "Founder 참여 계속",
-        onboardingTitle: `${starContext.starName} 파운더 네트워크`,
+          "참여가 확인되면 추천 코드 생성, SNS 공유, 기여 포인트와 활동 기록 흐름으로 이어집니다.",
+        onboardingCta: "참여 계속",
+        onboardingTitle: `${starContext.starName} 크리에이터 네트워크`,
         paymentBody:
-          "계정 연결은 저장되었습니다. 실제 결제 없이 Founder 참여 흐름을 먼저 확인하고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
-        primary: "Founder 참여 계속",
+          "계정 연결은 저장되었습니다. 실제 결제 없이 참여 흐름을 먼저 확인하고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
+        primary: "참여 계속",
         readinessBody:
-          "먼저 이메일 계정을 연결해 Founder 역할을 저장하고, 실제 결제는 필요한 기능에서만 진행합니다.",
-        returnBody: `${starContext.universeName} 파운더 네트워크 참여 확인으로 돌아갈 수 있습니다.`,
-        returnCta: "Founder 참여로 돌아가기",
+          "먼저 이메일 계정을 연결해 팬 역할을 저장하고, 실제 결제는 필요한 기능에서만 진행합니다.",
+        returnBody: `${starContext.universeName} 크리에이터 네트워크 참여 확인으로 돌아갈 수 있습니다.`,
+        returnCta: "참여로 돌아가기",
         returnTitle: `${starContext.starName} AI 스타 유니버스`,
-        steps: ["계정 연결", "Founder 참여", "활동 기록"],
-        title: `${starContext.starName} Founder 참여를 이어가세요.`,
+        steps: ["계정 연결", "참여", "활동 기록"],
+        title: `${starContext.starName} 참여를 이어가세요.`,
       };
     }
 
@@ -323,24 +323,24 @@ function getContextCopy(
 
   if (isFounderOnboarding && starContext) {
     return {
-      accountBody: `After account connection, your Founder Network participation in ${starContext.universeName} is saved to this account and your referral link can be created.`,
-      completedBody: `Your account connection is ready. Continue Founder participation in ${starContext.universeName} and create the referral link.`,
-      connectBody: `Connect with email so the ${starContext.starName} Founder role, referral code, Contribution Points, and activity records stay attached to one account.`,
-      helper: `AIAVpark checks Founder Network participation in ${starContext.universeName} for this account.`,
+      accountBody: `After account connection, your Creator Network participation in ${starContext.universeName} is saved to this account and your referral link can be created.`,
+      completedBody: `Your account connection is ready. Continue participation in ${starContext.universeName} and create the referral link.`,
+      connectBody: `Connect with email so the ${starContext.starName} Fan role, referral code, Contribution Points, and activity records stay attached to one account.`,
+      helper: `AIAVpark checks Creator Network participation in ${starContext.universeName} for this account.`,
       onboardingBody:
-        "Once Founder participation is confirmed, continue into referral code creation, SNS sharing, Contribution Points, and activity records.",
-      onboardingCta: "Continue Founder join",
-      onboardingTitle: `${starContext.starName} Founder Network`,
+        "Once participation is confirmed, continue into referral code creation, SNS sharing, Contribution Points, and activity records.",
+      onboardingCta: "Continue join",
+      onboardingTitle: `${starContext.starName} Creator Network`,
       paymentBody:
-        "Your account connection is saved. Preview Founder participation first; 10 USDT activation can happen later when revenue or rewards features require it.",
-      primary: "Continue Founder join",
+        "Your account connection is saved. Preview participation first; 10 USDT activation can happen later when revenue or rewards features require it.",
+      primary: "Continue join",
       readinessBody:
-        "Connect email first to save the Founder role. Real payment stays deferred until a paid feature requires it.",
-      returnBody: `You can return to ${starContext.universeName} Founder Network confirmation.`,
-      returnCta: "Back to Founder join",
+        "Connect email first to save the Fan role. Real payment stays deferred until a paid feature requires it.",
+      returnBody: `You can return to ${starContext.universeName} Creator Network confirmation.`,
+      returnCta: "Back to join",
       returnTitle: `${starContext.starName} AI Star Universe`,
-      steps: ["Account connected", "Founder joined", "Activity record"],
-      title: `Continue ${starContext.starName} Founder participation.`,
+      steps: ["Account connected", "joined", "Activity record"],
+      title: `Continue ${starContext.starName} participation.`,
     };
   }
 
@@ -769,15 +769,15 @@ function FounderBridgeEventCard({
   const copy =
     locale === "ko"
       ? {
-          body: `${universeName}의 Founder 참여가 확정되면 추천 코드와 기여 포인트 흐름이 활동 기록으로 이어집니다.`,
+          body: `${universeName}의 참여가 확정되면 추천 코드와 기여 포인트 흐름이 활동 기록으로 이어집니다.`,
           eyebrow: "활동 기록 브릿지",
-          flow: "계정 연결 → Founder 참여 → 활동 기록",
+          flow: "계정 연결 → 참여 → 활동 기록",
           title: `${starName} 참여 기록 준비`,
         }
       : {
-          body: `When Founder participation in ${universeName} is confirmed, referral code and Contribution Point activity becomes activity records.`,
+          body: `When participation in ${universeName} is confirmed, referral code and Contribution Point activity becomes activity records.`,
           eyebrow: "Activity bridge",
-          flow: "Account → Founder join → Activity record",
+          flow: "Account → join → Activity record",
           title: `${starName} participation record ready`,
         };
 
@@ -1205,8 +1205,8 @@ export function FanletterConnectPage({
             reputationLabel={
               starContext
                 ? locale === "ko"
-                  ? `${starContext.starName} Founder 참여 기록`
-                  : `${starContext.starName} Founder participation`
+                  ? `${starContext.starName} 참여 기록`
+                  : `${starContext.starName} participation`
                 : "fanletter_bridge_view"
             }
           />
