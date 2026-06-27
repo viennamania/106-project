@@ -6,7 +6,7 @@ export const FANLETTER_PWA_THEME_COLOR = "#030504";
 export const FANLETTER_PWA_BACKGROUND_COLOR = "#030504";
 export const FANLETTER_PWA_NAME = "AIAVpark";
 export const FANLETTER_PWA_DESCRIPTION =
-  "AIAVpark News turns AI character one-take vlogs into photo news, fan participation, and transparent USDT profit sharing.";
+  "AIAVpark News turns AI character one-take vlogs into photo news, fan participation, and USDT-based creator rewards.";
 export const FANLETTER_PWA_ICON_192 = "/fanletter-icon-192.png";
 export const FANLETTER_PWA_ICON_512 = "/fanletter-icon-512.png";
 export const FANLETTER_PWA_APPLE_ICON = "/fanletter-apple-icon.png";
@@ -176,7 +176,7 @@ function getFanletterPwaCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AIAVpark News는 AI 캐릭터 One Take 브이로그를 포토 뉴스, 팬 참여, 투명한 USDT 수익 공유로 연결합니다.",
+        "AIAVpark News는 AI 캐릭터 One Take 브이로그를 포토 뉴스, 팬 참여, USDT 기반 창작 보상으로 연결합니다.",
       name: "AIAVpark News",
       shortName: "AIAVpark",
       shortcuts: {
