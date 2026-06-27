@@ -1127,7 +1127,7 @@ function FanletterProductHomeDashboard({
                         <div className="mt-4 grid grid-cols-2 gap-1.5 text-center sm:gap-2">
                           {[
                             [productCopy.growth, `+${star.growthPercent}%`],
-                            [productCopy.open, star.openSlots.open],
+                            [productCopy.open, formatMetric(star.openSlots.open, locale)],
                           ].map(([label, value]) => (
                             <span
                               className="min-w-0 rounded-xl bg-zinc-50 px-1.5 py-2"
