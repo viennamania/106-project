@@ -315,15 +315,7 @@ export function FanletterFounderAttributionCard({
                 <Sparkles className="size-4" />
                 {copy.rewards.title}
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-lg border border-emerald-200 bg-white p-3">
-                  <p className="text-lg font-semibold text-emerald-950">
-                    +{viewerScoutShareLoop.rewards.cp}
-                  </p>
-                  <p className="mt-1 text-[0.62rem] font-semibold text-emerald-900/56">
-                    {copy.rewards.cp}
-                  </p>
-                </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-lg border border-emerald-200 bg-white p-3">
                   <p className="text-lg font-semibold text-emerald-950">
                     +{viewerScoutShareLoop.rewards.influenceScore}
