@@ -1992,7 +1992,7 @@ export function FanletterProfilePage({
                   <p className="mt-3 text-2xl font-semibold leading-none">
                     {numberFormatter.format(value)}
                   </p>
-                  <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  <p className="mt-2 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/42">
                     {label}
                   </p>
                 </div>

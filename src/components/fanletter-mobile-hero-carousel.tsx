@@ -357,7 +357,7 @@ export function FanletterVlogPreviewCarousel({
               : getAuthorInitial(activeSlide.authorName)}
           </span>
           <span className="min-w-0">
-            <span className="block text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#44f26e]">
+            <span className="block text-[0.66rem] font-bold uppercase tracking-[0.12em] text-[#44f26e]">
               AI STAR
             </span>
             <span className="block max-w-24 truncate text-xs font-semibold text-white">

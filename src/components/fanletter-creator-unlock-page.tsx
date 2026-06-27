@@ -901,7 +901,7 @@ function SourceUniverseAIStarPortrait({
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-[#12041f]/58 via-transparent to-white/8" />
-      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[0.52rem] font-semibold backdrop-blur">
+      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[0.66rem] font-semibold backdrop-blur">
         AI STAR
       </span>
     </div>
@@ -1023,7 +1023,7 @@ function SourceUniverseSelector({
                         <p className="text-sm font-semibold text-[#12041f]">
                           {formatNumber(option.contribution.score, locale)}
                         </p>
-                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                        <p className="mt-0.5 text-[0.66rem] font-semibold text-black/40">
                           {copy.contributionScore}
                         </p>
                       </div>
@@ -1031,7 +1031,7 @@ function SourceUniverseSelector({
                         <p className="text-sm font-semibold text-[#12041f]">
                           {option.contribution.confidence}%
                         </p>
-                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                        <p className="mt-0.5 text-[0.66rem] font-semibold text-black/40">
                           {copy.contributionConfidence}
                         </p>
                       </div>
@@ -1039,7 +1039,7 @@ function SourceUniverseSelector({
                         <p className="text-sm font-semibold text-[#12041f]">
                           {formatNumber(option.contribution.eventCount, locale)}
                         </p>
-                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                        <p className="mt-0.5 text-[0.66rem] font-semibold text-black/40">
                           {copy.contributionEvents}
                         </p>
                       </div>
@@ -1047,7 +1047,7 @@ function SourceUniverseSelector({
                         <p className="text-sm font-semibold text-[#12041f]">
                           {option.contribution.readiness.auditReadyPercent}%
                         </p>
-                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                        <p className="mt-0.5 text-[0.66rem] font-semibold text-black/40">
                           {copy.contributionAudit}
                         </p>
                       </div>
@@ -1055,7 +1055,7 @@ function SourceUniverseSelector({
                         <p className="text-sm font-semibold text-[#12041f]">
                           {option.contribution.readiness.eventQualityPercent}%
                         </p>
-                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                        <p className="mt-0.5 text-[0.66rem] font-semibold text-black/40">
                           {copy.contributionQuality}
                         </p>
                       </div>
@@ -3614,7 +3614,7 @@ function CreatorJourneyProductHero({
                 </p>
                 <p
                   className={joinClasses(
-                    "mt-0.5 break-words text-[0.58rem] font-semibold leading-tight [word-break:keep-all]",
+                    "mt-0.5 break-words text-[0.66rem] font-semibold leading-tight [word-break:keep-all]",
                     item.active ? "text-white/64" : "text-current/60",
                   )}
                 >

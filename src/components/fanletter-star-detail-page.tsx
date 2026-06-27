@@ -855,7 +855,7 @@ function StarViewerRelationshipCard({
         <div className="min-w-0 rounded-lg border border-zinc-900 bg-zinc-950 p-3 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/42">
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-white/42">
                 {labels.creatorCaption}
               </p>
               <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/50">
@@ -878,7 +878,7 @@ function StarViewerRelationshipCard({
         <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-zinc-400">
                 {labels.founderCaption}
               </p>
               <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
@@ -1643,7 +1643,7 @@ function StarAgentRankJoinSignal({
             <span className="block truncate text-sm font-semibold text-[#12041f]">
               {formatNumber(Number(value), locale)}
             </span>
-            <span className="mt-0.5 block truncate text-[0.58rem] font-semibold text-slate-400">
+            <span className="mt-0.5 block truncate text-[0.66rem] font-semibold text-slate-400">
               {label}
             </span>
           </span>
@@ -1714,7 +1714,7 @@ function StarFounderMobilePanel({
           <div className="relative z-10 flex min-w-0 items-center justify-between gap-1.5">
             <span
               aria-label={copy.labels.aiStarBadge}
-              className="shrink-0 whitespace-nowrap rounded-full bg-white px-2 py-1 text-[0.58rem] font-semibold leading-none text-[#5b21b6]"
+              className="shrink-0 whitespace-nowrap rounded-full bg-white px-2 py-1 text-[0.66rem] font-semibold leading-none text-[#5b21b6]"
             >
               {mobileAIStarBadgeLabel}
             </span>
@@ -2097,7 +2097,7 @@ function AIStarGenealogySection({
               href={item.href}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-white/18 px-2 py-1 text-[0.58rem] font-semibold">
+                <span className="rounded-full bg-white/18 px-2 py-1 text-[0.66rem] font-semibold">
                   {item.badge}
                 </span>
                 <Bot className="size-4 text-white/82" />

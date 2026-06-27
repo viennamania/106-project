@@ -667,7 +667,7 @@ function FollowedCharacterCard({
               <p className="text-xl font-semibold leading-none">
                 {formatNumber(metric.value, locale)}
               </p>
-              <p className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.12em] text-black/42">
+              <p className="mt-2 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-black/42">
                 {metric.label}
               </p>
             </div>
@@ -765,7 +765,7 @@ function FanHomeOverview({
                 <p className="mt-3 text-2xl font-semibold leading-none">
                   {formatNumber(stat.value, locale)}
                 </p>
-                <p className="mt-2 text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-black/42">
+                <p className="mt-2 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-black/42">
                   {stat.label}
                 </p>
               </div>
