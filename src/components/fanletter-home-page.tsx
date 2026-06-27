@@ -745,6 +745,25 @@ function FanletterAgentRankHomeCard({
   );
 }
 
+// Content-first home gate: member-only blocks render only for a logged-in member
+// with real activity history. A null portfolio (guest) is false; brand-new
+// members are excluded by ignoring the auto-provisioned starter universe and
+// counting only stars the member actually created via Creator Unlock. Display
+// level only — derived from existing portfolio fields, no data fetch/computation.
+function hasFanletterRealActivity(
+  portfolio?: MemberPortfolio | null,
+): boolean {
+  return Boolean(
+    portfolio &&
+      (portfolio.roles.length > 0 ||
+        portfolio.cpBalance > 0 ||
+        portfolio.scoutScore > 0 ||
+        portfolio.directInvites > 0 ||
+        portfolio.successfulInvites > 0 ||
+        portfolio.ownedStars.some((star) => star.createdByUnlock)),
+  );
+}
+
 function FanletterProductHomeDashboard({
   agentRankHref,
   agentRankSnapshot,
@@ -790,19 +809,10 @@ function FanletterProductHomeDashboard({
       )
     : aiStarGenealogyHref;
   const topStars = starList.slice(0, 3);
-  // Content-first home: the progress / score / next-action dashboard renders
-  // only once the member has any activity history. Guests and brand-new members
-  // lead with AI-star discovery instead of a zeroed dashboard. Display-level
-  // only — derived from existing portfolio fields, no data fetching/computation.
-  const hasActivityHistory = Boolean(
-    memberPortfolio &&
-      (memberPortfolio.roles.length > 0 ||
-        memberPortfolio.ownedStars.length > 0 ||
-        memberPortfolio.cpBalance > 0 ||
-        memberPortfolio.scoutScore > 0 ||
-        memberPortfolio.directInvites > 0 ||
-        memberPortfolio.successfulInvites > 0),
-  );
+  // Content-first home: the progress / score / next-action dashboard + community
+  // stats render only for a logged-in member with real activity. Guests and
+  // brand-new members lead with AI-star discovery instead of a zeroed dashboard.
+  const showMemberDashboard = hasFanletterRealActivity(memberPortfolio);
   // Single user-facing member score = CP (Contribution Points). Invite score and
   // creator-eligibility % stay internal (used for creator-unlock gating) and are
   // surfaced only inside the 만들기/creator-unlock funnel, not on the dashboard.
@@ -1152,7 +1162,7 @@ function FanletterProductHomeDashboard({
             </div>
           </ScrollReveal>
 
-        {hasActivityHistory ? (
+        {showMemberDashboard ? (
           <>
                 <FanletterActionGuide
                   currentLabel={productCopy.today}
@@ -1273,6 +1283,32 @@ function FanletterProductHomeDashboard({
               </Link>
             </div>
           </ScrollReveal>
+
+          <ScrollReveal className="hidden sm:block" delay={240} y={16}>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                [copy.liveStats.videos, liveStats.publicVideoCount],
+                [copy.liveStats.creators, liveStats.activeCreatorCount],
+                [copy.liveStats.sales, liveStats.confirmedSalesCount],
+              ].map(([label, value]) => (
+                <div
+                  className="rounded-2xl border border-violet-100 bg-white/82 p-3 text-center shadow-[0_12px_30px_rgba(88,28,135,0.07)]"
+                  key={label}
+                >
+                  <p className="text-lg font-semibold text-[#12041f]">
+                    <AnimatedNumber
+                      format="compact"
+                      locale={locale}
+                      value={Number(value)}
+                    />
+                  </p>
+                  <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
           </>
         ) : null}
       </div>
@@ -1375,32 +1411,6 @@ function FanletterProductHomeDashboard({
             locale={locale}
             snapshot={agentRankSnapshot}
           />
-        </ScrollReveal>
-
-        <ScrollReveal className="hidden sm:block" delay={240} y={16}>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              [copy.liveStats.videos, liveStats.publicVideoCount],
-              [copy.liveStats.creators, liveStats.activeCreatorCount],
-              [copy.liveStats.sales, liveStats.confirmedSalesCount],
-            ].map(([label, value]) => (
-              <div
-                className="rounded-2xl border border-violet-100 bg-white/82 p-3 text-center shadow-[0_12px_30px_rgba(88,28,135,0.07)]"
-                key={label}
-              >
-                <p className="text-lg font-semibold text-[#12041f]">
-                  <AnimatedNumber
-                    format="compact"
-                    locale={locale}
-                    value={Number(value)}
-                  />
-                </p>
-                <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
         </ScrollReveal>
       </div>
     </section>
@@ -1516,16 +1526,10 @@ export function FanletterHomePage({
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
   // Content-first: the Creator Club 2.0 growth-loop bar shows only after the
-  // member has acted at least once (same activity-history rule as the dashboard).
+  // member has acted at least once (same real-activity rule as the dashboard).
   // New visitors get a clean first viewport (hero + AI star cards only).
-  const hasHomeActivityHistory = Boolean(
-    founderClubMemberPortfolio &&
-      (founderClubMemberPortfolio.roles.length > 0 ||
-        founderClubMemberPortfolio.ownedStars.length > 0 ||
-        founderClubMemberPortfolio.cpBalance > 0 ||
-        founderClubMemberPortfolio.scoutScore > 0 ||
-        founderClubMemberPortfolio.directInvites > 0 ||
-        founderClubMemberPortfolio.successfulInvites > 0),
+  const hasHomeActivityHistory = hasFanletterRealActivity(
+    founderClubMemberPortfolio,
   );
   const shareContextLabels =
     locale === "ko"
