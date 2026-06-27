@@ -179,8 +179,8 @@ export async function generateMetadata({
       : `${star.name} AI Star Universe | Creator Club 2.0`;
   const description =
     locale === "ko"
-      ? `${star.name} ${specialty} AI 스타 유니버스입니다. Founder로 참여하고 추천 코드를 만들어 파운더 네트워크 안에서 성장하세요.`
-      : `${star.name} ${specialty} AI Star Universe. Join as Founder, create a referral code, and grow through the Founder Network.`;
+      ? `${star.name} ${specialty} AI 스타 유니버스입니다. 팬으로 참여하고 추천 코드를 만들어 크리에이터 네트워크 안에서 성장하세요.`
+      : `${star.name} ${specialty} AI Star Universe. Join as a Fan, create a referral code, and grow through the Creator Network.`;
 
   return {
     title,

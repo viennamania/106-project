@@ -29,15 +29,15 @@ function getFounderClubMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "참여 중인 AI 스타 유니버스, 파운더 네트워크 추천 링크, CP와 활동 기록을 확인하세요.",
+        "참여 중인 AI 스타 유니버스, 크리에이터 네트워크 추천 링크, CP와 활동 기록을 확인하세요.",
       title: "내 FanLetter 포트폴리오 | FanLetter",
     };
   }
 
   return {
     description:
-      "Review your AI Star Universes, Founder Network referral links, CP, and reputation event flow.",
-    title: "My FanLetter Portfolio | FanLetter Founder Club",
+      "Review your AI Star Universes, Creator Network referral links, CP, and activity log flow.",
+    title: "My FanLetter Portfolio | FanLetter Creator Club",
   };
 }
 
