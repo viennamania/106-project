@@ -4,11 +4,12 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
+  ChevronDown,
   Crown,
   Link2,
   Sparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
@@ -694,6 +695,11 @@ export function FanletterFounderClubPage({
     },
   ];
   const hasFounderRoles = roleShares.length > 0;
+  const sharePreviewCount = 3;
+  const [showAllShares, setShowAllShares] = useState(false);
+  const visibleRoleShares = showAllShares
+    ? roleShares
+    : roleShares.slice(0, sharePreviewCount);
   const activeView: FounderClubView =
     initialView === "creator" ? "creator" : "founder";
   const isMyAiEntry = entryContext === "my-ai" || activeView === "creator";
@@ -899,7 +905,7 @@ export function FanletterFounderClubPage({
               </p>
             </div>
             <div className="grid gap-3">
-              {roleShares.map((roleShare) => (
+              {visibleRoleShares.map((roleShare) => (
                 <FounderRoleShareCard
                   key={roleShare.role.starId}
                   locale={locale}
@@ -907,6 +913,24 @@ export function FanletterFounderClubPage({
                 />
               ))}
             </div>
+            {roleShares.length > sharePreviewCount ? (
+              <button
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
+                onClick={() => setShowAllShares((prev) => !prev)}
+                type="button"
+              >
+                {showAllShares
+                  ? isKorean(locale)
+                    ? "접기"
+                    : "Show less"
+                  : isKorean(locale)
+                    ? `추천 링크 ${roleShares.length - sharePreviewCount}개 더 보기`
+                    : `Show ${roleShares.length - sharePreviewCount} more referral links`}
+                <ChevronDown
+                  className={`size-4 transition ${showAllShares ? "rotate-180" : ""}`}
+                />
+              </button>
+            ) : null}
           </div>
 
           <div className="min-w-0">
