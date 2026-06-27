@@ -118,6 +118,15 @@ a {
   text-decoration: none;
 }
 
+/* Consistent, accessible keyboard-focus indicator. Only shows during keyboard
+   navigation (:focus-visible), so mouse/touch users are unaffected. The brand
+   green ring stays visible on both the light and the dark (#030504) surfaces.
+   Components that set their own focus-visible outline keep overriding this. */
+:focus-visible {
+  outline: 2px solid #44f26e;
+  outline-offset: 2px;
+}
+
 :where(button:not(:disabled), [role="button"]:not([aria-disabled="true"])) {
   cursor: pointer;
 }
