@@ -2335,7 +2335,11 @@ export function FanletterStarDetailPage({
         }}
       >
         <div className="mx-auto max-w-[92rem]">
-          <FanletterPrimaryHeader locale={locale} referralCode={null} />
+          <FanletterPrimaryHeader
+            current="discovery"
+            locale={locale}
+            referralCode={null}
+          />
           <div className="mt-4 flex items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-zinc-300 hover:bg-zinc-50"
