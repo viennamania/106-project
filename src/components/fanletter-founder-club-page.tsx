@@ -677,13 +677,9 @@ export function FanletterFounderClubPage({
     portfolio.roles,
     starsById,
   ]);
-  // Single user-facing member score = CP. Invite score / creator-eligibility %
-  // stay internal (creator-unlock gating) and are not shown as standalone metrics.
+  // CP (기여 포인트) is internal-only and never shown as a member score (#135); only
+  // factual counts (operated stars, participation networks, invites) are surfaced here.
   const metricItems = [
-    {
-      label: copy.metrics.cp,
-      value: formatNumber(portfolio.cpBalance, locale),
-    },
     {
       label: copy.metrics.creatorStars,
       value: portfolio.ownedStars.length,
@@ -842,7 +838,7 @@ export function FanletterFounderClubPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2">
               {metricItems.map((metric) => (
                 <div
                   className="rounded-lg border border-black/8 bg-[#f7f7f4] p-3"
