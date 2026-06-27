@@ -8,7 +8,6 @@ import {
 } from "@/lib/agentrank/coverage-action";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
-  buildFanletterLocaleAlternates,
   buildFanletterOgImagePath,
   buildFanletterOgVersionToken,
   FANLETTER_OG_IMAGE_SIZE,
@@ -211,10 +210,9 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: buildFanletterLocaleAlternates(
-      locale,
-      `/${locale}/fanletter/${star.id}`,
-    ),
+    alternates: {
+      canonical: `/${locale}/fanletter/${star.id}`,
+    },
     openGraph: {
       description,
       images: [ogImage],

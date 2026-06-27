@@ -19,7 +19,6 @@ import {
   type FanletterLandingData,
 } from "@/lib/fanletter-landing-service";
 import {
-  buildFanletterLocaleAlternates,
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
@@ -149,7 +148,9 @@ export async function generateMetadata({
   return {
     title: meta.title,
     description: meta.description,
-    alternates: buildFanletterLocaleAlternates(locale, `/${locale}/fanletter`),
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       description: meta.description,
       images: [ogImage],
