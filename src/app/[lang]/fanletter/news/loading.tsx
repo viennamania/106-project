@@ -1,9 +1,24 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 // Tailored loading boundary for the AIAVpark News surface, whose newspaper
 // layout (masthead + section nav + ticker + investor brief + action cards)
 // differs from the generic fanletter console skeleton. Used as the Suspense
 // fallback for the news page and its sub-routes that lack their own loading
 // state. The masthead is rendered per-page (not in news/layout.tsx), so the
 // skeleton reproduces it here.
+// loading.tsx cannot receive the [lang] route param, so derive the locale from
+// the pathname to localize the screen-reader status (was hardcoded Korean).
+const NEWS_LOADING_STATUS_MESSAGE: Record<string, string> = {
+  en: "Loading news.",
+  id: "Memuat berita.",
+  ja: "ニュースを読み込んでいます。",
+  ko: "뉴스를 불러오는 중입니다.",
+  vi: "Đang tải tin tức.",
+  zh: "正在加载新闻。",
+};
+
 function Block({ className }: { className: string }) {
   return (
     <div className={`bg-black/[0.06] motion-safe:animate-pulse ${className}`} />
@@ -17,6 +32,11 @@ function DarkBlock({ className }: { className: string }) {
 }
 
 export default function FanletterNewsLoading() {
+  const pathname = usePathname();
+  const localeSegment = pathname?.split("/")[1] ?? "ko";
+  const statusMessage =
+    NEWS_LOADING_STATUS_MESSAGE[localeSegment] ?? NEWS_LOADING_STATUS_MESSAGE.ko;
+
   return (
     <main className="min-h-screen bg-[#f5f6f7] text-zinc-950" aria-busy="true">
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
@@ -77,7 +97,7 @@ export default function FanletterNewsLoading() {
       </div>
 
       <p className="sr-only" role="status" aria-live="polite">
-        뉴스를 불러오는 중입니다.
+        {statusMessage}
       </p>
     </main>
   );

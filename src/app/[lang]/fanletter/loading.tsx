@@ -1,8 +1,24 @@
+"use client";
+
 // Shared navigation loading boundary for the FanLetter surface.
 // App Router uses the nearest ancestor loading.tsx as the Suspense fallback,
 // so this single skeleton gives instant feedback when navigating to any nested
 // fanletter route that does not define its own loading state. Kept generic
 // (header + hero + console + card grid) because it covers many page layouts.
+import { usePathname } from "next/navigation";
+
+// loading.tsx cannot receive the [lang] route param, so derive the locale from
+// the pathname to localize the screen-reader status (was hardcoded Korean, which
+// announced Korean to screen-reader users on every non-Korean locale).
+const LOADING_STATUS_MESSAGE: Record<string, string> = {
+  en: "Loading content.",
+  id: "Memuat konten.",
+  ja: "コンテンツを読み込んでいます。",
+  ko: "콘텐츠를 불러오는 중입니다.",
+  vi: "Đang tải nội dung.",
+  zh: "正在加载内容。",
+};
+
 function SkeletonBlock({ className }: { className: string }) {
   return (
     <div className={`rounded-2xl bg-zinc-100 motion-safe:animate-pulse ${className}`} />
@@ -10,6 +26,11 @@ function SkeletonBlock({ className }: { className: string }) {
 }
 
 export default function FanletterLoading() {
+  const pathname = usePathname();
+  const localeSegment = pathname?.split("/")[1] ?? "ko";
+  const statusMessage =
+    LOADING_STATUS_MESSAGE[localeSegment] ?? LOADING_STATUS_MESSAGE.ko;
+
   return (
     <main className="min-h-screen bg-white text-zinc-950" aria-busy="true">
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">
@@ -49,7 +70,7 @@ export default function FanletterLoading() {
       </div>
 
       <p className="sr-only" role="status" aria-live="polite">
-        콘텐츠를 불러오는 중입니다.
+        {statusMessage}
       </p>
     </main>
   );
