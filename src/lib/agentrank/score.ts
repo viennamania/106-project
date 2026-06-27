@@ -546,9 +546,9 @@ export function calculateAgentRankScoreAggregate({
   );
   const networkDimension = buildDimension({
     description:
-      "Founder joins, referral conversions, and repeated network edges around an AI Star Universe.",
+      "Joins, referral conversions, and repeated network edges around an AI Star Universe.",
     key: "network",
-    label: "Founder Network",
+    label: "Creator Network",
     maxScore: 240,
     rawValue: accumulator.weightTotals.network + accumulator.networkEdges,
     score:
@@ -668,7 +668,7 @@ export function calculateAgentRankScoreAggregate({
         scoringMode: "coverage_including_mock",
       },
     formula:
-      "AgentRank Score = Founder Network + Economic Activity + Creator Journey + AI Star Discovery + Lineage Trust - Risk Penalty",
+      "AgentRank Score = Creator Network + Economic Activity + Creator Journey + AI Star Discovery + Lineage Trust - Risk Penalty",
     generatedAt: feed.generatedAt,
     maxScore: 1000,
     readiness: {

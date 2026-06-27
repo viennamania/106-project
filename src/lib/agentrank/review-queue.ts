@@ -207,7 +207,7 @@ function buildFeedFromEvents(
     generatedAt: new Date().toISOString(),
     roadmap: [
       "AI Star Discovery",
-      "Founder Network",
+      "Creator Network",
       "x402 Economy",
       "Agent Transaction Graph",
       "AgentRank",
@@ -676,7 +676,7 @@ export function buildAgentRankProductActionCoverage(
       covered: hasEventType("founder_joined"),
       eventType: "founder_joined",
       key: "founder",
-      label: "Founder Join",
+      label: "Join",
     },
     {
       covered:

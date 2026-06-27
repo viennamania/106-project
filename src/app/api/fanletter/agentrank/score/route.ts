@@ -102,7 +102,7 @@ function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
       dimension.description,
     ]),
     ["summary", "eventCount", "Events", score.summary.eventCount, "", ""],
-    ["summary", "founderJoins", "Founder Joins", score.summary.founderJoins, "", ""],
+    ["summary", "founderJoins", "Joins", score.summary.founderJoins, "", ""],
     [
       "summary",
       "referralConversions",
