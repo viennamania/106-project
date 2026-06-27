@@ -1471,6 +1471,10 @@ export function FanletterHomePage({
     `/${locale}/fanletter/my-ai`,
     referralCode,
   );
+  const founderClubHref = buildPathWithReferral(
+    `/${locale}/fanletter/founder-club`,
+    referralCode,
+  );
   // '만들기' tab → creator activation hub (creator-unlock); hub links to /create.
   const createHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
@@ -1619,6 +1623,12 @@ export function FanletterHomePage({
                 href={myAiHref}
               >
                 {getFanletterNavLabels(locale).myStars}
+              </Link>
+              <Link
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                href={founderClubHref}
+              >
+                {getFanletterNavLabels(locale).club}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"

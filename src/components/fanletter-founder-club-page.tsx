@@ -725,7 +725,11 @@ export function FanletterFounderClubPage({
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 text-black sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <FanletterPrimaryHeader locale={locale} referralCode={null} />
+        <FanletterPrimaryHeader
+          current="founder-club"
+          locale={locale}
+          referralCode={null}
+        />
 
         <section className="mt-6 rounded-lg border border-black/10 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-6">
           <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
