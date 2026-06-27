@@ -127,6 +127,22 @@ a {
   outline-offset: 2px;
 }
 
+/* Skip-to-content link: parked off-screen until it receives keyboard focus, then
+   slides into view at the top-left. Hand-written so the focus reveal does not
+   depend on Tailwind focus-variant generation (focus:translate-y-0 was not
+   emitted, leaving the link permanently off-screen). */
+.fanletter-skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  transition: transform 0.15s ease;
+}
+.fanletter-skip-link:focus {
+  transform: translateY(0);
+}
+
 :where(button:not(:disabled), [role="button"]:not([aria-disabled="true"])) {
   cursor: pointer;
 }
