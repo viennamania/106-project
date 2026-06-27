@@ -16,7 +16,6 @@ import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterSignedOutGate } from "@/components/fanletter-signed-out-gate";
 import type { Locale } from "@/lib/i18n";
-import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import { pickFanletterCopy } from "@/lib/fanletter-i18n";
 import {
   buildFanletterAIStarSocialAccountViewModel,
@@ -29,7 +28,6 @@ import {
   type AIStar,
   type MemberOwnedAIStar,
   type MemberPortfolio,
-  type MemberPortfolioRole,
 } from "@/mock/fanletterV2";
 
 function formatNumber(value: number, locale: Locale) {
@@ -211,11 +209,6 @@ function getStarName(star: MemberOwnedAIStar, fallback?: AIStar) {
 
 function getUniverseName(star: MemberOwnedAIStar, fallback?: AIStar) {
   return star.universeName || fallback?.universeName || `${getStarName(star, fallback)} Universe`;
-}
-
-function getRoleLabel(role: MemberPortfolioRole["role"], locale: Locale) {
-  // Collapsed to two public states (크리에이터/팬); full grade kept in the data model.
-  return getFanletterPublicRoleLabel(role, locale);
 }
 
 function resolvePrimaryStar({
@@ -579,59 +572,29 @@ export function FanletterMyAIPage({
         )}
 
         {portfolio.roles.length > 0 ? (
-          <section className="min-w-0 rounded-[1.2rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950 ring-1 ring-zinc-200">
-                <UsersRound className="size-5" />
+          <Link
+            className="group flex min-w-0 items-center gap-3 rounded-[1.2rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)] transition hover:border-zinc-300"
+            href={`/${locale}/fanletter/founder-club`}
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950 ring-1 ring-zinc-200">
+              <UsersRound className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                Creator Network
               </span>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Creator Network
-                </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
-                  {copy.founderNetworks}
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
-                  {copy.founderNetworksBody}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {portfolio.roles.map((role) => {
-                const star = starsById.get(role.starId);
-                const starName = role.starName ?? star?.name ?? role.starId;
-                const universeName =
-                  role.universeName ?? star?.universeName ?? `${starName} Universe`;
-
-                return (
-                  <Link
-                    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300"
-                    href={`/${locale}/fanletter/${encodeURIComponent(
-                      role.starId,
-                    )}/universe`}
-                    key={`${role.starId}-${role.role}`}
-                  >
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-xs font-semibold text-zinc-700">
-                      {portfolio.memberInitials ?? "ME"}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-zinc-950">
-                        {starName}
-                      </span>
-                      <span className="block truncate text-xs font-semibold text-zinc-500">
-                        {universeName}
-                      </span>
-                    </span>
-                    <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.62rem] font-semibold text-zinc-700">
-                      {getRoleLabel(role.role, locale)}
-                    </span>
-                    <ArrowRight className="size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
+              <span className="mt-1 block truncate text-base font-semibold text-zinc-950">
+                {copy.founderNetworks}
+              </span>
+              <span className="mt-1 block text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                {copy.founderNetworksBody}
+              </span>
+            </span>
+            <span className="shrink-0 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[0.7rem] font-semibold tabular-nums text-zinc-700">
+              {formatNumber(portfolio.roles.length, locale)}
+            </span>
+            <ArrowRight className="size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
+          </Link>
         ) : null}
 
         {primaryStar && primarySocialAccount && primaryStarName ? (
