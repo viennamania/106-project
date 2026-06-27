@@ -1363,7 +1363,7 @@ function FounderUniverseTierRail({ locale }: { locale: Locale }) {
             className="rounded-md border border-white bg-white/80 px-1.5 py-2 text-center shadow-[0_8px_18px_rgba(88,28,135,0.06)]"
             key={capacity}
           >
-            <p className="text-[0.58rem] font-semibold text-violet-500">
+            <p className="text-[0.66rem] font-semibold text-violet-500">
               L{index + 1}
             </p>
             <p className="mt-1 text-[0.66rem] font-semibold leading-none text-zinc-800 tabular-nums">

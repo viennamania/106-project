@@ -707,7 +707,7 @@ function CharacterCard({
               <p className="text-lg font-semibold leading-none">
                 {formatNumber(stat.value, locale)}
               </p>
-              <p className="mt-1 truncate text-[0.56rem] font-semibold uppercase tracking-[0.08em] text-black/42">
+              <p className="mt-1 truncate text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-black/42">
                 {stat.label}
               </p>
             </div>

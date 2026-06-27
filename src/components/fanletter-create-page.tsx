@@ -2649,7 +2649,7 @@ export function FanletterCreatePage({
                     className="border border-white/10 bg-white/[0.055] px-2 py-2 text-center"
                     key={step}
                   >
-                    <p className="text-[0.58rem] font-semibold text-[#44f26e]">
+                    <p className="text-[0.66rem] font-semibold text-[#44f26e]">
                       {String(index + 1).padStart(2, "0")}
                     </p>
                     <p className="mt-1 truncate text-[0.66rem] font-semibold text-white/72">
@@ -3409,17 +3409,17 @@ export function FanletterCreatePage({
                                   />
                                   <span className="absolute inset-x-1.5 bottom-1.5 flex flex-wrap gap-1">
                                     {timestamp ? (
-                                      <span className="rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-semibold text-white">
+                                      <span className="rounded-full bg-black/72 px-1.5 py-0.5 text-[0.66rem] font-semibold text-white">
                                         {timestamp}
                                       </span>
                                     ) : null}
                                     {frameSize ? (
-                                      <span className="rounded-full bg-white/88 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black/72">
+                                      <span className="rounded-full bg-white/88 px-1.5 py-0.5 text-[0.66rem] font-semibold text-black/72">
                                         {frameSize}
                                       </span>
                                     ) : null}
                                   </span>
-                                  <span className="absolute left-1.5 top-1.5 max-w-[4rem] truncate rounded-full bg-white/90 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black">
+                                  <span className="absolute left-1.5 top-1.5 max-w-[4rem] truncate rounded-full bg-white/90 px-1.5 py-0.5 text-[0.66rem] font-semibold text-black">
                                     {selected
                                       ? copy.resultReview.selectedCover
                                       : copy.resultReview.selectCover}
