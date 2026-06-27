@@ -10355,32 +10355,32 @@ export function FanletterOnboardingPage({
       ? locale === "ko"
         ? {
             accountState:
-              "이 Founder 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
+              "이 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
             asideBody:
-              "계정 연결 후 Founder 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
-            asideTitle: "Founder 참여 준비",
+              "계정 연결 후 참여 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
+            asideTitle: "참여 준비",
             completeBody:
-              "계정 연결, Founder 귀속 확인, 추천 링크 공유까지 이어지면 기여 포인트와 영향력 적립 흐름을 확인할 수 있습니다.",
-            completeTitle: "Founder 참여 체크리스트",
-            description: `${founderUniverseName} Founder 참여, 추천 코드 생성, SNS 공유까지 한 흐름으로 이어가세요.`,
-            eyebrow: "Founder Club 온보딩",
-            feedCta: "Founder Club 보기",
+              "계정 연결, 참여 귀속 확인, 추천 링크 공유까지 이어지면 기여 포인트와 영향력 적립 흐름을 확인할 수 있습니다.",
+            completeTitle: "참여 체크리스트",
+            description: `${founderUniverseName} 참여, 추천 코드 생성, SNS 공유까지 한 흐름으로 이어가세요.`,
+            eyebrow: "Creator Club 온보딩",
+            feedCta: "Creator Club 보기",
             helper:
-              "Founder Club에서 내 역할, 추천 링크, 기여 포인트, 영향력, Creator 진행률을 관리합니다.",
+              "Creator Club에서 내 역할, 추천 링크, 기여 포인트, 영향력, Creator 진행률을 관리합니다.",
             homeCta: "AI 스타 유니버스 보기",
             primaryCta: "계정 연결",
-            progress: "Founder 진행",
+            progress: "참여 진행",
             readyValue: "3단계",
             returnBody:
               "스타 상세로 돌아가 추천 코드 생성과 SNS 공유 루프를 이어갈 수 있습니다.",
             returnCta: "AI 스타 유니버스로 돌아가기",
             secondaryCta: "AI 스타 유니버스 먼저 보기",
-            title: `${founderStarName} Founder로 참여하기`,
+            title: `${founderStarName} 팬으로 참여하기`,
             steps: [
               {
                 badge: "계정",
                 body:
-                  "이메일 계정을 연결해 Founder 역할과 추천 보상이 같은 계정에 저장되도록 합니다.",
+                  "이메일 계정을 연결해 팬 역할과 추천 보상이 같은 계정에 저장되도록 합니다.",
                 cta: "계정 연결하기",
                 href: connectHref,
                 Icon: User,
@@ -10388,13 +10388,13 @@ export function FanletterOnboardingPage({
                 title: "AIAVpark 계정 연결",
               },
               {
-                badge: "Founder",
+                badge: "팬",
                 body: `${founderUniverseName}에 Founder로 귀속되는지 확인합니다. 새 결제 없이 mock 흐름으로 먼저 검증합니다.`,
-                cta: "Founder 귀속 확인",
+                cta: "참여 귀속 확인",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
-                meta: "02 · Founder",
-                title: "Founder 참여 확인",
+                meta: "02 · 참여",
+                title: "참여 확인",
               },
               {
                 badge: "공유",
@@ -10412,21 +10412,21 @@ export function FanletterOnboardingPage({
           }
       : {
             accountState:
-              "This Founder join is attributed to the selected AI Star Universe. Real payment is still deferred.",
+              "This Join is attributed to the selected AI Star Universe. Real payment is still deferred.",
             asideBody:
-              "Connect the account, confirm Founder attribution, then create and share the referral link from the Star detail page.",
-            asideTitle: "Founder join setup",
+              "Connect the account, confirm Join attribution, then create and share the referral link from the Star detail page.",
+            asideTitle: "Join setup",
             completeBody:
-              "After account connection, Founder attribution, and referral sharing, the Contribution Points and influence reward flow is ready to preview.",
-            completeTitle: "Founder join checklist",
-            description: `Continue through ${founderUniverseName} Founder join, referral code creation, and SNS sharing.`,
-            eyebrow: "Founder Club Onboarding",
-            feedCta: "View Founder Club",
+              "After account connection, Join attribution, and referral sharing, the Contribution Points and influence reward flow is ready to preview.",
+            completeTitle: "Join checklist",
+            description: `Continue through ${founderUniverseName} Join, referral code creation, and SNS sharing.`,
+            eyebrow: "Creator Club Onboarding",
+            feedCta: "View Creator Club",
             helper:
-              "Manage your roles, referral links, Contribution Points, influence, and Creator progress in Founder Club.",
+              "Manage your roles, referral links, Contribution Points, influence, and Creator progress in Creator Club.",
             homeCta: "View AI Star Universe",
             primaryCta: "Connect and join",
-            progress: "Founder progress",
+            progress: "Participation progress",
             readyValue: "3 steps",
             returnBody:
               "Return to the Star detail page to continue referral code creation and SNS sharing.",
@@ -10437,7 +10437,7 @@ export function FanletterOnboardingPage({
               {
                 badge: "Account",
                 body:
-                  "Connect email so the Founder role and referral rewards stay attached to one account.",
+                  "Connect email so the Fan role and referral rewards stay attached to one account.",
                 cta: "Connect account",
                 href: connectHref,
                 Icon: User,
@@ -10445,13 +10445,13 @@ export function FanletterOnboardingPage({
                 title: "Connect AIAVpark account",
               },
               {
-                badge: "Founder",
-                body: `Confirm Founder attribution in ${founderUniverseName}. This release previews the flow without a new payment.`,
-                cta: "Confirm Founder attribution",
+                badge: "팬",
+                body: `Confirm Join attribution in ${founderUniverseName}. This release previews the flow without a new payment.`,
+                cta: "Confirm Join attribution",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
-                meta: "02 · Founder",
-                title: "Confirm Founder join",
+                meta: "02 · 참여",
+                title: "Confirm join",
               },
               {
                 badge: "Share",
@@ -10578,7 +10578,7 @@ export function FanletterOnboardingPage({
           ? {
               href: founderJoinCompleteHref,
               label:
-                locale === "ko" ? "Founder 참여 확정" : "Confirm Founder join",
+                locale === "ko" ? "참여 확정" : "Confirm join",
               mode: "join" as const,
             }
           : {
@@ -10605,15 +10605,15 @@ export function FanletterOnboardingPage({
   const founderStatusNote =
     isFounderClubOnboarding && locale === "ko"
       ? isFounderJoined
-        ? "Founder 참여가 완료되었습니다. 내 추천 링크를 공유하고 파운더 네트워크 확장을 확인하세요."
+        ? "참여가 완료되었습니다. 내 추천 링크를 공유하고 크리에이터 네트워크 확장을 확인하세요."
         : hasConnectedAccount
-          ? "계정 연결이 확인되었습니다. 이제 Founder 참여 확정을 누르면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다."
+          ? "계정 연결이 확인되었습니다. 이제 참여 확정을 누르면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다."
           : labels.accountState
       : isFounderClubOnboarding
         ? isFounderJoined
-          ? "Founder join is complete. Share your referral link and review the Founder Network expansion."
+          ? "Join is complete. Share your referral link and review the Creator Network expansion."
           : hasConnectedAccount
-            ? "Your account is connected. Confirm Founder join to save membership and referral code for this AI Star Universe."
+            ? "Your account is connected. Confirm join to save membership and referral code for this AI Star Universe."
             : labels.accountState
         : labels.accountState;
   const progressItems = labels.steps.map((step) => ({

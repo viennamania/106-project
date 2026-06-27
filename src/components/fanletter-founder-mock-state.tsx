@@ -342,7 +342,7 @@ async function requestFanletterFounderJoin({
       message:
         data && "error" in data && data.error
           ? data.error
-          : "Failed to process Founder join.",
+          : "Failed to process Join.",
       status: response.status,
     });
   }
@@ -547,7 +547,7 @@ export function FanletterFounderJoinLink({
             window.alert(
               error instanceof Error
                 ? error.message
-                : "Founder join could not be completed.",
+                : "Join could not be completed.",
             );
             return;
           }
@@ -626,10 +626,10 @@ function getJoinStatusLabel(
 ) {
   if (membership.joinMode === "live") {
     return locale === "ko"
-      ? "Founder 활성"
+      ? "참여 중"
       : locale === "ja"
-        ? "Founder有効"
-        : "Founder active";
+        ? "参加中"
+        : "Participating";
   }
 
   return locale === "ko"
@@ -696,23 +696,23 @@ export function FanletterFounderMockStatusBanner({
   ).format(new Date(membership.joinedAt));
   const title =
     locale === "ko"
-      ? `${starName} Founder 배치 완료`
+      ? `${starName} 참여 배치 완료`
       : locale === "ja"
-        ? `${starName} Founder配置完了`
-        : `${starName} Founder placement complete`;
+        ? `${starName} 参加配置完了`
+        : `${starName} Placement complete`;
   const isLiveJoin = membership.joinMode === "live";
   const body =
     locale === "ko"
       ? isLiveJoin
-        ? "Founder 참여가 완료되었습니다. 내 네트워크 위치와 추천 코드를 확인하고 다음 Founder를 초대하세요."
-        : "이 브라우저에서 Founder 참여 미리보기가 저장되었습니다. 네트워크 위치와 추천 링크 흐름을 계속 확인할 수 있습니다."
+        ? "참여가 완료되었습니다. 내 네트워크 위치와 추천 코드를 확인하고 다음 팬를 초대하세요."
+        : "이 브라우저에서 참여 미리보기가 저장되었습니다. 네트워크 위치와 추천 링크 흐름을 계속 확인할 수 있습니다."
       : locale === "ja"
         ? isLiveJoin
-          ? "Founder参加が完了しました。ネットワーク上の位置と紹介コードを確認し、次のFounderを招待してください。"
-          : "このブラウザにFounder参加プレビューを保存しました。配置と紹介リンクの流れを確認できます。"
+          ? "参加が完了しました。ネットワーク上の位置と紹介コードを確認し、次のファンを招待してください。"
+          : "このブラウザに参加プレビューを保存しました。配置と紹介リンクの流れを確認できます。"
         : isLiveJoin
-          ? "Founder join is complete. Review your network position and invite the next Founder."
-          : "Founder join preview is saved in this browser. Continue reviewing placement and referral flow.";
+          ? "Join is complete. Review your network position and invite the next Fan."
+          : "Join preview is saved in this browser. Continue reviewing placement and referral flow.";
   const codeLabel =
     locale === "ko" ? "추천 코드" : locale === "ja" ? "紹介コード" : "Referral";
   const dateLabel =
@@ -737,10 +737,10 @@ export function FanletterFounderMockStatusBanner({
   const statusLabel = getJoinStatusLabel(membership, locale);
   const networkLabel =
     locale === "ko"
-      ? "파운더 네트워크"
+      ? "크리에이터 네트워크"
       : locale === "ja"
-        ? "Founder Network"
-        : "Founder Network";
+        ? "Creator Network"
+        : "Creator Network";
   const parentLabel =
     locale === "ko" ? "상위 멤버" : locale === "ja" ? "上位メンバー" : "Parent";
   const referralMetricLabel =
@@ -765,10 +765,10 @@ export function FanletterFounderMockStatusBanner({
   const creatorUnlockHref = `/${locale}/fanletter/creator-unlock`;
   const flowLabels =
     locale === "ko"
-      ? ["AI 스타", "내 Founder 위치", "추천 공유"]
+      ? ["AI 스타", "내 참여 위치", "추천 공유"]
       : locale === "ja"
-        ? ["AI Star", "自分のFounder位置", "紹介共有"]
-        : ["AI Star", "My Founder slot", "Share referral"];
+        ? ["AI Star", "自分の参加位置", "紹介共有"]
+        : ["AI Star", "My slot", "Share referral"];
   const actionLabels =
     locale === "ko"
       ? {
