@@ -48,7 +48,7 @@ export default async function FanletterLayout({
   return (
     <>
       <a
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:!text-white focus:shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
+        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-transform focus:translate-y-0"
         href="#fanletter-main-content"
       >
         {skipLabel}
