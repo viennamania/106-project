@@ -23,7 +23,7 @@ export function FanletterPrimaryHeader({
   /** Optional page-specific trailing element (e.g. a status badge). */
   aside?: ReactNode;
   /** The active top-level destination, highlighted in the nav. */
-  current?: "create" | "discovery" | "my-ai";
+  current?: "create" | "discovery" | "founder-club" | "my-ai";
   locale: Locale;
   referralCode: string | null;
 }) {
@@ -38,6 +38,10 @@ export function FanletterPrimaryHeader({
   );
   const myAiHref = buildPathWithReferral(
     `/${locale}/fanletter/my-ai`,
+    referralCode,
+  );
+  const founderClubHref = buildPathWithReferral(
+    `/${locale}/fanletter/founder-club`,
     referralCode,
   );
   // '만들기' tab routes to the creator activation hub (creator-unlock); the hub
@@ -74,6 +78,13 @@ export function FanletterPrimaryHeader({
           href={myAiHref}
         >
           {navLabels.myStars}
+        </Link>
+        <Link
+          aria-current={current === "founder-club" ? "page" : undefined}
+          className={navItemClassName(current === "founder-club")}
+          href={founderClubHref}
+        >
+          {navLabels.club}
         </Link>
         <Link
           aria-current={current === "create" ? "page" : undefined}
