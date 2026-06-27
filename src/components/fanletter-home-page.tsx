@@ -189,8 +189,8 @@ export type FanletterHomeShareContext = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "파운더 클럽 2.0 성장 루프",
-    prize: "AI 스타 발견 → 파운더 → 크리에이터",
+    label: "크리에이터 클럽 2.0 성장 루프",
+    prize: "AI 스타 발견 → 팬 → 크리에이터",
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
@@ -256,7 +256,7 @@ const koCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "AI 스타를 발견하고 파운더 영향력을 키우는 성장 루프.",
+    title: "AI 스타를 발견하고 크리에이터 영향력을 키우는 성장 루프.",
   },
   growthModel: {
     body:
@@ -285,9 +285,9 @@ const koCopy: FanletterCopy = {
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "AI 스타를 발견하고, 파운더가 되고, 크리에이터로 성장하세요",
+    title: "AI 스타를 발견하고, 팬으로 참여하고, 크리에이터로 성장하세요",
     description:
-      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 친구 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
+      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 팬 참여, 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
   },
   liveStats: {
     content: "공개 브이로그",
@@ -307,7 +307,7 @@ const koCopy: FanletterCopy = {
     creators: "크리에이터",
     faq: "FAQ",
     features: "둘러보기",
-    paid: "파운더 클럽",
+    paid: "크리에이터 클럽",
     reports: "포트폴리오",
     studio: "스튜디오",
   },
@@ -404,8 +404,8 @@ const koCopy: FanletterCopy = {
 
 const enCopy: FanletterCopy = {
   announcement: {
-    label: "Founder Club 2.0 growth loop",
-    prize: "AI Star Discovery → Founder → Creator",
+    label: "Creator Club 2.0 growth loop",
+    prize: "AI Star Discovery → Fan → Creator",
   },
   brandSuffix: "AI Character Vlogger",
   cta: {
@@ -471,7 +471,7 @@ const enCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "Discover AI Stars and grow Founder influence.",
+    title: "Discover AI Stars and grow Creator influence.",
   },
   growthModel: {
     body:
@@ -500,9 +500,9 @@ const enCopy: FanletterCopy = {
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "Discover AI Stars, become a Founder, and grow into a Creator.",
+    title: "Discover AI Stars, join as a Fan, and grow into a Creator.",
     description:
-      "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Founder, Scout, and Creator growth platform.",
+      "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Fan, Invite, and Creator growth platform.",
   },
   liveStats: {
     content: "public vlogs",
@@ -838,12 +838,12 @@ function FanletterProductHomeDashboard({
         creator: "크리에이터 권한",
         creatorReady: "AI 스타 창업 준비 완료",
         discovery: "AI 스타 발견",
-        founder: "파운더",
-        founderNetworkCta: "파운더 네트워크 보기",
-        founderUniverse: "파운더 네트워크",
+        founder: "참여자",
+        founderNetworkCta: "크리에이터 네트워크 보기",
+        founderUniverse: "크리에이터 네트워크",
         growth: "성장",
         headline: "함께 키울 AI 스타를 발견하세요",
-        join: "파운더 참여",
+        join: "크리에이터 네트워크 참여",
         locked: "조건 확인",
         loop: "발견 → 초대 → 보상 → 창업",
         open: "남은 자리",
@@ -852,7 +852,7 @@ function FanletterProductHomeDashboard({
         scout: "초대",
         subhead:
           "마음에 드는 AI 스타를 고르면 바로 시작돼요. 참여가 기록으로 쌓이며 스타와 함께 성장합니다.",
-        starCardFlow: "상세에서 파운더 참여",
+        starCardFlow: "상세에서 참여",
         swipeHint: "좌우로 밀어 더 보기",
         today: "오늘 할 일",
         topGrowingTitle: "성장 중인 AI 스타",
@@ -868,12 +868,12 @@ function FanletterProductHomeDashboard({
         creator: "Creator Permission",
         creatorReady: "AI Star launch ready",
         discovery: "AI Star Discovery",
-        founder: "Founder",
-        founderNetworkCta: "View Founder Network",
-        founderUniverse: "Founder Network",
+        founder: "Participants",
+        founderNetworkCta: "View Creator Network",
+        founderUniverse: "Creator Network",
         growth: "Growth",
         headline: "Discover an AI star to grow together",
-        join: "Join Founder",
+        join: "Join Creator Network",
         locked: "Locked",
         loop: "Discover → Invite → Reward → Launch",
         open: "Open spots",
@@ -882,7 +882,7 @@ function FanletterProductHomeDashboard({
         scout: "Invite",
         subhead:
           "Pick an AI star you like and it starts right away — your participation builds up as you grow together.",
-        starCardFlow: "Detail → Founder join",
+        starCardFlow: "Detail → Join",
         swipeHint: "Swipe to see more",
         today: "Today",
         topGrowingTitle: "Top Growing AI Stars",
@@ -902,11 +902,11 @@ function FanletterProductHomeDashboard({
       creator: "クリエイター権限",
       creatorReady: "AIスター立ち上げ準備完了",
       discovery: "AIスター発見",
-      founderNetworkCta: "ファウンダーネットワークを見る",
-      founderUniverse: "ファウンダーネットワーク",
+      founderNetworkCta: "クリエイターネットワークを見る",
+      founderUniverse: "クリエイターネットワーク",
       growth: "成長",
       headline: "一緒に育てるAIスターを見つけよう",
-      join: "ファウンダー参加",
+      join: "クリエイターネットワーク参加",
       locked: "条件を確認",
       open: "残り枠",
       portfolio: "私の成長状況",
@@ -922,11 +922,11 @@ function FanletterProductHomeDashboard({
       creator: "创作者权限",
       creatorReady: "AI明星启动就绪",
       discovery: "发现AI明星",
-      founderNetworkCta: "查看创始人网络",
-      founderUniverse: "创始人网络",
+      founderNetworkCta: "查看创作者网络",
+      founderUniverse: "创作者网络",
       growth: "成长",
       headline: "发现一起培养的AI明星",
-      join: "加入创始人",
+      join: "加入创作者网络",
       locked: "查看条件",
       open: "剩余名额",
       portfolio: "我的成长状态",
@@ -942,11 +942,11 @@ function FanletterProductHomeDashboard({
       creator: "Quyền Creator",
       creatorReady: "Sẵn sàng ra mắt AI Star",
       discovery: "Khám phá AI Star",
-      founderNetworkCta: "Xem Founder Network",
-      founderUniverse: "Founder Network",
+      founderNetworkCta: "Xem Creator Network",
+      founderUniverse: "Creator Network",
       growth: "Phát triển",
       headline: "Khám phá AI star để cùng phát triển",
-      join: "Tham gia Founder",
+      join: "Tham gia mạng lưới Creator",
       locked: "Xem điều kiện",
       open: "Chỗ trống",
       portfolio: "Trạng thái phát triển của tôi",
@@ -962,11 +962,11 @@ function FanletterProductHomeDashboard({
       creator: "Izin Creator",
       creatorReady: "Siap meluncurkan AI Star",
       discovery: "Temukan AI Star",
-      founderNetworkCta: "Lihat Founder Network",
-      founderUniverse: "Founder Network",
+      founderNetworkCta: "Lihat Creator Network",
+      founderUniverse: "Creator Network",
       growth: "Pertumbuhan",
       headline: "Temukan AI star untuk tumbuh bersama",
-      join: "Gabung Founder",
+      join: "Gabung jaringan Creator",
       locked: "Lihat syarat",
       open: "Slot tersisa",
       portfolio: "Status pertumbuhan saya",
@@ -1212,7 +1212,7 @@ function FanletterProductHomeDashboard({
                 </span>
                 <span className="mt-1 block truncate text-xs font-medium text-zinc-500">
                   {isKo
-                    ? "참여 중인 파운더 네트워크 보기"
+                    ? "참여 중인 크리에이터 네트워크 보기"
                     : "View your founder networks"}
                 </span>
               </span>
@@ -1515,7 +1515,7 @@ export function FanletterHomePage({
           title: "Where to next?",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
-  // Content-first: the Founder Club 2.0 growth-loop bar shows only after the
+  // Content-first: the Creator Club 2.0 growth-loop bar shows only after the
   // member has acted at least once (same activity-history rule as the dashboard).
   // New visitors get a clean first viewport (hero + AI star cards only).
   const hasHomeActivityHistory = Boolean(
