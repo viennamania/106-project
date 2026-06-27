@@ -178,7 +178,7 @@ function getCoverageAuditCopy(locale: Locale) {
       scope: "감사 범위",
       scoreApi: "Score API",
       subtitle:
-        "FanLetter에서 발생한 발견, 파운더 참여, 초대, CP, 창업 이벤트가 AgentRank 평판 데이터로 충분히 쌓이고 있는지 점검합니다.",
+        "FanLetter에서 발생한 발견, 참여, 초대, CP, 창업 이벤트가 AgentRank 평판 데이터로 충분히 쌓이고 있는지 점검합니다.",
       targetLayer: "대상 레이어",
       title: "Coverage Audit",
       totalEvents: "전체 이벤트",
@@ -310,7 +310,7 @@ function getInteractionSourceLabel(
           fanletter_bridge: "연결/온보딩",
           fanletter_content: "콘텐츠/브이로그",
           fanletter_creator_unlock: "권한 활성화",
-          fanletter_founder_universe: "파운더 네트워크",
+          fanletter_founder_universe: "크리에이터 네트워크",
           fanletter_home: "FanLetter 홈",
           fanletter_my_ai: "내 AI",
           fanletter_news: "뉴스/리포트",
@@ -321,7 +321,7 @@ function getInteractionSourceLabel(
           fanletter_bridge: "Connect / Onboarding",
           fanletter_content: "Content / Vlog",
           fanletter_creator_unlock: "Creator Permission",
-          fanletter_founder_universe: "Founder Network",
+          fanletter_founder_universe: "Creator Network",
           fanletter_home: "FanLetter Home",
           fanletter_my_ai: "My AI",
           fanletter_news: "News / Reports",
@@ -421,7 +421,7 @@ function getBackfillCoverageLabel(
       ? {
           creatorRoleCoveragePercent: "AI 스타 Creator 연결",
           legacyReferralEdgeCoveragePercent: "기존 추천 엣지 전환",
-          memberFounderUniverseCoveragePercent: "회원 파운더 네트워크",
+          memberFounderUniverseCoveragePercent: "회원 크리에이터 네트워크",
           memberStarterStarCoveragePercent: "회원 시작 AI 스타",
           starOwnerCoveragePercent: "AI 스타 소유자",
           starPortraitCoveragePercent: "AI 스타 프로필",
@@ -429,7 +429,7 @@ function getBackfillCoverageLabel(
       : {
           creatorRoleCoveragePercent: "AI Star Creator Link",
           legacyReferralEdgeCoveragePercent: "Legacy Referral Edge",
-          memberFounderUniverseCoveragePercent: "Member Founder Network",
+          memberFounderUniverseCoveragePercent: "Member Creator Network",
           memberStarterStarCoveragePercent: "Member Starter AI Star",
           starOwnerCoveragePercent: "AI Star Owner",
           starPortraitCoveragePercent: "AI Star Profile",
@@ -451,7 +451,7 @@ function getBackfillConvertibleEventLabel(
           aiStarDiscovered: "AI 스타 발견",
           cpEarned: "CP 보상",
           cpPoolGenerated: "CP Pool 생성",
-          founderJoined: "파운더 참여",
+          founderJoined: "참여",
           referralCodeCreated: "추천 코드 생성",
           referralConverted: "추천 전환",
         }
@@ -459,7 +459,7 @@ function getBackfillConvertibleEventLabel(
           aiStarDiscovered: "AI Star Discovered",
           cpEarned: "CP Earned",
           cpPoolGenerated: "CP Pool Generated",
-          founderJoined: "Founder Joined",
+          founderJoined: "Joined",
           referralCodeCreated: "Referral Code Created",
           referralConverted: "Referral Converted",
         };
@@ -475,7 +475,7 @@ function getBackfillGapLabel(gap: string, locale: Locale) {
   const labels: Record<string, string> = {
     "missing:cp_influence_ledger": "CP/Influence 원장 보강 필요",
     "missing:legacy_referral_edges": "기존 추천 엣지 보강 필요",
-    "missing:member_founder_universe": "회원 파운더 네트워크 연결 필요",
+    "missing:member_founder_universe": "회원 크리에이터 네트워크 연결 필요",
     "missing:member_starter_star": "회원 시작 AI 스타 연결 필요",
     "missing:star_creator_membership": "AI 스타 Creator 멤버십 필요",
     "missing:star_owner": "AI 스타 소유자 정보 필요",
@@ -545,7 +545,7 @@ function getBackfillActionPlanText(
   const labels: Record<string, { description: string; title: string }> = {
     "backfill-cp-influence-ledger": {
       description:
-        "파운더 네트워크 행동에 대한 CP/Influence 원장을 생성해 AgentRank가 경제 기여 신호를 읽을 수 있게 합니다.",
+        "크리에이터 네트워크 행동에 대한 CP/Influence 원장을 생성해 AgentRank가 경제 기여 신호를 읽을 수 있게 합니다.",
       title: "CP/Influence 원장 정합성",
     },
     "backfill-legacy-referral-edges": {
@@ -555,8 +555,8 @@ function getBackfillActionPlanText(
     },
     "backfill-member-founder-universe": {
       description:
-        "가입 완료 회원을 추천 맥락, 기존 멤버십, 플랫폼 시작 AI 스타 유니버스 기준으로 파운더 네트워크에 연결합니다.",
-      title: "회원 파운더 네트워크 배치",
+        "가입 완료 회원을 추천 맥락, 기존 멤버십, 플랫폼 시작 AI 스타 유니버스 기준으로 크리에이터 네트워크에 연결합니다.",
+      title: "회원 크리에이터 네트워크 배치",
     },
     "backfill-member-starter-star": {
       description:
@@ -690,7 +690,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
               description:
                 "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
-              layer: "Founder Network",
+              layer: "Creator Network",
               trigger: "출처 AI 스타 유니버스 선택",
             },
             x402_mock_payment_intent: {
@@ -734,7 +734,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
               description:
                 "Lock which AI Star Universe produced the new AI Star launch outcome.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
-              layer: "Founder Network",
+              layer: "Creator Network",
               trigger: "Source AI Star Selected",
             },
             x402_mock_payment_intent: {

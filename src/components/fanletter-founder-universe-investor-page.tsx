@@ -47,7 +47,7 @@ function getInvestorCopy(locale: Locale) {
     return {
       benefits: [
         "AI 스타 탄생 기여 → 기여 포인트 획득",
-        "파운더 네트워크 성장 기여 → 추가 기여 포인트",
+        "크리에이터 네트워크 성장 기여 → 추가 기여 포인트",
         "기여 포인트로 보상과 권한 사용 가능",
         "더 많은 AI 스타 탄생 → 더 큰 보상 기회",
       ],
@@ -65,7 +65,7 @@ function getInvestorCopy(locale: Locale) {
       globalTitle: "플랫폼 라이브 지표",
       heroSubtitle:
         "AI 스타의 탄생부터 성장까지, 파운더와 함께 만드는 가치 생태계",
-      heroTitle: "파운더 네트워크 AI 스타 인큐베이터 모델",
+      heroTitle: "크리에이터 네트워크 AI 스타 인큐베이터 모델",
       modelPill1: "현금 분배 NO",
       modelPill1Body: "모든 보상은 기여 포인트로 지급",
       modelPill2: "기여도 보상 기여 포인트",
@@ -74,7 +74,7 @@ function getInvestorCopy(locale: Locale) {
       modelPill3Body: "새 AI 스타가 탄생할수록 가치 확장",
       paymentTitle: "결제 금액은 플랫폼 수익",
       paymentSubtitle: "실결제 연동 전 모델 검증",
-      sourceTitle: "파운더 네트워크 구조",
+      sourceTitle: "크리에이터 네트워크 구조",
       spawnedTitle: "AI 스타 유니버스 확장",
       spawnedSubtitle: "Creator가 배출하거나 배출할 AI 스타 확장 흐름",
       spawnedCreatedBy: "창업 회원",
@@ -90,7 +90,7 @@ function getInvestorCopy(locale: Locale) {
       more: "더보기",
       footer:
         "FanLetter는 AI 스타와 파운더가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
-      explore: "파운더 네트워크 탐색",
+      explore: "크리에이터 네트워크 탐색",
       directChildren: "직접 초대",
       memberId: "회원 ID",
       metricActiveCodes: "활성 추천 코드",
@@ -131,7 +131,7 @@ function getInvestorCopy(locale: Locale) {
     globalTitle: "Platform Live Metrics",
     heroSubtitle:
       "A value ecosystem where Founders help AI Stars launch and grow",
-    heroTitle: "Founder Network AI Star Incubation Model",
+    heroTitle: "Creator Network AI Star Incubation Model",
     modelPill1: "No Cash Distribution",
     modelPill1Body: "Rewards are paid as Contribution Points",
     modelPill2: "Contribution CP",
@@ -140,7 +140,7 @@ function getInvestorCopy(locale: Locale) {
     modelPill3Body: "More AI Stars expand ecosystem value",
     paymentTitle: "Launch payment is platform revenue",
     paymentSubtitle: "Model validation before real payment",
-    sourceTitle: "Founder Network Structure",
+    sourceTitle: "Creator Network Structure",
     spawnedTitle: "AI Star Universe Expansion",
     spawnedSubtitle: "AI Stars launched or projected from Creators",
     spawnedCreatedBy: "Creator member",
