@@ -10,6 +10,7 @@ import {
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { getFanletterFounderUniverseExplorer } from "@/lib/fanletter-founder-universe-explorer-service";
 import {
+  buildFanletterLocaleAlternates,
   buildFanletterOgImagePath,
   buildFanletterOgVersionToken,
   FANLETTER_OG_IMAGE_SIZE,
@@ -89,9 +90,10 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical: `/${locale}/fanletter/${universe.star.id}/universe`,
-    },
+    alternates: buildFanletterLocaleAlternates(
+      locale,
+      `/${locale}/fanletter/${universe.star.id}/universe`,
+    ),
     openGraph: {
       description,
       images: [ogImage],
