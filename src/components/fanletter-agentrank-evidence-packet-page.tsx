@@ -354,13 +354,13 @@ function getScoreImpactDimensions(
           creator: "Creator Journey",
           discovery: "AI Star Discovery",
           economic: "Economic Activity",
-          network: "Founder Network",
+          network: "Creator Network",
         }
       : {
           creator: "Creator Journey",
           discovery: "AI Star Discovery",
           economic: "Economic Activity",
-          network: "Founder Network",
+          network: "Creator Network",
         };
 
   return [

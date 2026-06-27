@@ -742,7 +742,7 @@ function StarViewerRelationshipCard({
         contextMoatLabel: "Context Moat",
         contextMoatOwner: "Operating permission + official channel",
         creatorGraph: "Creator → TikTok",
-        founderJoinRecord: "Founder join record",
+        founderJoinRecord: "Join record",
         founderGraph: "Creator Network",
         nextActionLabel: "Next action",
         ownerNextAction: "Manage TikTok channel",

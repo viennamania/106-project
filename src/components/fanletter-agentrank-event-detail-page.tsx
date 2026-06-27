@@ -660,7 +660,7 @@ function getScoreImpactRows(
             "크리에이터 권한 활성화, 새 AI 스타 생성, Creator Progress 신호",
           discovery: "AI 스타 발견, 콘텐츠 참여, 신규 스타 노출 신호",
           economic: "CP 이동, CP Pool, x402 의도, 창업 비용 신호",
-          network: "파운더 참여, 추천 전환, 네트워크 엣지 신호",
+          network: "참여, 추천 전환, 네트워크 엣지 신호",
           risk: "보강 항목, Oracle 미준비, 그래프/영향 신호 누락",
           trust: "증거 품질, Oracle 준비, 스키마/계보 신뢰 신호",
         }
@@ -669,7 +669,7 @@ function getScoreImpactRows(
             "Creator unlocks, spawned AI Stars, and Creator Progress signals",
           discovery: "AI Star discovery, content engagement, and star exposure",
           economic: "CP movement, CP Pool, x402 intent, and launch cost signals",
-          network: "Founder joins, referral conversions, and network edges",
+          network: "Joins, referral conversions, and network edges",
           risk: "Audit gaps, Oracle gaps, and missing graph/impact signals",
           trust: "Evidence quality, Oracle readiness, schema, and lineage trust",
         };
@@ -678,7 +678,7 @@ function getScoreImpactRows(
     {
       Icon: Network,
       description: labels.network,
-      label: "Founder Network",
+      label: "Creator Network",
       tone: "bg-blue-50 text-blue-700 ring-blue-100",
       value:
         event.reputationSignals.networkWeight +

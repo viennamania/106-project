@@ -53,7 +53,7 @@ function getGenealogyCopy(locale: Locale) {
     edgeCount: "Links",
     generated: "Live genealogy",
     heroSubtitle:
-      "AI Star parent-child lineage and Contribution Point Pool rewards are connected from existing Founder Network data.",
+      "AI Star parent-child lineage and Contribution Point Pool rewards are connected from existing Creator Network data.",
     heroTitle: "AI Star Genealogy Map",
     lineage: "Featured Lineage",
     owner: "Creator ID",

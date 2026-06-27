@@ -342,7 +342,7 @@ function getActionCoverageLabel(
   const labels = {
     creator: "권한 활성화/AI 스타 생성",
     discovery: "AI 스타 발견",
-    founder: "파운더 참여",
+    founder: "참여",
     payment: "x402 Mock/CP Pool",
     referral: "추천 코드/전환",
     star_detail: "AI 스타 상세/콘텐츠",

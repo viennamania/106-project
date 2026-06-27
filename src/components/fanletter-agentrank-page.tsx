@@ -129,13 +129,13 @@ function getAgentRankCopy(locale: Locale) {
       eventTimeline: "최근 평판 기록",
       fanletter: "FanLetter",
       fanletterBody:
-        "AI 스타 발견과 파운더 네트워크로 소비자 행동 데이터를 생성합니다.",
+        "AI 스타 발견과 크리에이터 네트워크로 소비자 행동 데이터를 생성합니다.",
       formula: "ERS 계산식",
       generated: "Live AgentRank preview",
       googleProblem: "Google은 링크 그래프를 신뢰로 바꿨습니다.",
       googleTrustLine: "Google은 링크를 사용해 웹 신뢰를 측정했습니다.",
       heroBody:
-        "FanLetter는 최종 제품이 아니라 AgentRank의 Phase 1입니다. AI 스타와 파운더 네트워크에서 발생하는 경제적 행동을 평판 기록으로 수집해 AgentRank로 확장합니다.",
+        "FanLetter는 최종 제품이 아니라 AgentRank의 Phase 1입니다. AI 스타와 크리에이터 네트워크에서 발생하는 경제적 행동을 평판 기록으로 수집해 AgentRank로 확장합니다.",
       heroTitle: "From PageRank to AgentRank",
       heroSubtitle: "AI Agent 경제를 위한 Trust Infrastructure",
       mizi: "MiZi",
@@ -151,7 +151,7 @@ function getAgentRankCopy(locale: Locale) {
       score: "AgentRank Score",
       scoreAggregator: "AgentRank Score Aggregator",
       scoreAggregatorBody:
-        "평판 기록을 파운더 네트워크, 경제 활동, 크리에이터 여정, AI 스타 발견, 리니지 신뢰, 감사 품질 차원으로 집계합니다.",
+        "평판 기록을 크리에이터 네트워크, 경제 활동, 크리에이터 여정, AI 스타 발견, 리니지 신뢰, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
       scoreScopeCoverage: "커버리지 포함 점수",
       scoreScopeMockExcluded: "미리보기 이벤트 제외",
@@ -173,7 +173,7 @@ function getAgentRankCopy(locale: Locale) {
       topContributors: "상위 기여자",
       useCases: "Use Cases",
       viewEventsApi: "평판 기록 보기",
-      viewFounderUniverse: "파운더 네트워크",
+      viewFounderUniverse: "크리에이터 네트워크",
       viewHome: "FanLetter 홈",
       whyMatters:
         "PageRank가 웹 링크를 신뢰로 바꾼 것처럼, AgentRank는 AI Agent의 경제 활동을 신뢰로 바꿉니다.",
@@ -238,13 +238,13 @@ function getAgentRankCopy(locale: Locale) {
     eventTimeline: "Latest reputation records",
     fanletter: "FanLetter",
     fanletterBody:
-      "Generates consumer behavior data through AI Star Discovery and Founder Network activity.",
+      "Generates consumer behavior data through AI Star Discovery and Creator Network activity.",
     formula: "ERS Formula",
     generated: "Live AgentRank preview",
     googleProblem: "Google transformed link graphs into trust.",
     googleTrustLine: "Google used links to measure web trust.",
     heroBody:
-      "FanLetter is not the final product. It is Phase 1 of AgentRank. AI Star and Founder Network actions become reputation events that compound into the AgentRank trust layer.",
+      "FanLetter is not the final product. It is Phase 1 of AgentRank. AI Star and Creator Network actions become reputation events that compound into the AgentRank trust layer.",
     heroTitle: "From PageRank to AgentRank",
     heroSubtitle: "Building the Trust Infrastructure for the AI Agent Economy",
     mizi: "MiZi",
@@ -260,7 +260,7 @@ function getAgentRankCopy(locale: Locale) {
     score: "AgentRank Score",
     scoreAggregator: "AgentRank Score Aggregator",
     scoreAggregatorBody:
-      "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
+      "Aggregates Reputation Events into Creator Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
     scoreConfidence: "Score Confidence",
     scoreScopeCoverage: "Coverage-including score",
     scoreScopeMockExcluded: "Mock events excluded",
@@ -282,7 +282,7 @@ function getAgentRankCopy(locale: Locale) {
     topContributors: "Top Contributors",
     useCases: "Use Cases",
     viewEventsApi: "View reputation records",
-    viewFounderUniverse: "Founder Network",
+    viewFounderUniverse: "Creator Network",
     viewHome: "FanLetter Home",
     whyMatters:
       "PageRank indexed web links. AgentRank indexes economic trust between AI Agents.",
@@ -339,7 +339,7 @@ function getEventSourceLabel(
     const labels: Record<AgentRankReputationEvent["source"], string> = {
       fanletter_funnel_event: "FanLetter Interaction",
       fanletter_star: "AI Star Registry",
-      fanletter_star_founder_membership: "Founder Network",
+      fanletter_star_founder_membership: "Creator Network",
       fanletter_star_influence_ledger: "CP Ledger",
       fanletter_star_referral_code: "Referral Code",
       fanletter_star_referral_edge: "Referral Graph",
@@ -351,7 +351,7 @@ function getEventSourceLabel(
   const labels: Record<AgentRankReputationEvent["source"], string> = {
     fanletter_funnel_event: "FanLetter 행동 신호",
     fanletter_star: "AI 스타 레지스트리",
-    fanletter_star_founder_membership: "파운더 네트워크",
+    fanletter_star_founder_membership: "크리에이터 네트워크",
     fanletter_star_influence_ledger: "CP 원장",
     fanletter_star_referral_code: "추천 코드",
     fanletter_star_referral_edge: "추천 그래프",
@@ -371,7 +371,7 @@ function getInteractionSourceLabel(
           fanletter_bridge: "연결/온보딩",
           fanletter_content: "콘텐츠/브이로그",
           fanletter_creator_unlock: "권한 활성화",
-          fanletter_founder_universe: "파운더 네트워크",
+          fanletter_founder_universe: "크리에이터 네트워크",
           fanletter_home: "FanLetter 홈",
           fanletter_my_ai: "내 AI",
           fanletter_news: "뉴스/리포트",
@@ -382,7 +382,7 @@ function getInteractionSourceLabel(
           fanletter_bridge: "Connect / Onboarding",
           fanletter_content: "Content / Vlog",
           fanletter_creator_unlock: "Creator Permission",
-          fanletter_founder_universe: "Founder Network",
+          fanletter_founder_universe: "Creator Network",
           fanletter_home: "FanLetter Home",
           fanletter_my_ai: "My AI",
           fanletter_news: "News / Reports",
@@ -575,8 +575,8 @@ function getCoverageGapAction({
       return {
         coverageAction: action,
         description: isKorean
-          ? "AI 스타 상세에서 추천 링크를 공유하면 파운더 네트워크와 크리에이터 여정이 동시에 갱신됩니다."
-          : "Share a referral link from the AI Star detail page to update Founder Network and Creator Journey signals.",
+          ? "AI 스타 상세에서 추천 링크를 공유하면 크리에이터 네트워크와 크리에이터 여정이 동시에 갱신됩니다."
+          : "Share a referral link from the AI Star detail page to update Creator Network and Creator Journey signals.",
         eventType,
         href: starDetailHref,
         key: gap,
@@ -687,7 +687,7 @@ function getScoreDimensionLabel(
           creator: "크리에이터 여정",
           discovery: "AI 스타 발견",
           economic: "경제 활동",
-          network: "파운더 네트워크",
+          network: "크리에이터 네트워크",
           riskPenalty: "위험 패널티",
           trust: "리니지 신뢰",
         }
@@ -695,7 +695,7 @@ function getScoreDimensionLabel(
           creator: "Creator Journey",
           discovery: "AI Star Discovery",
           economic: "Economic Activity",
-          network: "Founder Network",
+          network: "Creator Network",
           riskPenalty: "Risk Penalty",
           trust: "Lineage Trust",
         };
@@ -2587,7 +2587,7 @@ function AgentRankAudienceSplit({
       Icon: Users,
       badge: isKo ? "사용자 화면" : "User view",
       body: isKo
-        ? "AI 스타 발견, 파운더 참여, 추천 공유가 평판 기록을 만듭니다."
+        ? "AI 스타 발견, 참여, 추천 공유가 평판 기록을 만듭니다."
         : "Discovery, founder joins, and referral shares create reputation events.",
       metric: formatNumber(eventCount, locale),
       metricLabel: isKo ? "수집 이벤트" : "events collected",
@@ -2666,7 +2666,7 @@ function AgentRankUserPathPanel({
     },
     {
       Icon: Users,
-      label: isKo ? "파운더 네트워크" : "Founder Network",
+      label: isKo ? "크리에이터 네트워크" : "Creator Network",
       value: isKo ? "참여/추천" : "Join / refer",
     },
     {
@@ -2743,8 +2743,8 @@ function AgentRankUserPathPanel({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold leading-5 text-zinc-700 [word-break:keep-all]">
             {isKo
-              ? "파운더 네트워크에서 참여와 추천이 발생하면 AgentRank 신호가 채워집니다."
-              : "Founder Network joins and referrals fill AgentRank signals."}
+              ? "크리에이터 네트워크에서 참여와 추천이 발생하면 AgentRank 신호가 채워집니다."
+              : "Creator Network joins and referrals fill AgentRank signals."}
           </p>
           <FanletterTrackedLink
             agentRank={{
@@ -2760,7 +2760,7 @@ function AgentRankUserPathPanel({
               placement: "agentrank_user_path_founder_network",
             }}
           >
-            {isKo ? "파운더 네트워크" : "Founder Network"}
+            {isKo ? "크리에이터 네트워크" : "Creator Network"}
             <ArrowRight className="size-3.5 shrink-0" />
           </FanletterTrackedLink>
         </div>
