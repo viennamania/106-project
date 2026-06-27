@@ -1833,7 +1833,7 @@ function HumanFounderSlots({
         </span>
         <div>
           <p className="text-sm font-semibold text-black/50">
-            {copy.roles.founder}
+            {copy.roles.creator}
           </p>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-black">
             {copy.starDetail.founderSlotsTitle}
