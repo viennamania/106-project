@@ -1717,6 +1717,7 @@ async function getPublishedContentShareMetadata(contentId: string) {
     authorAvatarImageUrl,
     authorDisplayName,
     contentId: post.contentId,
+    contentVideoUrl: isNsfwContent ? null : (post.contentVideoUrls?.[0] ?? null),
     coverImageUrl: isNsfwContent ? null : resolvePrimaryContentImageUrl(post),
     hasVideo: isNsfwContent ? false : hasContentVideo(post),
     locale: postLocale,
