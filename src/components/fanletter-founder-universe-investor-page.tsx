@@ -64,7 +64,7 @@ function getInvestorCopy(locale: Locale) {
       generated: "Live data",
       globalTitle: "플랫폼 라이브 지표",
       heroSubtitle:
-        "AI 스타의 탄생부터 성장까지, 파운더와 함께 만드는 가치 생태계",
+        "AI 스타의 탄생부터 성장까지, 크리에이터와 함께 만드는 가치 생태계",
       heroTitle: "크리에이터 네트워크 AI 스타 인큐베이터 모델",
       modelPill1: "현금 분배 NO",
       modelPill1Body: "모든 보상은 기여 포인트로 지급",
@@ -78,7 +78,7 @@ function getInvestorCopy(locale: Locale) {
       spawnedTitle: "AI 스타 유니버스 확장",
       spawnedSubtitle: "Creator가 배출하거나 배출할 AI 스타 확장 흐름",
       spawnedCreatedBy: "창업 회원",
-      spawnedFounder: "파운더",
+      spawnedFounder: "크리에이터",
       spawnedLiveBadge: "LIVE spawned",
       spawnedPreviewBadge: "확장 예시",
       spawnedPreviewNote: "실제 spawned 0개 · live AI 스타 유니버스 데이터 기반",
@@ -89,7 +89,7 @@ function getInvestorCopy(locale: Locale) {
       memberCreates: "회원이 새로운 AI 스타를 창업",
       more: "더보기",
       footer:
-        "FanLetter는 AI 스타와 파운더가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
+        "FanLetter는 AI 스타와 크리에이터가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
       explore: "크리에이터 네트워크 탐색",
       directChildren: "직접 초대",
       memberId: "회원 ID",
@@ -130,7 +130,7 @@ function getInvestorCopy(locale: Locale) {
     generated: "Live data",
     globalTitle: "Platform Live Metrics",
     heroSubtitle:
-      "A value ecosystem where Founders help AI Stars launch and grow",
+      "A value ecosystem where Creators help AI Stars launch and grow",
     heroTitle: "Creator Network AI Star Incubation Model",
     modelPill1: "No Cash Distribution",
     modelPill1Body: "Rewards are paid as Contribution Points",
@@ -155,7 +155,7 @@ function getInvestorCopy(locale: Locale) {
     memberCreates: "Member launches a new AI Star",
     more: "More",
     footer:
-      "FanLetter is building a new economy where AI Stars and Founders grow together.",
+      "FanLetter is building a new economy where AI Stars and Creators grow together.",
     explore: "Explorer",
     directChildren: "Direct invites",
     memberId: "Member ID",

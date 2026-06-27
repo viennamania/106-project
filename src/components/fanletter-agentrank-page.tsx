@@ -1848,7 +1848,7 @@ function ProductPathPanel({
     { icon: <Eye className="size-5" />, label: "Watch Vlog" },
     { icon: <Heart className="size-5" />, label: "Like / Comment" },
     { icon: <Users className="size-5" />, label: "Join Universe" },
-    { icon: <Network className="size-5" />, label: "Invite Founder" },
+    { icon: <Network className="size-5" />, label: "Invite Creator" },
     { icon: <Rocket className="size-5" />, label: "Create AI Star" },
     { icon: <WalletCards className="size-5" />, label: "x402 Payment" },
     { icon: <Bot className="size-5" />, label: "A2A Call" },
@@ -2126,7 +2126,7 @@ function EconomicActivityPanel({
     { icon: <Bot className="size-5" />, label: "Agent Call (A2A)" },
     { icon: <Orbit className="size-5" />, label: "Repeat Usage" },
     { icon: <Rocket className="size-5" />, label: "Creator Spawn" },
-    { icon: <Users className="size-5" />, label: "Founder Contribution" },
+    { icon: <Users className="size-5" />, label: "Creator Contribution" },
     { icon: <Network className="size-5" />, label: "Value Flow" },
   ];
   const useCases = [
@@ -2288,7 +2288,7 @@ function EventFactoryPanel({
     },
     {
       icon: <Network className="size-5" />,
-      label: "Invite Founder",
+      label: "Invite Creator",
     },
     {
       icon: <Rocket className="size-5" />,
