@@ -9,6 +9,7 @@ import {
   type FanletterCharacterDirectorySort,
 } from "@/lib/fanletter-content-service";
 import {
+  buildFanletterLocaleAlternates,
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
@@ -100,9 +101,10 @@ export async function generateMetadata({
   return {
     title: meta.title,
     description: meta.description,
-    alternates: {
-      canonical: url,
-    },
+    alternates: buildFanletterLocaleAlternates(
+      locale,
+      `/${locale}/fanletter/discovery`,
+    ),
     openGraph: {
       description: meta.description,
       images: [ogImage],

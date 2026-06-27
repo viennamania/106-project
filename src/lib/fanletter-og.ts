@@ -113,3 +113,26 @@ export function buildFanletterOgVersionToken(
 
   return Math.abs(hash).toString(36);
 }
+
+// Conservative hreflang/canonical alternates for fanletter pages. Declares only the
+// production-ready locales (ko primary, en fallback) plus x-default → ko, so search
+// engines do not surface the draft ja/zh/vi/id translations. `localizedPath` is the
+// page's existing locale-prefixed canonical, e.g. "/ko/fanletter/channel/ABC"; the
+// leading locale segment is stripped and re-applied per alternate.
+export function buildFanletterLocaleAlternates(
+  locale: Locale,
+  localizedPath: string,
+) {
+  const pathAfterLocale = localizedPath.startsWith(`/${locale}`)
+    ? localizedPath.slice(locale.length + 1)
+    : localizedPath;
+
+  return {
+    canonical: `/${locale}${pathAfterLocale}`,
+    languages: {
+      en: `/en${pathAfterLocale}`,
+      ko: `/ko${pathAfterLocale}`,
+      "x-default": `/ko${pathAfterLocale}`,
+    },
+  };
+}
