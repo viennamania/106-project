@@ -4210,7 +4210,11 @@ export function FanletterCreatorUnlockPage({
         />
       ) : null}
       <div className="mx-auto w-full min-w-0 max-w-[92rem]">
-        <FanletterPrimaryHeader locale={locale} referralCode={null} />
+        <FanletterPrimaryHeader
+          current="create"
+          locale={locale}
+          referralCode={null}
+        />
         <div className="mt-4 flex items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 min-w-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"

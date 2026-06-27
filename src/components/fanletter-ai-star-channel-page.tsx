@@ -112,6 +112,7 @@ export function FanletterAIStarChannelPage({
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-zinc-950 sm:pb-0">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
         <FanletterPrimaryHeader
+          current="discovery"
           locale={locale}
           referralCode={effectiveReferralCode}
         />
