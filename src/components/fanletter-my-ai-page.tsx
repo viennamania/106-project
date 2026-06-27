@@ -692,7 +692,7 @@ export function FanletterMyAIPage({
                 {copy.overviewBody}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:min-w-80">
+            <div className="grid grid-cols-2 gap-2 sm:min-w-80">
               {[
                 {
                   label: copy.aiStar,
@@ -701,17 +701,6 @@ export function FanletterMyAIPage({
                 {
                   label: copy.connected,
                   value: formatNumber(connectedCount, locale),
-                },
-                {
-                  label: pickFanletterCopy(locale, {
-                    ko: "기여 포인트",
-                    en: "Contribution Points",
-                    ja: "貢献ポイント",
-                    zh: "贡献点",
-                    vi: "Điểm đóng góp",
-                    id: "Poin kontribusi",
-                  }),
-                  value: formatNumber(portfolio.cpBalance, locale),
                 },
               ].map((metric) => (
                 <div

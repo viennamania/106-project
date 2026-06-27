@@ -653,7 +653,7 @@ function FanletterAgentRankHomeCard({
   const isKo = locale === "ko";
   const copy = isKo
     ? {
-        body: "발견, 참여, 초대, 기여 포인트 보상이 활동 기록으로 쌓입니다.",
+        body: "발견, 참여, 초대가 활동 기록으로 쌓입니다.",
         cta: "활동 기록 보기",
         events: "활동 기록",
         network: "네트워크",
@@ -661,7 +661,7 @@ function FanletterAgentRankHomeCard({
       }
     : {
         body:
-          "Discovery, joins, invites, and Contribution Point rewards are saved to your activity log.",
+          "Discovery, joins, and invites are saved to your activity log.",
         cta: "View activity log",
         events: "Activity records",
         network: "Network",
@@ -813,22 +813,11 @@ function FanletterProductHomeDashboard({
   // stats render only for a logged-in member with real activity. Guests and
   // brand-new members lead with AI-star discovery instead of a zeroed dashboard.
   const showMemberDashboard = hasFanletterRealActivity(memberPortfolio);
-  // Single user-facing member score = CP (Contribution Points). Invite score and
-  // creator-eligibility % stay internal (used for creator-unlock gating) and are
-  // surfaced only inside the 만들기/creator-unlock funnel, not on the dashboard.
+  // The only user-facing score is the AI character growth LEVEL (shown on the
+  // profile / my-AI character cards). Member surfaces show activity counts only;
+  // CP (Contribution Points) stays internal (creator-unlock progress, scout
+  // rewards, CP pool distribution) and is not surfaced as a member score.
   const portfolioStats = [
-    {
-      label: pickFanletterCopy(locale, {
-        ko: "기여 포인트",
-        en: "Contribution Points",
-        ja: "貢献ポイント",
-        zh: "贡献点",
-        vi: "Điểm đóng góp",
-        id: "Poin kontribusi",
-      }),
-      value: memberPortfolio?.cpBalance ?? 0,
-      suffix: "",
-    },
     {
       label: pickFanletterCopy(locale, {
         ko: "직접 초대",
@@ -840,6 +829,18 @@ function FanletterProductHomeDashboard({
       }),
       value: memberPortfolio?.directInvites ?? 0,
       suffix: isKo ? "명" : "",
+    },
+    {
+      label: pickFanletterCopy(locale, {
+        ko: "참여 네트워크",
+        en: "Joined networks",
+        ja: "参加ネットワーク",
+        zh: "参与网络",
+        vi: "Mạng đã tham gia",
+        id: "Jaringan diikuti",
+      }),
+      value: memberPortfolio?.roles.length ?? 0,
+      suffix: isKo ? "개" : "",
     },
   ];
   const baseProductCopy = isKo
