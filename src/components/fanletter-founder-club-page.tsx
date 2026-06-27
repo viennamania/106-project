@@ -62,10 +62,10 @@ function getCopy(locale: Locale) {
       back: "FanLetter 홈",
       creatorUnlock: "크리에이터 권한 활성화",
       emptyShare:
-        "이 AI 스타의 추천 링크는 파운더 상태 확인 후 생성됩니다.",
+        "이 AI 스타의 추천 링크는 참여 상태 확인 후 생성됩니다.",
       heroBody:
-        "내가 운영하는 AI 스타와 참여 중인 파운더 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
-      heroEyebrow: "파운더 클럽",
+        "내가 운영하는 AI 스타와 참여 중인 크리에이터 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
+      heroEyebrow: "크리에이터 클럽",
       heroTitle: "내 FanLetter 포트폴리오",
       liveLabel: "라이브 데이터",
       mockLabel: "예시 데이터",
@@ -73,9 +73,9 @@ function getCopy(locale: Locale) {
         "크리에이터 여정에서 만든 AI 스타 초안이 이 브라우저 포트폴리오에 반영되었습니다.",
       mockLaunchTitle: "AI 스타 초안 반영됨",
       mockMembershipBody:
-        "이 브라우저에서 저장된 파운더 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
+        "이 브라우저에서 저장된 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
       mockMembershipCta: "유니버스 보기",
-      mockMembershipTitle: "파운더 참여 미리보기 반영됨",
+      mockMembershipTitle: "참여 미리보기 반영됨",
       myAiEntry: {
         body:
           "하단 내 AI에서 들어온 운영 화면입니다. TikTok, 콘텐츠, 활동 기록 상태를 먼저 확인하세요.",
@@ -89,10 +89,10 @@ function getCopy(locale: Locale) {
       },
       shareLink: "공유 링크",
       shareSectionBody:
-        "AI 스타별 추천 링크를 공유하면 새 파운더 참여가 해당 AI 스타 유니버스에 기록됩니다.",
+        "AI 스타별 추천 링크를 공유하면 새 참여가 해당 AI 스타 유니버스에 기록됩니다.",
       shareSectionEyebrow: "추천 관리",
       shareSectionTitle: "AI 스타별 추천 링크",
-      terminologyPill: "AI 스타 유니버스 / 파운더 네트워크",
+      terminologyPill: "AI 스타 유니버스 / 크리에이터 네트워크",
       universeCta: "AI 스타 유니버스 보기",
       metrics: {
         cp: "기여 포인트",
@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
             ? "크리에이터 권한 평가"
             : hasRoles
               ? "추천 공유 기록"
-              : "파운더 참여 기록",
+              : "참여 기록",
         nextLabel: "다음 행동",
         nextValue: (hasRoles: boolean, view: FounderClubView) =>
           view === "creator"
@@ -140,10 +140,10 @@ function getCopy(locale: Locale) {
     back: "FanLetter Home",
     creatorUnlock: "Creator Permission",
     emptyShare:
-      "This AI Star referral link is created after Founder status is confirmed.",
+      "This AI Star referral link is created after participation status is confirmed.",
     heroBody:
-      "Separate the AI Stars you operate from the Founder Networks you participate in, then choose the next action.",
-    heroEyebrow: "Founder Club",
+      "Separate the AI Stars you operate from the Creator Networks you participate in, then choose the next action.",
+    heroEyebrow: "Creator Club",
     heroTitle: "My FanLetter Portfolio",
     liveLabel: "Live data",
     mockLabel: "Mock data",
@@ -151,9 +151,9 @@ function getCopy(locale: Locale) {
       "Mock AI Star drafts created from Creator Unlock are reflected in this browser portfolio.",
     mockLaunchTitle: "Mock AI Star drafts reflected",
     mockMembershipBody:
-        "Founder joins saved in this browser are reflected here while the v2.0 flow remains mock-only before real payment and DB writes.",
+        "Joins saved in this browser are reflected here while the v2.0 flow remains mock-only before real payment and DB writes.",
       mockMembershipCta: "View Universe",
-      mockMembershipTitle: "Mock Founder join reflected",
+      mockMembershipTitle: "Mock join reflected",
       myAiEntry: {
         body:
           "You entered from My AI. Review TikTok, content, and activity record status first.",
@@ -167,15 +167,15 @@ function getCopy(locale: Locale) {
       },
       shareLink: "Share Link",
     shareSectionBody:
-      "Each AI Star referral link records new Founder participation inside that AI Star Universe.",
+      "Each AI Star referral link records new participation inside that AI Star Universe.",
     shareSectionEyebrow: "Referral Manager",
     shareSectionTitle: "AI Star Referral Links",
-    terminologyPill: "AI Star Universe / Founder Network",
+    terminologyPill: "AI Star Universe / Creator Network",
     universeCta: "View AI Star Universe",
     metrics: {
       cp: "Contribution Points",
       creatorStars: "Creator AI Stars",
-      founderNetworks: "Founder Networks",
+      founderNetworks: "Creator Networks",
       invites: "Successful Invites",
     },
     signpost: {
@@ -188,7 +188,7 @@ function getCopy(locale: Locale) {
           ? "Creator unlock review"
           : hasRoles
             ? "Referral shared"
-            : "Founder joined",
+            : "Joined",
       nextLabel: "Next action",
       nextValue: (hasRoles: boolean, view: FounderClubView) =>
         view === "creator"
@@ -207,7 +207,7 @@ function getCopy(locale: Locale) {
     viewTabs: {
       creator: "Creator relationship",
       creatorHint: "Operated AI Stars",
-      founder: "Founder relationship",
+      founder: "Fan relationship",
       founderHint: "Joined networks",
       label: "Relationship view",
     },

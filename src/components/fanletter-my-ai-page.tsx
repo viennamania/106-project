@@ -81,15 +81,15 @@ function getCopy(locale: Locale) {
       eventConnected: "TikTok 채널 연결 기록 생성",
       eventPending: "TikTok 연결 시 활동 기록 생성",
       founderRelationCta: "참여 네트워크 보기",
-      founderNetworks: "참여 중인 파운더 네트워크",
+      founderNetworks: "참여 중인 크리에이터 네트워크",
       founderNetworksBody:
-        "크리에이터/운영자로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 파운더 역할입니다.",
+        "크리에이터/운영자로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 팬 역할입니다.",
       queueAllConnected: "모든 운영 AI 스타가 TikTok 연결 준비를 마쳤습니다.",
       queuePending: "TikTok 연결이 필요한 운영 AI 스타가 있습니다.",
       queueTitle: "다음 행동 대기열",
       relationCreator: "Creator / Owner",
       relationCreatorBody: "AI 스타 콘텐츠와 TikTok 채널을 운영합니다.",
-      relationFounder: "Founder Network",
+      relationFounder: "Creator Network",
       relationFounderBody: "AI 스타 유니버스 안에서 초대, 기여 포인트, 역할로 참여합니다.",
       relationTitle: "관계 구분",
       reputationResult: "활동 기록 결과",
@@ -163,15 +163,15 @@ function getCopy(locale: Locale) {
     eventConnected: "creator_social_connected activity record created",
     eventPending: "TikTok connection will create a activity record",
     founderRelationCta: "View joined networks",
-    founderNetworks: "Joined Founder Networks",
+    founderNetworks: "Joined Creator Networks",
     founderNetworksBody:
-      "Separate from AI Stars you operate as Creator/Owner, these are your Founder roles inside each AI Star Universe.",
+      "Separate from AI Stars you operate as Creator/Owner, these are your Fan roles inside each AI Star Universe.",
     queueAllConnected: "All operated AI Stars are ready with TikTok connected.",
     queuePending: "Some operated AI Stars still need TikTok connection.",
     queueTitle: "Next Action Queue",
     relationCreator: "Creator / Owner",
     relationCreatorBody: "Operate AI Star content and TikTok channel.",
-    relationFounder: "Founder Network",
+    relationFounder: "Creator Network",
     relationFounderBody:
       "Participate with invite, Contribution Points, and role inside an AI Star Universe.",
     relationTitle: "Relationship Split",
@@ -586,7 +586,7 @@ export function FanletterMyAIPage({
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Founder Network
+                  Creator Network
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
                   {copy.founderNetworks}

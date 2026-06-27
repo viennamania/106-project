@@ -611,7 +611,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       copyLink: "Copy link",
       createAiStar: "Create new AI Star",
       createMockReferral: "Create mock referral code",
-      joinAsFounder: "Join as Founder",
+      joinAsFounder: "Join",
       openDiscovery: "Back to Discovery",
       shareLink: "Share link",
       viewUniverse: "View Star Universe",
@@ -621,12 +621,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "The first version shows the unlock state only. Creating a new AI Star is a mock action until the real payment flow is added.",
       steps: [
         {
-          body: "Scout and invite new Founders into existing AI Star universes.",
+          body: "Scout and invite new Fans into existing AI Star universes.",
           title: "Scout growth",
         },
         {
           body: "Earn CP and Influence Score when members join through your referral code.",
-          title: "Founder influence",
+          title: "Creator influence",
         },
         {
           body: "Unlock Creator status, then launch a new AI Star with a 10 USDT mock entry.",
@@ -640,12 +640,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       agentRankAuditReady: "AgentRank Audit-ready >= 80%",
       agentRankEventQuality: "Event Quality >= 80",
       body:
-        "Creator status is unlocked when scout, invitation, CP, Founder Contribution, AgentRank audit quality, and activity requirements are met.",
+        "Creator status is unlocked when scout, invitation, CP, Participation Contribution, AgentRank audit quality, and activity requirements are met.",
       cp: "CP >= 5,000",
       createAiStarCta: "Create new AI Star",
       creatorSocialConnected: "AI Star TikTok channel connected",
       directInvites: "Direct Invites >= 20",
-      founderContributionScore: "Founder Contribution Score >= 500",
+      founderContributionScore: "Participation Contribution Score >= 500",
       launchPreviewBody:
         "The member can launch another AI Star from the source Star Universe. This version keeps the 10 USDT step as a mock activation.",
       launchPreviewTitle: "Mock AI Star launch",
@@ -660,14 +660,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     founderClub: {
       body:
-        "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Founder, Scout, and Creator growth platform.",
-      eyebrow: "Founder Club 2.0",
-      title: "Discover AI Stars, become a Founder, and grow into a Creator.",
+        "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Fan, Invite, and Creator growth platform.",
+      eyebrow: "Creator Club 2.0",
+      title: "Discover AI Stars, join as a Fan, and grow into a Creator.",
     },
     growthLoop: {
       steps: [
         "AI Star Discovery",
-        "Join as Founder",
+        "Join",
         "Create referral code",
         "Share SNS link",
         "New member joins",
@@ -675,7 +675,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Unlock Creator",
         "Launch new AI Star",
       ],
-      title: "Founder Club 2.0 Growth Loop",
+      title: "Creator Club 2.0 Growth Loop",
     },
     labels: {
       aiStarBadge: "AI STAR",
@@ -684,8 +684,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       cpBalance: "CP Balance",
       createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
-      founderClub: "Founder Club",
-      founderCount: "Founder Count",
+      founderClub: "Creator Club",
+      founderCount: "Participant Count",
       growth: "Growth",
       humanMember: "Human Member",
       influenceScore: "Influence Score",
@@ -702,11 +702,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     memberPortfolio: {
       activeHint:
-        "Your Founder Club AI Star is active. Manage content and growth from the studio.",
+        "Your Creator Club AI Star is active. Manage content and growth from the studio.",
       body:
-        "Creator/Owner means the AI Stars this member operates. Founder Network means participation roles inside each AI Star Universe.",
+        "Creator/Owner means the AI Stars this member operates. Creator Network means participation roles inside each AI Star Universe.",
       draftHint:
-        "A Founder Club AI Star has been prepared for this account. Complete the character profile to activate it.",
+        "A Creator Club AI Star has been prepared for this account. Complete the character profile to activate it.",
       emptyRoles:
         "No AI Star roles are connected to this member yet.",
       liveDataLabel: "Live member data",
@@ -733,9 +733,9 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "Member A scouts Minseo Universe, creates a referral code, shares it on SNS, and earns growth credit when Member B joins.",
       liveDataLabel: "Live referral link",
-      memberBecomesFounderTemplate: "{member} becomes Founder in {universe}",
+      memberBecomesFounderTemplate: "{member} becomes a Fan in {universe}",
       memberJoinsTemplate: "{member} joins",
-      memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
+      memberBBecomesFounder: "Member B becomes a Fan in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
       selectUniverseTemplate: "selects {universe}",
@@ -745,36 +745,36 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     starDetail: {
       founderSlotsBody:
         "Human members use neutral gray avatars and role badges. They never reuse AI Star portraits.",
-      founderSlotsTitle: "Human Founder slots",
+      founderSlotsTitle: "Human participation slots",
       heroBody:
-        "This Star Universe page connects AI Star discovery to Founder join, mock referral creation, SNS sharing, and Creator progress.",
+        "This Star Universe page connects AI Star discovery to join, mock referral creation, SNS sharing, and Creator progress.",
       heroEyebrow: "Star Universe",
       inboundRefBody:
-        "This visitor entered through a Founder referral. In the live flow, the join event will attach to this Star Universe.",
+        "This visitor entered through a referral. In the live flow, the join event will attach to this Star Universe.",
       inboundRefTitle: "Referral detected",
       mockNotice:
         "Mock only: no real payment or permanent referral mutation runs from this screen.",
       referralBody:
         "Create a mock code, share the SNS link, and preview the reward that Member A earns when Member B joins.",
       referralReady: "Mock referral ready",
-      referralTitle: "Founder referral builder",
+      referralTitle: "Referral builder",
       rewardsTitle: "Mock reward preview",
       spawnedBody:
         "Spawned Stars are displayed as separate AI Star cards with their own purple AI STAR treatment.",
       spawnedTitle: "Spawned AI Stars",
-      universeTitle: "Founder Network",
+      universeTitle: "Creator Network",
     },
     topGrowingStars: {
       body:
-        "The discovery surface ranks AI Stars by Star Score, growth speed, founder count, and open Founder slots.",
+        "The discovery surface ranks AI Stars by Star Score, growth speed, participant count, and open participation slots.",
       title: "Top Growing AI Stars",
     },
     universePreview: {
       body:
-        "Each Star Universe separates the center AI Star, human Founder roles, and spawned Stars into one growth map.",
-      emptySlot: "Open Founder slot",
-      founderSlots: "Human Founder Slots",
-      title: "Founder Network Preview",
+        "Each Star Universe separates the center AI Star, human participation roles, and spawned Stars into one growth map.",
+      emptySlot: "Open participation slot",
+      founderSlots: "Human Participation Slots",
+      title: "Creator Network Preview",
     },
   },
   ja: {
@@ -783,7 +783,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       copyLink: "Copy link",
       createAiStar: "新しいAI Starを作成",
       createMockReferral: "Mock referral codeを作成",
-      joinAsFounder: "Founderとして参加",
+      joinAsFounder: "参加",
       openDiscovery: "Discoveryへ戻る",
       shareLink: "Share link",
       viewUniverse: "Star Universeを見る",
@@ -793,12 +793,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "最初のバージョンではアンロック状態だけを表示します。実決済を接続するまでは新しいAI Star作成はモックです。",
       steps: [
         {
-          body: "既存のStar Universeに新しいFounderを招待します。",
+          body: "既存のStar Universeに新しいファンを招待します。",
           title: "Scout成長",
         },
         {
           body: "紹介コード経由の参加でCPとInfluence Scoreを獲得します。",
-          title: "Founder影響力",
+          title: "クリエイター影響力",
         },
         {
           body: "Creatorをアンロックし、10 USDTのモック条件で新しいAI Starをローンチします。",
@@ -812,12 +812,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       agentRankAuditReady: "AgentRank Audit-ready 80%以上",
       agentRankEventQuality: "Event Quality 80以上",
       body:
-        "Scout、招待、CP、Founder Contribution、AgentRank監査品質、活動ミッションの条件を満たすとCreatorステータスが開きます。",
+        "Scout、招待、CP、Participation Contribution、AgentRank監査品質、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP 5,000以上",
       createAiStarCta: "新しいAI Starを作成",
       creatorSocialConnected: "AI Star TikTokチャンネル接続済み",
       directInvites: "直接招待 20人以上",
-      founderContributionScore: "Founder Contribution Score 500以上",
+      founderContributionScore: "Participation Contribution Score 500以上",
       launchPreviewBody:
         "メンバーは元のStar Universeから別のAI Starをローンチできます。このバージョンでは10 USDTステップをモック有効化として扱います。",
       launchPreviewTitle: "Mock AI Star launch",
@@ -832,14 +832,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     founderClub: {
       body:
-        "FanLetterはAIキャラクターコンテンツだけでなく、AI Star Discovery、Founder、Scout、Creator成長プラットフォームへ進化します。",
-      eyebrow: "Founder Club 2.0",
-      title: "AI Starを発見し、Founderになり、Creatorへ成長しましょう。",
+        "FanLetterはAIキャラクターコンテンツだけでなく、AI Star Discovery、ファン、招待、Creator成長プラットフォームへ進化します。",
+      eyebrow: "Creator Club 2.0",
+      title: "AI Starを発見し、ファンとして参加し、Creatorへ成長しましょう。",
     },
     growthLoop: {
       steps: [
         "AI Star Discovery",
-        "Join as Founder",
+        "Join",
         "Create referral code",
         "Share SNS link",
         "New member joins",
@@ -847,7 +847,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Unlock Creator",
         "Launch new AI Star",
       ],
-      title: "Founder Club 2.0 Growth Loop",
+      title: "Creator Club 2.0 Growth Loop",
     },
     labels: {
       aiStarBadge: "AI STAR",
@@ -856,8 +856,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       cpBalance: "CP Balance",
       createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
-      founderClub: "Founder Club",
-      founderCount: "Founder Count",
+      founderClub: "Creator Club",
+      founderCount: "Participant Count",
       growth: "Growth",
       humanMember: "Human Member",
       influenceScore: "Influence Score",
@@ -874,11 +874,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     memberPortfolio: {
       activeHint:
-        "Founder ClubのAI Starは有効です。Studioでコンテンツと成長を管理できます。",
+        "Creator ClubのAI Starは有効です。Studioでコンテンツと成長を管理できます。",
       body:
-        "Creator/Ownerはこのメンバーが運営するAI Star、Founder Networkは各AI Star Universe内の参加ロールです。",
+        "Creator/Ownerはこのメンバーが運営するAI Star、Creator Networkは各AI Star Universe内の参加ロールです。",
       draftHint:
-        "このアカウント用のFounder Club AI Starが用意されています。Character profileを完成させると有効化できます。",
+        "このアカウント用のCreator Club AI Starが用意されています。Character profileを完成させると有効化できます。",
       emptyRoles:
         "このMemberに接続されたAI Star roleはまだありません。",
       liveDataLabel: "Live member data",
@@ -905,9 +905,9 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "Member AがMinseo Universeを選び、紹介コードを作成し、SNSで共有します。Member Bが参加すると成長クレジットを獲得します。",
       liveDataLabel: "Live referral link",
-      memberBecomesFounderTemplate: "{member} becomes Founder in {universe}",
+      memberBecomesFounderTemplate: "{member} becomes a Fan in {universe}",
       memberJoinsTemplate: "{member} joins",
-      memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
+      memberBBecomesFounder: "Member B becomes a Fan in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
       selectUniverseTemplate: "selects {universe}",
@@ -917,36 +917,36 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     starDetail: {
       founderSlotsBody:
         "Human memberはニュートラルなグレーアバターとrole badgeで表示します。AI Starのportraitは再利用しません。",
-      founderSlotsTitle: "Human Founder slots",
+      founderSlotsTitle: "Human participation slots",
       heroBody:
-        "このStar UniverseページではAI Star Discovery、Founder参加、mock referral作成、SNS共有、Creator progressを接続します。",
+        "このStar UniverseページではAI Star Discovery、参加、mock referral作成、SNS共有、Creator progressを接続します。",
       heroEyebrow: "Star Universe",
       inboundRefBody:
-        "このvisitorはFounder referral経由で流入しました。Live flowでは参加イベントがこのStar Universeに紐づきます。",
+        "このvisitorはreferral経由で流入しました。Live flowでは参加イベントがこのStar Universeに紐づきます。",
       inboundRefTitle: "Referral detected",
       mockNotice:
         "Mock only: この画面から実決済や永続的なreferral変更は実行しません。",
       referralBody:
         "Mock codeを作成し、SNS linkを共有し、Member B参加時にMember Aが得るrewardをプレビューします。",
       referralReady: "Mock referral ready",
-      referralTitle: "Founder referral builder",
+      referralTitle: "Referral builder",
       rewardsTitle: "Mock reward preview",
       spawnedBody:
         "Spawned Starは独立したAI Star cardとして、紫のAI STAR表示で区別します。",
       spawnedTitle: "Spawned AI Stars",
-      universeTitle: "Founder Network",
+      universeTitle: "Creator Network",
     },
     topGrowingStars: {
       body:
-        "Discovery画面ではStar Score、成長率、Founder数、空きFounder枠でAI Starを並べます。",
+        "Discovery画面ではStar Score、成長率、参加者数、空き枠でAI Starを並べます。",
       title: "Top Growing AI Stars",
     },
     universePreview: {
       body:
-        "各Star Universeで中心のAI Star、Human Founderの役割、Spawned Starを1つの成長マップとして分けて表示します。",
-      emptySlot: "Open Founder slot",
-      founderSlots: "Human Founder Slots",
-      title: "Founder Network Preview",
+        "各Star Universeで中心のAI Star、参加者の役割、Spawned Starを1つの成長マップとして分けて表示します。",
+      emptySlot: "Open participation slot",
+      founderSlots: "Human Participation Slots",
+      title: "Creator Network Preview",
     },
   },
   ko: {
@@ -955,7 +955,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       copyLink: "링크 복사",
       createAiStar: "새 AI 스타 만들기",
       createMockReferral: "추천 코드 미리 만들기",
-      joinAsFounder: "파운더로 참여하기",
+      joinAsFounder: "참여하기",
       openDiscovery: "AI 스타 발견으로 돌아가기",
       shareLink: "공유 링크",
       viewUniverse: "스타 유니버스 보기",
@@ -965,12 +965,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "첫 버전에서는 권한 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI 스타 생성은 미리보기 액션입니다.",
       steps: [
         {
-          body: "기존 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
+          body: "기존 스타 유니버스에 새 팬을 초대하고 성장 신호를 만듭니다.",
           title: "친구 초대 성장",
         },
         {
           body: "추천 코드로 가입이 발생하면 CP와 영향력 점수를 얻습니다.",
-          title: "파운더 영향력",
+          title: "크리에이터 영향력",
         },
         {
           body: "크리에이터 권한을 활성화한 뒤 10 USDT 미리보기 조건으로 새 AI 스타를 시작합니다.",
@@ -984,12 +984,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       agentRankAuditReady: "AgentRank 감사 준비 80% 이상",
       agentRankEventQuality: "이벤트 품질 80점 이상",
       body:
-        "친구 초대 점수, 직접 초대, CP, 파운더 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
+        "친구 초대 점수, 직접 초대, CP, 참여 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
       creatorSocialConnected: "AI 스타 TikTok 채널 연결",
       directInvites: "직접 초대 20명 이상",
-      founderContributionScore: "파운더 기여 점수 500 이상",
+      founderContributionScore: "참여 기여 점수 500 이상",
       launchPreviewBody:
         "멤버는 성장시킨 원천 스타 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
       launchPreviewTitle: "새 AI 스타 출시 미리보기",
@@ -1004,14 +1004,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     founderClub: {
       body:
-        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 친구 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
-      eyebrow: "파운더 클럽 2.0",
-      title: "AI 스타를 발견하고, 파운더가 되고, 크리에이터로 성장하세요",
+        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 팬 참여, 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
+      eyebrow: "크리에이터 클럽 2.0",
+      title: "AI 스타를 발견하고, 팬으로 참여하고, 크리에이터로 성장하세요",
     },
     growthLoop: {
       steps: [
         "AI 스타 발견",
-        "파운더로 참여",
+        "팬으로 참여",
         "추천 코드 생성",
         "SNS 공유 링크 발행",
         "신규 회원 가입",
@@ -1019,7 +1019,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "크리에이터 권한 활성화",
         "새 AI 스타 출시",
       ],
-      title: "파운더 클럽 2.0 성장 루프",
+      title: "크리에이터 클럽 2.0 성장 루프",
     },
     labels: {
       aiStarBadge: "AI 스타",
@@ -1028,8 +1028,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       cpBalance: "CP 잔액",
       createdByUnlock: "권한 활성화로 생성",
       directInvites: "직접 초대",
-      founderClub: "파운더 클럽",
-      founderCount: "파운더 수",
+      founderClub: "크리에이터 클럽",
+      founderCount: "참여자 수",
       growth: "성장률",
       humanMember: "일반 멤버",
       influenceScore: "영향력 점수",
@@ -1046,11 +1046,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     memberPortfolio: {
       activeHint:
-        "파운더 클럽 AI 스타가 활성화되어 있습니다. 스튜디오에서 콘텐츠와 성장을 관리할 수 있습니다.",
+        "크리에이터 클럽 AI 스타가 활성화되어 있습니다. 스튜디오에서 콘텐츠와 성장을 관리할 수 있습니다.",
       body:
-        "Creator/Owner는 이 멤버가 운영하는 AI 스타이고, 파운더 네트워크는 각 AI 스타 유니버스 안에서 가진 참여 역할입니다.",
+        "Creator/Owner는 이 멤버가 운영하는 AI 스타이고, 크리에이터 네트워크는 각 AI 스타 유니버스 안에서 가진 참여 역할입니다.",
       draftHint:
-        "이 계정에 파운더 클럽 AI 스타가 준비되어 있습니다. 캐릭터 프로필을 완성하면 활성화할 수 있습니다.",
+        "이 계정에 크리에이터 클럽 AI 스타가 준비되어 있습니다. 캐릭터 프로필을 완성하면 활성화할 수 있습니다.",
       emptyRoles:
         "아직 이 멤버에 연결된 AI 스타 역할이 없습니다.",
       liveDataLabel: "실시간 멤버 데이터",
@@ -1077,9 +1077,9 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "회원 A가 민서 유니버스를 선택하고 추천 코드를 만든 뒤 SNS에 공유합니다. 회원 B가 가입하면 성장 보상이 쌓입니다.",
       liveDataLabel: "실시간 추천 링크",
-      memberBecomesFounderTemplate: "{member}가 {universe}의 파운더가 됨",
+      memberBecomesFounderTemplate: "{member}가 {universe}의 팬이 됨",
       memberJoinsTemplate: "{member} 가입",
-      memberBBecomesFounder: "회원 B가 민서 유니버스의 파운더가 됨",
+      memberBBecomesFounder: "회원 B가 민서 유니버스의 팬이 됨",
       rewardsTitle: "회원 A 보상",
       selectUniverse: "민서 유니버스 선택",
       selectUniverseTemplate: "{universe} 선택",
@@ -1089,36 +1089,36 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     starDetail: {
       founderSlotsBody:
         "일반 멤버는 중립적인 회색 아바타와 역할 배지로 표시합니다. AI 스타 초상 이미지를 일반 멤버에 재사용하지 않습니다.",
-      founderSlotsTitle: "일반 파운더 슬롯",
+      founderSlotsTitle: "일반 참여 슬롯",
       heroBody:
-        "이 스타 유니버스 페이지는 AI 스타 발견에서 파운더 참여, 추천 코드 미리 생성, SNS 공유, 크리에이터 진행률까지 이어지는 전환 흐름입니다.",
+        "이 스타 유니버스 페이지는 AI 스타 발견에서 참여, 추천 코드 미리 생성, SNS 공유, 크리에이터 진행률까지 이어지는 전환 흐름입니다.",
       heroEyebrow: "스타 유니버스",
       inboundRefBody:
-        "이 방문자는 파운더 추천 링크로 들어왔습니다. 실제 가입 플로우에서는 이 스타 유니버스에 가입 이벤트가 귀속됩니다.",
+        "이 방문자는 추천 링크로 들어왔습니다. 실제 가입 플로우에서는 이 스타 유니버스에 가입 이벤트가 귀속됩니다.",
       inboundRefTitle: "추천 링크 감지",
       mockNotice:
         "미리보기 전용: 이 화면에서는 실결제나 영구 추천 구조 변경을 실행하지 않습니다.",
       referralBody:
         "추천 코드를 미리 만들고 SNS 링크를 공유한 뒤, 회원 B가 가입했을 때 회원 A가 얻는 보상을 보여줍니다.",
       referralReady: "추천 코드 준비 완료",
-      referralTitle: "파운더 추천 코드 생성",
+      referralTitle: "추천 코드 생성",
       rewardsTitle: "보상 미리보기",
       spawnedBody:
         "파생 스타는 별도 AI 스타 카드로 표시해 중심 AI 스타와 같은 보라색 AI 스타 체계를 유지합니다.",
       spawnedTitle: "파생 AI 스타",
-      universeTitle: "파운더 네트워크",
+      universeTitle: "크리에이터 네트워크",
     },
     topGrowingStars: {
       body:
-        "발견 화면은 스타 점수, 성장률, 파운더 수, 남은 파운더 슬롯을 기준으로 AI 스타를 보여줍니다.",
+        "발견 화면은 스타 점수, 성장률, 참여자 수, 남은 참여 슬롯을 기준으로 AI 스타를 보여줍니다.",
       title: "빠르게 성장 중인 AI 스타",
     },
     universePreview: {
       body:
-        "각 스타 유니버스에서 중심 AI 스타, 일반 파운더 역할, 파생 스타를 하나의 성장 지도로 구분해 보여줍니다.",
-      emptySlot: "열린 파운더 슬롯",
-      founderSlots: "일반 파운더 슬롯",
-      title: "파운더 네트워크 미리보기",
+        "각 스타 유니버스에서 중심 AI 스타, 일반 참여 역할, 파생 스타를 하나의 성장 지도로 구분해 보여줍니다.",
+      emptySlot: "열린 참여 슬롯",
+      founderSlots: "일반 참여 슬롯",
+      title: "크리에이터 네트워크 미리보기",
     },
   },
 };

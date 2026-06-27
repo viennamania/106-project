@@ -186,7 +186,7 @@ function ReferralShareOutcomeCard({
           "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
         readyBody:
-          "새 파운더가 이 링크로 참여하면 기여 포인트와 크리에이터 진행률이 이어집니다.",
+          "새 팬이 이 링크로 참여하면 기여 포인트와 크리에이터 진행률이 이어집니다.",
         readyTitle: "추천 공유 기록 생성됨",
       }
     : {
@@ -203,7 +203,7 @@ function ReferralShareOutcomeCard({
           "Copy the link or share to SNS to create a referral share record.",
         pendingTitle: "Share pending",
         readyBody:
-          "When a new Founder joins through this link, Contribution Points and Creator progress continue.",
+          "When a new Fan joins through this link, Contribution Points and Creator progress continue.",
         readyTitle: "Referral share recorded",
       };
 
@@ -420,13 +420,13 @@ export function FanletterStarReferralPanel({
   const actionHref = isMockFounder ? "#referral-builder" : primaryActionHref ?? joinHref;
   const fallbackActionLabel = actionHref.includes("/fanletter/connect")
     ? isKoreanCopy(copy)
-      ? "Founder 상태 확인"
-      : "Confirm Founder status"
+      ? "참여 상태 확인"
+      : "Confirm status"
     : copy.actions.joinAsFounder;
   const actionLabel = isMockFounder
     ? isKoreanCopy(copy)
       ? "내 추천 링크 공유"
-      : "Share my Founder link"
+      : "Share my referral link"
     : primaryActionLabel ?? fallbackActionLabel;
   const actionClassName =
     "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
@@ -438,17 +438,17 @@ export function FanletterStarReferralPanel({
     ? {
         close: "추천 공유 패널 닫기",
         flow: "공유 흐름",
-        joinClose: "파운더 참여 확인 패널 닫기",
-        joinConfirm: "파운더 참여 확정",
+        joinClose: "참여 확인 패널 닫기",
+        joinConfirm: "참여 확정",
         joinDescription:
-          "이 AI 스타 기준으로 파운더 참여를 기록하고 추천 링크를 준비합니다.",
+          "이 AI 스타 기준으로 참여를 기록하고 추천 링크를 준비합니다.",
         joinTitle:
           primaryActionVariant === "connect"
-            ? "파운더 참여 준비"
-            : "파운더 참여 확인",
+            ? "참여 준비"
+            : "참여 확인",
         open: "공유 옵션 열기",
         primaryActionHint:
-          "파운더 참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
+          "참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
         reward: "예상 보상",
         signal: "기록될 활동 기록",
         title: "추천 링크 공유",
@@ -456,17 +456,17 @@ export function FanletterStarReferralPanel({
     : {
         close: "Close referral share panel",
         flow: "Share flow",
-        joinClose: "Close Founder join confirmation panel",
-        joinConfirm: "Confirm Founder join",
+        joinClose: "Close join confirmation panel",
+        joinConfirm: "Confirm join",
         joinDescription:
-          "Record Founder participation for this AI Star and prepare a referral link.",
+          "Record participation for this AI Star and prepare a referral link.",
         joinTitle:
           primaryActionVariant === "connect"
-            ? "Prepare Founder join"
-            : "Confirm Founder join",
+            ? "Prepare join"
+            : "Confirm join",
         open: "Open share options",
         primaryActionHint:
-          "Use the primary CTA above for account connection and Founder join.",
+          "Use the primary CTA above for account connection and join.",
         reward: "Expected reward",
         signal: "Activity records",
         title: "Share referral link",
@@ -525,13 +525,13 @@ export function FanletterStarReferralPanel({
           <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
             <CheckCircle2 className="size-4" />
             {isKoreanCopy(copy)
-              ? "파운더 참여 완료"
-              : "Founder join complete"}
+              ? "참여 완료"
+              : "Join complete"}
           </div>
           <p className="mt-2 hidden text-sm font-medium leading-5 text-emerald-900/72 sm:block">
             {isKoreanCopy(copy)
-              ? "이 브라우저에 저장된 mock Founder 상태입니다. 내 추천 링크로 새 Founder를 초대할 수 있습니다."
-              : "This browser has mock Founder status saved. Invite new Founders with your referral link."}
+              ? "이 브라우저에 저장된 mock 참여 상태입니다. 내 추천 링크로 새 팬을 초대할 수 있습니다."
+              : "This browser has mock participation status saved. Invite new Fans with your referral link."}
           </p>
         </div>
       ) : inboundReferralCode ? (

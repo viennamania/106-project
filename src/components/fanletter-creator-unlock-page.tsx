@@ -138,9 +138,9 @@ function getLaunchPageCopy(locale: Locale) {
       cost: "10 USDT 미리보기",
       draft: "준비 중",
       fieldsTitle: "새 AI 스타 생성 미리보기",
-      founderContribution: "파운더 기여도",
+      founderContribution: "참여 기여도",
       founderContributionBody:
-        "내 파운더 활동이 어느 AI 스타 유니버스에서 활동 신뢰로 쌓였는지 보여줍니다.",
+        "내 참여 활동이 어느 AI 스타 유니버스에서 활동 신뢰로 쌓였는지 보여줍니다.",
       contributionScore: "기여 점수",
       contributionConfidence: "신뢰도",
       contributionEvents: "이벤트",
@@ -152,7 +152,7 @@ function getLaunchPageCopy(locale: Locale) {
       heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
       loginNoticeBody:
-        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 파운더 역할, 기여 포인트, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
+        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 팬 역할, 기여 포인트, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
       loginNoticeTitle: "내 크리에이터 권한 상태를 보려면 계정 연결이 필요합니다",
       mockActivation: "미리보기 활성화",
       mockNotice:
@@ -163,9 +163,9 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "미리보기 AI 스타 초안 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
       noSourceBody:
-        "새 AI 스타는 기존 AI 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 AI 스타 유니버스를 만든 뒤 다시 진행하세요.",
+        "새 AI 스타는 기존 AI 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 팬으로 참여하거나, 내 AI 스타 유니버스를 만든 뒤 다시 진행하세요.",
       noSourcePrimary: "AI 스타 발견하기",
-      noSourceSecondary: "파운더 클럽 보기",
+      noSourceSecondary: "크리에이터 클럽 보기",
       noSourceSubmit: "출처 AI 스타 유니버스 필요",
       noSourceTitle: "창업 출처 AI 스타 유니버스가 아직 없습니다",
       owner: "소유 멤버",
@@ -176,11 +176,11 @@ function getLaunchPageCopy(locale: Locale) {
       rewardCp: "CP",
       rewardCreator: "크리에이터 진행률",
       rewardInfluence: "영향력",
-      rewardTitle: "파운더 참여 보상 반영",
+      rewardTitle: "참여 보상 반영",
       rewardBody:
-        "이 브라우저의 미리보기 파운더 참여 내역을 크리에이터 권한 조건에 반영했습니다.",
+        "이 브라우저의 미리보기 참여 내역을 크리에이터 권한 조건에 반영했습니다.",
       sourceSelectBody:
-        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. 기여 포인트 풀은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
+        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 크리에이터 네트워크에서 가진 위치입니다. 기여 포인트 풀은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
       sourceSelectTitle: "창업 출처 AI 스타 유니버스 선택",
       sourcePool: "기여 포인트 풀 분배 기준",
       source: "출처 AI 스타 유니버스",
@@ -196,9 +196,9 @@ function getLaunchPageCopy(locale: Locale) {
       cost: "10 USDT preview",
       draft: "Draft",
       fieldsTitle: "New AI Star launch preview",
-      founderContribution: "Founder Contribution",
+      founderContribution: "Participation Contribution",
       founderContributionBody:
-        "Shows which AI Star Universes are accumulating your Founder activity as activity trust.",
+        "Shows which AI Star Universes are accumulating your participation activity as activity trust.",
       contributionScore: "Contribution Score",
       contributionConfidence: "Confidence",
       contributionEvents: "Events",
@@ -207,10 +207,10 @@ function getLaunchPageCopy(locale: Locale) {
       heroBody:
         "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
       heroEyebrow: "Creator Unlock",
-      heroTitle: "Founders grow into Creators who launch new AI Stars",
+      heroTitle: "Fans grow into Creators who launch new AI Stars",
       loginCta: "Connect account to view my data",
       loginNoticeBody:
-        "This screen is sample data. Connect your email account to switch to your Founder roles, Contribution Points, invites, and launchable AI Stars.",
+        "This screen is sample data. Connect your email account to switch to your Fan roles, Contribution Points, invites, and launchable AI Stars.",
       loginNoticeTitle: "Connect an account to view your Creator Unlock status",
       mockActivation: "Mock activation",
       mockNotice:
@@ -221,9 +221,9 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "Mock AI Star draft created",
       nextPortfolio: "Portfolio reflection",
       noSourceBody:
-        "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
+        "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Fan or create your own AI Star Universe first, then return here.",
       noSourcePrimary: "Discover AI Stars",
-      noSourceSecondary: "View Founder Club",
+      noSourceSecondary: "View Creator Club",
       noSourceSubmit: "Source AI Star Universe required",
       noSourceTitle: "No launch source AI Star Universe yet",
       owner: "Owner member",
@@ -234,11 +234,11 @@ function getLaunchPageCopy(locale: Locale) {
       rewardCp: "CP",
       rewardCreator: "Creator Progress",
       rewardInfluence: "Influence",
-      rewardTitle: "Founder join rewards applied",
+      rewardTitle: "Join rewards applied",
       rewardBody:
-        "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+        "Mock joins saved in this browser are reflected in Creator Unlock conditions.",
       sourceSelectBody:
-        "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
+        "The AI Star Universe is the launch source, and My role is your position inside its Creator Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
       sourceSelectTitle: "Select launch source AI Star Universe",
       sourcePool: "Contribution Point Pool basis",
       source: "Source AI Star Universe",
@@ -253,9 +253,9 @@ function getLaunchPageCopy(locale: Locale) {
     cost: "10 USDT preview",
     draft: "Draft",
     fieldsTitle: "New AI Star launch preview",
-    founderContribution: "Founder Contribution",
+    founderContribution: "Participation Contribution",
   founderContributionBody:
-      "Shows which AI Star Universes are accumulating your Founder activity as activity trust.",
+      "Shows which AI Star Universes are accumulating your participation activity as activity trust.",
     contributionScore: "Contribution Score",
     contributionConfidence: "Confidence",
     contributionEvents: "Events",
@@ -267,7 +267,7 @@ function getLaunchPageCopy(locale: Locale) {
     heroTitle: "Creator unlock status",
     loginCta: "Connect account to view my data",
     loginNoticeBody:
-      "This screen is sample data. Connect your email account to switch to your Founder roles, Contribution Points, invites, and launchable AI Stars.",
+      "This screen is sample data. Connect your email account to switch to your Fan roles, Contribution Points, invites, and launchable AI Stars.",
     loginNoticeTitle: "Connect an account to view your Creator Unlock status",
     mockActivation: "Mock activation",
     mockNotice:
@@ -278,9 +278,9 @@ function getLaunchPageCopy(locale: Locale) {
     launchedTitle: "Mock AI Star draft created",
     nextPortfolio: "Portfolio reflection",
     noSourceBody:
-      "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
+      "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Fan or create your own AI Star Universe first, then return here.",
     noSourcePrimary: "Discover AI Stars",
-    noSourceSecondary: "View Founder Club",
+    noSourceSecondary: "View Creator Club",
     noSourceSubmit: "Source AI Star Universe required",
     noSourceTitle: "No launch source AI Star Universe yet",
     owner: "Owner member",
@@ -291,11 +291,11 @@ function getLaunchPageCopy(locale: Locale) {
     rewardCp: "CP",
     rewardCreator: "Creator Progress",
     rewardInfluence: "Influence",
-    rewardTitle: "Founder join rewards applied",
+    rewardTitle: "Join rewards applied",
     rewardBody:
-      "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+      "Mock joins saved in this browser are reflected in Creator Unlock conditions.",
     sourceSelectBody:
-      "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
+      "The AI Star Universe is the launch source, and My role is your position inside its Creator Network. The Contribution Point Pool is distributed to the selected AI Star Universe upline.",
     sourceSelectTitle: "Select launch source AI Star Universe",
     sourcePool: "Contribution Point Pool basis",
     source: "Source AI Star Universe",
@@ -310,7 +310,7 @@ function getDisplayUniverseName(name: string, locale: Locale) {
   }
 
   const replacements: Record<string, string> = {
-    "Founder Club Universe": "파운더 클럽 유니버스",
+    "Creator Club Universe": "크리에이터 클럽 유니버스",
     "Harin Universe": "하린 유니버스",
     "Minseo Universe": "민서 유니버스",
     "Ria Universe": "리아 유니버스",
@@ -718,7 +718,7 @@ function applyMockFounderRewardsToUnlock({
   const sourceUniverseName =
     latestStar?.universeName ??
     unlock.launchPreview?.sourceUniverseName ??
-    "Founder Club Universe";
+    "Creator Club Universe";
 
   return {
     ...unlock,
@@ -839,7 +839,7 @@ function getLaunchPreview({
     launchPreview?.sourceUniverseName ??
     sampleStar.sourceUniverseName ??
     portfolio.roles[0]?.universeName ??
-    "Founder Club Universe";
+    "Creator Club Universe";
   const ownedPreview: MemberOwnedAIStar = {
     createdByUnlock: true,
     id: `mock-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "ai-star"}`,
@@ -1102,20 +1102,20 @@ function SourceUniverseNetworkLinkCard({
   )}/universe`;
   const labels = isKorean
     ? {
-        body: `새 AI 스타는 ${displayUniverseName} 안의 파운더 네트워크 성과를 출처로 기록됩니다.`,
-        cta: "파운더 네트워크 보기",
+        body: `새 AI 스타는 ${displayUniverseName} 안의 크리에이터 네트워크 성과를 출처로 기록됩니다.`,
+        cta: "크리에이터 네트워크 보기",
         event: "출처 선택 기록",
         role: "내 역할",
         score: "기여 점수",
-        title: "출처 파운더 네트워크 확인",
+        title: "출처 크리에이터 네트워크 확인",
       }
     : {
-        body: `The new AI Star will be recorded from the Founder Network contribution inside ${displayUniverseName}.`,
-        cta: "View Founder Network",
+        body: `The new AI Star will be recorded from the Creator Network contribution inside ${displayUniverseName}.`,
+        cta: "View Creator Network",
         event: "Source selection record",
         role: "My role",
         score: "Contribution score",
-        title: "Review source Founder Network",
+        title: "Review source Creator Network",
       };
 
   return (
@@ -2197,7 +2197,7 @@ function CreatorFounderRelationshipGuide({
         creatorTitle: "내가 운영하는 AI 스타",
         founderBody: "선택한 AI 스타 유니버스 안의 6단계 초대/역할/기여 포인트 기준입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
-        founderEyebrow: "파운더 네트워크 관계",
+        founderEyebrow: "크리에이터 네트워크 관계",
         founderTitle: "창업 출처 역할",
         memberEyebrow: "현재 위치",
         memberTitle: "내 크리에이터 여정 기준",
@@ -2213,7 +2213,7 @@ function CreatorFounderRelationshipGuide({
         founderBody:
           "The 6-tier invite, role, and Contribution Points structure inside the selected AI Star Universe.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
-        founderEyebrow: "Founder Network relationship",
+        founderEyebrow: "Creator Network relationship",
         founderTitle: "Launch source role",
         memberEyebrow: "Current position",
         memberTitle: "My Creator Journey basis",
@@ -2394,7 +2394,7 @@ function CreatorNextActionStatusCard({
         body: requiresSourceUniverse
           ? "먼저 AI 스타를 선택해 창업 출처를 만들어야 크리에이터 여정이 이어집니다."
           : isPreviewMode
-            ? "계정을 연결하면 내 파운더 활동과 조건 진행률을 실데이터로 확인합니다."
+            ? "계정을 연결하면 내 참여 활동과 조건 진행률을 실데이터로 확인합니다."
             : unlock.unlocked
               ? "조건이 충족되었습니다. 미리보기 생성 행동은 활동 기록으로 남습니다."
               : "부족한 조건을 채우면 크리에이터 권한 평가 기록이 갱신됩니다.",
@@ -2409,7 +2409,7 @@ function CreatorNextActionStatusCard({
         body: requiresSourceUniverse
           ? "Choose an AI Star first so the Creator Journey has a launch source."
           : isPreviewMode
-            ? "Connect an account to evaluate your live Founder activity and conditions."
+            ? "Connect an account to evaluate your live participation activity and conditions."
             : unlock.unlocked
               ? "Conditions are met. The mock launch action records an x402 mock event."
               : "Complete the missing condition to refresh the Creator permission evaluation event.",

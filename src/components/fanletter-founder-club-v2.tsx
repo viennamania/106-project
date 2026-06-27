@@ -706,10 +706,10 @@ export function MemberPortfolio({
         contentReady: "콘텐츠 준비",
         contentSurface: "콘텐츠",
         founderBody:
-          "AI 스타 유니버스 안에서 내가 가진 초대, 기여 포인트, 파운더 네트워크 역할입니다.",
+          "AI 스타 유니버스 안에서 내가 가진 초대, 기여 포인트, 크리에이터 네트워크 역할입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "참여 역할",
-        founderTitle: "참여 중인 파운더 네트워크",
+        founderTitle: "참여 중인 크리에이터 네트워크",
         reputationCreated: "활동 기록 생성됨",
         reputationPending: "활동 기록 대기",
         openStar: "AI 스타 보기",
@@ -728,10 +728,10 @@ export function MemberPortfolio({
         contentReady: "Content ready",
         contentSurface: "Content",
         founderBody:
-          "Invitation, Contribution Points, and Founder Network roles held inside AI Star Universes.",
+          "Invitation, Contribution Points, and Creator Network roles held inside AI Star Universes.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
         founderEyebrow: "Participation roles",
-        founderTitle: "Founder Networks I joined",
+        founderTitle: "Creator Networks I joined",
         reputationCreated: "Activity record created",
         reputationPending: "Activity record pending",
         openStar: "View AI Star",
@@ -1580,8 +1580,8 @@ export function FounderClubV2HomeSections({
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/62 sm:text-lg">
               <span className="sm:hidden">
                 {isKoreanCopy(copy)
-                  ? "홈에서는 발견, 파운더 참여, 친구 초대 보상, 크리에이터 권한 활성화만 빠르게 보여줍니다."
-                  : "The mobile home keeps the discovery, Founder, Scout reward, and Creator unlock path focused."}
+                  ? "홈에서는 발견, 팬 참여, 초대 보상, 크리에이터 권한 활성화만 빠르게 보여줍니다."
+                  : "The mobile home keeps the discovery, Fan, Invite reward, and Creator unlock path focused."}
               </span>
               <span className="hidden sm:inline">{copy.founderClub.body}</span>
             </p>
