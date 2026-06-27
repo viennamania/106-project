@@ -6,6 +6,7 @@ import {
   FanletterHomePage,
   type FanletterHomeShareContext,
 } from "@/components/fanletter-home-page";
+import { FanletterHomeStructuredData } from "@/components/fanletter-home-structured-data";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   getFanletterFounderClubCreatorUnlock,
@@ -302,20 +303,23 @@ export default async function FanletterRoutePage({
     : null;
 
   return (
-    <FanletterHomePage
-      agentRankSnapshot={agentRankSnapshot}
-      featuredVideos={landingData.featuredVideos}
-      founderClubCreatorUnlock={founderClubCreatorUnlock}
-      founderClubMemberPortfolio={founderClubMemberPortfolio}
-      founderClubScoutShareLoop={founderClubScoutShareLoop}
-      founderClubSelectedStarId={founderClubStarId}
-      founderClubStars={founderClubStars}
-      agentRankTrackingStarId={coverageStarId}
-      coverageAction={coverageAction}
-      locale={locale}
-      liveStats={landingData.liveStats}
-      referralCode={referralCode}
-      shareContext={shareContext}
-    />
+    <>
+      <FanletterHomeStructuredData locale={locale} />
+      <FanletterHomePage
+        agentRankSnapshot={agentRankSnapshot}
+        featuredVideos={landingData.featuredVideos}
+        founderClubCreatorUnlock={founderClubCreatorUnlock}
+        founderClubMemberPortfolio={founderClubMemberPortfolio}
+        founderClubScoutShareLoop={founderClubScoutShareLoop}
+        founderClubSelectedStarId={founderClubStarId}
+        founderClubStars={founderClubStars}
+        agentRankTrackingStarId={coverageStarId}
+        coverageAction={coverageAction}
+        locale={locale}
+        liveStats={landingData.liveStats}
+        referralCode={referralCode}
+        shareContext={shareContext}
+      />
+    </>
   );
 }
