@@ -26,12 +26,12 @@ type TerminologyCopy = {
 
 const enCopy: TerminologyCopy = {
   eyebrow: "Terminology",
-  title: "Founder Club structure",
+  title: "Creator Club structure",
   terms: [
     {
       body: "Product layer",
       Icon: Crown,
-      title: "Founder Club",
+      title: "Creator Club",
     },
     {
       body: "Per-AI-Star space",
@@ -41,7 +41,7 @@ const enCopy: TerminologyCopy = {
     {
       body: "6-level invite and Contribution Points structure",
       Icon: Network,
-      title: "Founder Network",
+      title: "Creator Network",
     },
   ],
 };
@@ -52,12 +52,12 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
   },
   ko: {
     eyebrow: "용어 기준",
-    title: "파운더 클럽 구조",
+    title: "크리에이터 클럽 구조",
     terms: [
       {
         body: "전체 제품",
         Icon: Crown,
-        title: "파운더 클럽",
+        title: "크리에이터 클럽",
       },
       {
         body: "AI 스타별 공간",
@@ -67,7 +67,7 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
       {
         body: "6단계 초대/기여 포인트 구조",
         Icon: Network,
-        title: "파운더 네트워크",
+        title: "크리에이터 네트워크",
       },
     ],
   },
@@ -115,12 +115,12 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
   },
   vi: {
     eyebrow: "Thuật ngữ",
-    title: "Cấu trúc Founder Club",
+    title: "Cấu trúc Creator Club",
     terms: [
       {
         body: "Toàn bộ sản phẩm",
         Icon: Crown,
-        title: "Founder Club",
+        title: "Creator Club",
       },
       {
         body: "Không gian riêng cho mỗi AI Star",
@@ -130,18 +130,18 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
       {
         body: "Cấu trúc mời 6 cấp và CP",
         Icon: Network,
-        title: "Founder Network",
+        title: "Creator Network",
       },
     ],
   },
   id: {
     eyebrow: "Istilah",
-    title: "Struktur Founder Club",
+    title: "Struktur Creator Club",
     terms: [
       {
         body: "Seluruh produk",
         Icon: Crown,
-        title: "Founder Club",
+        title: "Creator Club",
       },
       {
         body: "Ruang untuk tiap AI Star",
@@ -151,7 +151,7 @@ const copyByLocale: Record<Locale, TerminologyCopy> = {
       {
         body: "Struktur undangan 6 tingkat dan CP",
         Icon: Network,
-        title: "Founder Network",
+        title: "Creator Network",
       },
     ],
   },

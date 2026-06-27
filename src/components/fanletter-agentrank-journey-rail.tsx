@@ -66,7 +66,7 @@ export function FanletterAgentRankJourneyRail({
         ? `/${locale}/fanletter/${encodedStarId}`
         : `/${locale}/fanletter/discovery`,
       key: "founder",
-      label: isKorean ? "Founder 참여" : "Founder",
+      label: isKorean ? "참여" : "Founder",
     },
     {
       Icon: GitBranch,
@@ -74,7 +74,7 @@ export function FanletterAgentRankJourneyRail({
         ? `/${locale}/fanletter/${encodedStarId}/universe`
         : `/${locale}/fanletter/founder-club`,
       key: "network",
-      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      label: isKorean ? "크리에이터 네트워크" : "Creator Network",
     },
     {
       Icon: Sparkles,

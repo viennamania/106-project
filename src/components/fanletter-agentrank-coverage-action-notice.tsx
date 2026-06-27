@@ -111,7 +111,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_bridge: {
       body:
-        "계정 연결, 추천 코드 유지, 온보딩 이동이 Founder Network 전환 신호로 이어지는지 확인합니다.",
+        "계정 연결, 추천 코드 유지, 온보딩 이동이 Creator Network 전환 신호로 이어지는지 확인합니다.",
       title: "계정 연결 브릿지 신호 확인",
     },
     fanletter_content: {
@@ -126,8 +126,8 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_founder_universe: {
       body:
-        "파운더 네트워크 탐색, 계층 선택, 유니버스 확장이 AgentRank 네트워크 신호로 쌓이는지 확인합니다.",
-      title: "파운더 네트워크 출처 확인",
+        "크리에이터 네트워크 탐색, 계층 선택, 유니버스 확장이 AgentRank 네트워크 신호로 쌓이는지 확인합니다.",
+      title: "크리에이터 네트워크 출처 확인",
     },
     fanletter_home: {
       body:
@@ -141,17 +141,17 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_star_detail: {
       body:
-        "스타 상세에서 발견, Founder 참여, 추천 코드 생성이 같은 스타 기준 이벤트로 기록되는지 확인합니다.",
+        "스타 상세에서 발견, 참여, 추천 코드 생성이 같은 스타 기준 이벤트로 기록되는지 확인합니다.",
       title: "스타 상세 출처 신호 확인",
     },
     founder_joined: {
       body:
-        "멤버가 특정 AI 스타의 파운더 네트워크에 편입되는 신호를 수집합니다.",
-      title: "Founder 참여 신호 수집",
+        "멤버가 특정 AI 스타의 크리에이터 네트워크에 편입되는 신호를 수집합니다.",
+      title: "참여 신호 수집",
     },
     referral_code_created: {
       body:
-        "추천 코드 생성이 Founder Network 리니지의 시작점으로 기록되는지 확인합니다.",
+        "추천 코드 생성이 Creator Network 리니지의 시작점으로 기록되는지 확인합니다.",
       title: "추천 코드 생성 신호 수집",
     },
     referral_shared: {
@@ -171,7 +171,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     universe_growth: {
       body:
-        "6단계 파운더 네트워크, 신규 멤버, 파생 스타 확장이 AgentRank 네트워크 성장 신호로 남는지 확인합니다.",
+        "6단계 크리에이터 네트워크, 신규 멤버, 파생 스타 확장이 AgentRank 네트워크 성장 신호로 남는지 확인합니다.",
       title: "네트워크 성장 신호 수집",
     },
     x402_economy: {
@@ -238,7 +238,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_bridge: {
       body:
-        "Verify that account connection, referral persistence, and onboarding handoff produce Founder Network conversion signals.",
+        "Verify that account connection, referral persistence, and onboarding handoff produce Creator Network conversion signals.",
       title: "Verify Account Bridge Signal",
     },
     fanletter_content: {
@@ -253,8 +253,8 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_founder_universe: {
       body:
-        "Verify that Founder Network exploration, tier selection, and Universe expansion become network signals.",
-      title: "Verify Founder Network Source",
+        "Verify that Creator Network exploration, tier selection, and Universe expansion become network signals.",
+      title: "Verify Creator Network Source",
     },
     fanletter_home: {
       body:
@@ -268,17 +268,17 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_star_detail: {
       body:
-        "Verify that discovery, Founder join, and referral code creation are recorded against the same AI Star.",
+        "Verify that discovery, Join, and referral code creation are recorded against the same AI Star.",
       title: "Verify Star Detail Source Signal",
     },
     founder_joined: {
       body:
-        "Collect the signal when a member enters a specific AI Star Founder Network.",
-      title: "Collect Founder Join Signal",
+        "Collect the signal when a member enters a specific AI Star Creator Network.",
+      title: "Collect Join Signal",
     },
     referral_code_created: {
       body:
-        "Verify that referral code creation is recorded as the Founder Network lineage start.",
+        "Verify that referral code creation is recorded as the Creator Network lineage start.",
       title: "Collect Referral Code Signal",
     },
     referral_shared: {
@@ -298,7 +298,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     universe_growth: {
       body:
-        "Verify that six-tier Founder Network growth, new members, and spawned stars become AgentRank network growth signals.",
+        "Verify that six-tier Creator Network growth, new members, and spawned stars become AgentRank network growth signals.",
       title: "Collect Network Growth Signal",
     },
     x402_economy: {
