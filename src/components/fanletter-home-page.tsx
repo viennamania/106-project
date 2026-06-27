@@ -1021,16 +1021,26 @@ function FanletterProductHomeDashboard({
                         {starList.slice(0, 5).map((star) => (
                           <span
                             aria-hidden="true"
-                            className="size-9 shrink-0 rounded-full border-2 border-white bg-cover bg-center"
+                            className="relative size-9 shrink-0 overflow-hidden rounded-full border-2 border-white bg-cover bg-center"
                             key={star.id}
                             style={
                               star.portraitImageUrl
-                                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                                ? undefined
                                 : {
                                     background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
                                   }
                             }
-                          />
+                          >
+                            {star.portraitImageUrl ? (
+                              <Image
+                                alt=""
+                                className="object-cover"
+                                fill
+                                sizes="36px"
+                                src={star.portraitImageUrl}
+                              />
+                            ) : null}
+                          </span>
                         ))}
                       </span>
                       <span className="text-sm font-semibold text-zinc-800">
@@ -1101,13 +1111,21 @@ function FanletterProductHomeDashboard({
                         className="relative aspect-square w-full overflow-hidden bg-cover bg-center"
                         style={
                           star.portraitImageUrl
-                            ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                            ? undefined
                             : {
                                 background: `linear-gradient(150deg, ${star.accentColor}, ${star.accentSecondary})`,
                               }
                         }
                       >
-                        {star.portraitImageUrl ? null : (
+                        {star.portraitImageUrl ? (
+                          <Image
+                            alt={star.name}
+                            className="object-cover"
+                            fill
+                            sizes="(min-width: 1024px) 14.5rem, (min-width: 390px) 13.75rem, 12.9rem"
+                            src={star.portraitImageUrl}
+                          />
+                        ) : (
                           <span className="flex h-full w-full items-center justify-center text-4xl font-bold text-white">
                             {star.portraitInitials}
                           </span>
