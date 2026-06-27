@@ -137,7 +137,7 @@ export type FanletterAgentRankReputationEventFeed = {
   generatedAt: string;
   roadmap: [
     "AI Star Discovery",
-    "Founder Network",
+    "Creator Network",
     "x402 Economy",
     "Agent Transaction Graph",
     "AgentRank",
@@ -183,7 +183,7 @@ type EventBuildInput = {
 
 const defaultRoadmap = [
   "AI Star Discovery",
-  "Founder Network",
+  "Creator Network",
   "x402 Economy",
   "Agent Transaction Graph",
   "AgentRank",

@@ -83,7 +83,7 @@ function getContextString(event: AgentRankReputationEvent, key: string) {
 function getScoreSignals(event: AgentRankReputationEvent) {
   return [
     {
-      label: "Founder Network",
+      label: "Creator Network",
       value: event.reputationSignals.networkWeight,
     },
     {
