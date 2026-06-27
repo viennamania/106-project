@@ -90,7 +90,7 @@ export function FanletterGlobalLanguageSwitcher({
           <span className="grid min-w-0 leading-none">
             <span
               className={cn(
-                "text-[0.56rem] font-semibold uppercase tracking-[0.18em]",
+                "text-[0.62rem] font-semibold uppercase tracking-[0.18em]",
                 isLightSurface ? "text-zinc-500" : "text-[#8dffa5]",
               )}
             >
