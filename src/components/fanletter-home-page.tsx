@@ -1086,7 +1086,7 @@ function FanletterProductHomeDashboard({
                   className="flex max-w-full snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pr-10 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
                   data-fanletter-top-stars-scroller
                 >
-                  {topStars.map((star) => (
+                  {topStars.map((star, index) => (
                     <FanletterTrackedLink
                       agentRank={{
                         eventType: "ai_star_discovered",
@@ -1122,6 +1122,7 @@ function FanletterProductHomeDashboard({
                             alt={star.name}
                             className="object-cover"
                             fill
+                            priority={index < 2}
                             sizes="(min-width: 1024px) 14.5rem, (min-width: 390px) 13.75rem, 12.9rem"
                             src={star.portraitImageUrl}
                           />
