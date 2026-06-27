@@ -1888,7 +1888,7 @@ function SpawnedStarsSection({
   return (
     <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
           <Bot className="size-5" />
         </span>
         <div>
@@ -2057,7 +2057,7 @@ function AIStarGenealogySection({
     <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
             <GitBranch className="size-5" />
           </span>
           <div>

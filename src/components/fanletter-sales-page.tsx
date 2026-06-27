@@ -1027,7 +1027,7 @@ function WalletPanel({
             {copy.labels.sellerWallet}
           </h2>
         </div>
-        <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 items-center justify-center rounded-lg bg-black !text-white">
           <WalletMinimal className="size-5" />
         </span>
       </div>

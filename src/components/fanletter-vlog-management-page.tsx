@@ -4223,7 +4223,7 @@ function VlogManagerCard({
             src={fallbackVideoUrl}
           />
         ) : (
-          <div className="flex h-full min-h-[16rem] items-center justify-center bg-black text-white/40">
+          <div className="flex h-full min-h-[16rem] items-center justify-center bg-black !text-white/40">
             <Video className="size-9" />
           </div>
         )}
@@ -4669,7 +4669,7 @@ function StatusPill({
                   : status === "general"
                     ? "border-black/10 bg-white text-black/58"
                     : status === "paid"
-                      ? "border-[#44f26e]/36 bg-black text-white"
+                      ? "border-[#44f26e]/36 bg-black !text-white"
                       : status === "free"
                         ? "border-[#16702e]/18 bg-[#e9f8ec] text-[#0c5f24]"
                         : "border-black/10 bg-white text-black/58";

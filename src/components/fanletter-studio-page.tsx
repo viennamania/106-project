@@ -1410,7 +1410,7 @@ function FanRequestsSection({
               <button
                 className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border px-4 text-xs font-semibold transition ${
                   isActive
-                    ? "border-black bg-black text-white"
+                    ? "border-black bg-black !text-white"
                     : "border-black/10 bg-white text-black/58 hover:text-black"
                 }`}
                 key={tab.value}

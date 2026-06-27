@@ -2995,7 +2995,7 @@ function SourceVlogFeedOverlay({
   return (
     <div
       aria-modal="true"
-      className="absolute inset-0 z-50 overflow-hidden bg-black text-white"
+      className="absolute inset-0 z-50 overflow-hidden bg-black !text-white"
       role="dialog"
     >
       <div className="absolute inset-x-0 top-0 z-30 bg-[linear-gradient(180deg,rgba(0,0,0,0.82),rgba(0,0,0,0.5)_62%,rgba(0,0,0,0))] px-3 pb-5 pt-[calc(env(safe-area-inset-top)+0.7rem)]">
@@ -5382,7 +5382,7 @@ function FeedSlide({
   return (
     <article
       {...inactiveArticleAttributes}
-      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
+      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] touch-pan-y snap-start snap-always overflow-hidden bg-black !text-white"
       id={report.reportId}
       ref={articleRef}
       onPointerCancel={() => {

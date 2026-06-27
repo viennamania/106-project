@@ -2168,7 +2168,7 @@ function WireLeadStory({
 
   return (
     <Link
-      className="group relative block min-h-[23rem] overflow-hidden bg-black text-white sm:min-h-[30rem]"
+      className="group relative block min-h-[23rem] overflow-hidden bg-black !text-white sm:min-h-[30rem]"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage

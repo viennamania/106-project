@@ -509,7 +509,7 @@ function DirectoryControls({
               className={cn(
                 "inline-flex min-h-11 shrink-0 items-center rounded-full border px-3 py-2 text-xs font-semibold transition",
                 active
-                  ? "border-black bg-black text-white"
+                  ? "border-black bg-black !text-white"
                   : "border-black/10 bg-[#f6f8f4] text-black/60 hover:border-black/24 hover:text-black",
               )}
               href={getCharactersHref({
@@ -771,7 +771,7 @@ function DirectoryPagination({
             className={cn(
               "inline-flex size-10 items-center justify-center rounded-full border text-sm font-semibold transition",
               active
-                ? "border-black bg-black text-white"
+                ? "border-black bg-black !text-white"
                 : "border-black/10 bg-white text-black/58 hover:border-black/24 hover:text-black",
             )}
             href={getCharactersHref({

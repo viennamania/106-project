@@ -1560,7 +1560,7 @@ export function FanletterAIStarSocialAccountCard({
                     className={joinClasses(
                       "inline-flex min-h-7 max-w-full items-center gap-1.5 rounded-full px-2.5 text-[0.68rem] font-semibold leading-tight",
                       index === 1
-                        ? "bg-black text-white"
+                        ? "bg-black !text-white"
                         : "bg-zinc-100 text-zinc-700",
                     )}
                   >
