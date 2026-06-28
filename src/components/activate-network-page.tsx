@@ -254,6 +254,7 @@ export function ActivateNetworkPage({
     vi: "Mạng lục giác",
     zh: "六角视图",
   } satisfies Record<Locale, string>;
+  const summaryHints = getNetworkSummaryHintCopy(locale);
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -1298,18 +1299,21 @@ export function ActivateNetworkPage({
 
                   <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <SummaryMetricCard
+                      hint={summaryHints.totalMembers}
                       icon={<Users className="size-4" />}
                       label={dictionary.activateNetworkPage.labels.totalMembers}
                       locale={locale}
                       value={String(state.summary.totalMembers)}
                     />
                     <SummaryMetricCard
+                      hint={summaryHints.directMembers}
                       icon={<GitBranch className="size-4" />}
                       label={dictionary.activateNetworkPage.labels.directMembers}
                       locale={locale}
                       value={String(state.summary.directMembers)}
                     />
                     <SummaryMetricCard
+                      hint={summaryHints.referralRewards}
                       icon={<Trophy className="size-4" />}
                       label={
                         dictionary.activateNetworkPage.labels.totalReferralRewardPoints
@@ -1318,6 +1322,7 @@ export function ActivateNetworkPage({
                       value={`${formatInteger(state.summary.totalReferralRewardPoints, locale)}P`}
                     />
                     <SummaryMetricCard
+                      hint={summaryHints.contentBonus}
                       icon={<Layers3 className="size-4" />}
                       label={
                         dictionary.activateNetworkPage.labels.totalContentBonusPoints
@@ -1326,6 +1331,7 @@ export function ActivateNetworkPage({
                       value={`${formatInteger(state.summary.totalContentBonusPoints, locale)}P`}
                     />
                     <SummaryMetricCard
+                      hint={summaryHints.lifetime}
                       icon={<Trophy className="size-4" />}
                       label={
                         dictionary.activateNetworkPage.labels.totalLifetimePoints
@@ -1334,6 +1340,7 @@ export function ActivateNetworkPage({
                       value={`${formatInteger(state.summary.totalLifetimePoints, locale)}P`}
                     />
                     <SummaryMetricCard
+                      hint={summaryHints.spendable}
                       icon={<Layers3 className="size-4" />}
                       label={
                         dictionary.activateNetworkPage.labels.totalSpendablePoints
@@ -2513,12 +2520,14 @@ function ManagedReferralNetworkExplorer({
 
 
 function SummaryMetricCard({
+  hint,
   icon,
   label,
   locale,
   tone = "dark",
   value,
 }: {
+  hint?: string;
   icon: ReactNode;
   label: string;
   locale: Locale;
@@ -2548,7 +2557,19 @@ function SummaryMetricCard({
         >
           {icon}
         </div>
-        <p className="text-xs leading-5 uppercase tracking-[0.18em]">{label}</p>
+        <div className="min-w-0">
+          <p className="text-xs leading-5 uppercase tracking-[0.18em]">{label}</p>
+          {hint ? (
+            <p
+              className={cn(
+                "mt-1 line-clamp-2 text-[0.7rem] leading-4 normal-case tracking-normal",
+                tone === "dark" ? "text-white/48" : "text-slate-500",
+              )}
+            >
+              {hint}
+            </p>
+          ) : null}
+        </div>
       </div>
       <div className="mt-auto flex items-end justify-end pt-4">
         <p
@@ -2829,6 +2850,72 @@ function getAIStarInitials(name: string) {
   }
 
   return Array.from(compactName).slice(0, 2).join("").toUpperCase();
+}
+
+function getNetworkSummaryHintCopy(locale: Locale) {
+  const copy = {
+    en: {
+      contentBonus: "Points from content activity in this network",
+      directMembers: "Members directly invited by this account",
+      lifetime: "All points accumulated by the downline",
+      referralRewards: "Rewards earned from referral signups",
+      spendable: "Redeemable points held by the downline",
+      totalMembers: "Completed members in this downline",
+    },
+    id: {
+      contentBonus: "Poin dari aktivitas konten di jaringan ini",
+      directMembers: "Member yang diundang langsung oleh akun ini",
+      lifetime: "Semua poin yang dikumpulkan downline",
+      referralRewards: "Reward dari pendaftaran referral",
+      spendable: "Poin redeemable yang dimiliki downline",
+      totalMembers: "Member selesai di downline ini",
+    },
+    ja: {
+      contentBonus: "このネットワークのコンテンツ活動ポイント",
+      directMembers: "このアカウントが直接招待した会員",
+      lifetime: "下位ネットワークが累計した全ポイント",
+      referralRewards: "紹介登録から発生した報酬ポイント",
+      spendable: "下位会員が現在利用できるポイント",
+      totalMembers: "この下位ネットワークの完了会員",
+    },
+    ko: {
+      contentBonus: "콘텐츠 활동으로 받은 포인트",
+      directMembers: "이 계정이 직접 초대한 회원",
+      lifetime: "하위 전체가 누적한 모든 포인트",
+      referralRewards: "추천 가입으로 받은 보상",
+      spendable: "하위 회원이 지금 쓸 수 있는 포인트",
+      totalMembers: "이 계정 아래 가입 완료 회원",
+    },
+    vi: {
+      contentBonus: "Điểm từ hoạt động nội dung trong mạng này",
+      directMembers: "Thành viên được tài khoản này mời trực tiếp",
+      lifetime: "Tổng điểm mà tuyến dưới đã tích lũy",
+      referralRewards: "Điểm thưởng từ đăng ký giới thiệu",
+      spendable: "Điểm có thể dùng của tuyến dưới",
+      totalMembers: "Thành viên đã hoàn tất trong tuyến dưới",
+    },
+    zh: {
+      contentBonus: "此网络中的内容活动积分",
+      directMembers: "此账号直接邀请的会员",
+      lifetime: "下级网络累计的全部积分",
+      referralRewards: "推荐注册产生的奖励积分",
+      spendable: "下级会员当前可用积分",
+      totalMembers: "此下级网络中已完成会员",
+    },
+  } satisfies Record<
+    Locale,
+    Record<
+      | "contentBonus"
+      | "directMembers"
+      | "lifetime"
+      | "referralRewards"
+      | "spendable"
+      | "totalMembers",
+      string
+    >
+  >;
+
+  return copy[locale] ?? copy.en;
 }
 
 function getMemberSortCopy(locale: Locale) {
