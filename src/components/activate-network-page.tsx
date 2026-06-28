@@ -2251,6 +2251,8 @@ function SelectedMemberAIStarCard({
     );
   }
 
+  const aiStarHref = `/${locale}/fanletter/${encodeURIComponent(star.starId)}`;
+
   return (
     <div className="rounded-[24px] border border-violet-100 bg-[linear-gradient(135deg,#ffffff_0%,#faf5ff_52%,#f8fafc_100%)] p-4 shadow-[0_16px_38px_rgba(88,28,135,0.08)]">
       <div className="flex items-start gap-4">
@@ -2304,6 +2306,14 @@ function SelectedMemberAIStarCard({
           </p>
         </div>
       </div>
+
+      <Link
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
+        href={aiStarHref}
+      >
+        {copy.viewCta}
+        <ChevronRight className="size-4" />
+      </Link>
     </div>
   );
 }
@@ -2978,6 +2988,7 @@ function getMemberAIStarCopy(locale: Locale) {
       listHint: "가입 후 생성",
       scoreLabel: "스타 점수",
       sourceLabel: "출처",
+      viewCta: "AI 스타 유니버스 보기",
     };
   }
 
@@ -2991,6 +3002,7 @@ function getMemberAIStarCopy(locale: Locale) {
     listHint: "Generated after signup",
     scoreLabel: "Star score",
     sourceLabel: "Source",
+    viewCta: "View AI Star Universe",
   };
 }
 
