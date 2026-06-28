@@ -704,7 +704,7 @@ export function FanletterFounderMockStatusBanner({
   const body =
     locale === "ko"
       ? isLiveJoin
-        ? "참여가 완료되었습니다. 내 네트워크 위치와 추천 코드를 확인하고 다음 팬를 초대하세요."
+        ? "참여가 완료되었습니다. 내 네트워크 위치와 추천 코드를 확인하고 다음 팬을 초대하세요."
         : "이 브라우저에서 참여 미리보기가 저장되었습니다. 네트워크 위치와 추천 링크 흐름을 계속 확인할 수 있습니다."
       : locale === "ja"
         ? isLiveJoin

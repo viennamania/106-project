@@ -330,7 +330,7 @@ function getPrimaryAction({
   if (viewerState === "founder") {
     return {
       helper: isKorean
-        ? "이미 이 AI 스타의 팬입니다. 내 링크로 새 팬를 초대하세요."
+        ? "이미 이 AI 스타의 팬입니다. 내 링크로 새 팬을 초대하세요."
         : "You are already a Fan of this AI Star. Invite new Fans with your link.",
       href: "#referral-builder",
       label: isKorean ? "추천 링크 공유하기" : "Share referral link",
@@ -2340,15 +2340,15 @@ export function FanletterStarDetailPage({
             locale={locale}
             referralCode={null}
           />
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-zinc-300 hover:bg-zinc-50"
+              className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-zinc-300 hover:bg-zinc-50"
               href={`/${locale}/fanletter/discovery`}
             >
-              <ArrowLeft className="size-4" />
+              <ArrowLeft className="size-4 shrink-0" />
               {copy.actions.openDiscovery}
             </Link>
-            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 sm:hidden">
+            <span className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 sm:hidden">
               <ShieldCheck className="size-4" />
               {isKorean ? "미리보기" : "Mock"}
             </span>

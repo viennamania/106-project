@@ -698,7 +698,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
             <div className="mt-3 flex gap-2">
               <button
                 className={cn(
-                  "inline-flex h-10 flex-1 items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88]",
+                  "inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88]",
                   !canPrompt && "cursor-not-allowed opacity-60",
                 )}
                 disabled={!canPrompt || promptState !== "idle"}
