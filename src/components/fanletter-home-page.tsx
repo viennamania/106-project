@@ -1043,7 +1043,7 @@ function FanletterProductHomeDashboard({
                           </span>
                         ))}
                       </span>
-                      <span className="text-sm font-semibold text-zinc-800">
+                      <span className="min-w-0 text-sm font-semibold text-zinc-800 [word-break:keep-all]">
                         {isKo
                           ? "지금 성장 중인 AI 스타 둘러보기"
                           : "Browse the AI stars growing now"}
