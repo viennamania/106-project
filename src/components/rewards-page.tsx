@@ -766,6 +766,9 @@ export function RewardsPage({
                     primaryAction={rewardPrimaryAction}
                   />
 
+                  <p className="mt-4 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-white/55 sm:text-xs">
+                    {pointContextCopy.sourceBreakdownLabel}
+                  </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-3">
                     <MiniStat
                       label={dictionary.rewardsPage.labels.referralRewardPoints}
@@ -1731,10 +1734,15 @@ function LedgerHistoryTable({
       <div className="space-y-2">
         {entries.map((entry) => {
           const isPositive = entry.delta >= 0;
+          const historyContext = getLedgerHistoryContextCopy(locale);
           const typeLabel =
             entry.type === "earn"
               ? dictionary.rewardsPage.history.earn
               : dictionary.rewardsPage.history.adjustment;
+          const sourceTypeText = sourceTypeLabel(entry.sourceType, dictionary, locale);
+          const impactLabel = isPositive
+            ? historyContext.spendableIncrease
+            : historyContext.spendableDecrease;
           const sourceLabel =
             entry.sourceMemberEmail ??
             (entry.sourceType === "referral_reward"
@@ -1765,7 +1773,7 @@ function LedgerHistoryTable({
                       <InfoBadge>{`G${entry.rewardLevel}`}</InfoBadge>
                     ) : null}
                     <InfoBadge className="max-w-full truncate">
-                      {sourceTypeLabel(entry.sourceType, dictionary)}
+                      {sourceTypeText}
                     </InfoBadge>
                   </div>
                   <div className="min-w-0">
@@ -1773,7 +1781,7 @@ function LedgerHistoryTable({
                       {sourceLabel}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                      {formatDateTime(entry.createdAt, locale)}
+                      {impactLabel} · {formatDateTime(entry.createdAt, locale)}
                     </p>
                   </div>
                 </div>
@@ -1792,11 +1800,15 @@ function LedgerHistoryTable({
 
               <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2.5">
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-                  {dictionary.rewardsPage.history.detailsLabel}
+                  {historyContext.reasonLabel}
                 </p>
                 <p className="mt-1 line-clamp-2 break-keep text-sm leading-6 text-slate-700">
                   {humanizeLedgerMemo(detailsLabel)}
                 </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <InfoBadge>{sourceTypeText}</InfoBadge>
+                  <InfoBadge>{impactLabel}</InfoBadge>
+                </div>
                 {sourceIdLabel ? (
                   <p className="mt-1 truncate font-mono text-[0.68rem] text-slate-400">
                     ID {sourceIdLabel}
@@ -1933,9 +1945,32 @@ function humanizeLedgerMemo(value: string) {
 function sourceTypeLabel(
   sourceType: PointLedgerRecord["sourceType"],
   dictionary: Dictionary,
+  locale: Locale,
 ) {
+  const copy = getLedgerSourceTypeCopy(locale);
+
   if (sourceType === "referral_reward") {
     return dictionary.rewardsPage.history.referralReward;
+  }
+
+  if (sourceType === "bonus") {
+    return copy.contentActivity;
+  }
+
+  if (sourceType === "tier_upgrade") {
+    return copy.tierUpgrade;
+  }
+
+  if (sourceType === "nft_redemption") {
+    return copy.nftRedemption;
+  }
+
+  if (sourceType === "discount_redemption") {
+    return copy.discountRedemption;
+  }
+
+  if (sourceType === "lookbook_generation") {
+    return copy.lookbookGeneration;
   }
 
   if (sourceType === "admin") {
@@ -1943,6 +1978,78 @@ function sourceTypeLabel(
   }
 
   return dictionary.rewardsPage.history.other;
+}
+
+function getLedgerHistoryContextCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      reasonLabel: "발생 이유",
+      spendableDecrease: "사용 가능 포인트 차감",
+      spendableIncrease: "사용 가능 포인트 증가",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      reasonLabel: "発生理由",
+      spendableDecrease: "利用可能ポイント減少",
+      spendableIncrease: "利用可能ポイント増加",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      reasonLabel: "发生原因",
+      spendableDecrease: "可用积分减少",
+      spendableIncrease: "可用积分增加",
+    };
+  }
+
+  return {
+    reasonLabel: "Why this changed",
+    spendableDecrease: "Spendable points decreased",
+    spendableIncrease: "Spendable points increased",
+  };
+}
+
+function getLedgerSourceTypeCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      contentActivity: "콘텐츠 활동",
+      discountRedemption: "서비스 크레딧 사용",
+      lookbookGeneration: "룩북 생성",
+      nftRedemption: "NFT 리워드 사용",
+      tierUpgrade: "등급 리워드 사용",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      contentActivity: "コンテンツ活動",
+      discountRedemption: "サービスクレジット使用",
+      lookbookGeneration: "ルックブック生成",
+      nftRedemption: "NFTリワード使用",
+      tierUpgrade: "等級リワード使用",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      contentActivity: "内容活动",
+      discountRedemption: "服务积分使用",
+      lookbookGeneration: "Lookbook 生成",
+      nftRedemption: "NFT 奖励使用",
+      tierUpgrade: "等级奖励使用",
+    };
+  }
+
+  return {
+    contentActivity: "Content activity",
+    discountRedemption: "Service credit use",
+    lookbookGeneration: "Lookbook generation",
+    nftRedemption: "NFT reward use",
+    tierUpgrade: "Tier reward use",
+  };
 }
 
 function MessageCard({
@@ -2283,7 +2390,8 @@ function getRewardPointContextCopy(locale: Locale) {
       maxTierHint: "현재 최고 등급입니다",
       nextTierHint: "다음 멤버 등급 기준",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}까지 ${points}P 더 필요`,
+        `${tier} 등급까지 ${points}P 필요`,
+      sourceBreakdownLabel: "포인트 출처",
       spendableHint: "리워드 교환에 바로 쓰는 잔액",
     };
   }
@@ -2295,6 +2403,7 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "次のメンバーランク基準",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier}まであと${points}P`,
+      sourceBreakdownLabel: "ポイントの内訳",
       spendableHint: "リワード交換に使える残高",
     };
   }
@@ -2306,6 +2415,7 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "下一会员等级目标",
       nextTierNeeded: (tier: string, points: string) =>
         `距离 ${tier} 还需 ${points}P`,
+      sourceBreakdownLabel: "积分来源",
       spendableHint: "可直接兑换奖励的余额",
     };
   }
@@ -2315,6 +2425,7 @@ function getRewardPointContextCopy(locale: Locale) {
     maxTierHint: "You are at the top tier",
     nextTierHint: "Target for the next member tier",
     nextTierNeeded: (tier: string, points: string) => `${points}P to ${tier}`,
+    sourceBreakdownLabel: "Point sources",
     spendableHint: "Balance you can redeem now",
   };
 }

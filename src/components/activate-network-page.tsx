@@ -321,6 +321,7 @@ export function ActivateNetworkPage({
     state.members.find((member) => member.email === selectedMemberEmail) ??
     paginatedMembers[0] ??
     null;
+  const memberPointChipCopy = getMemberPointChipCopy(locale);
   const currentPageHref = useMemo(
     () =>
       setPathSearchParams(
@@ -1530,9 +1531,11 @@ export function ActivateNetworkPage({
                                   {getTierLabel(dictionary, member.tier)}
                                 </Pill>
                                 <Pill active={isSelected}>
+                                  {memberPointChipCopy.lifetime}{" "}
                                   {formatInteger(member.lifetimePoints, locale)}P
                                 </Pill>
                                 <Pill active={isSelected}>
+                                  {memberPointChipCopy.spendable}{" "}
                                   {formatInteger(member.spendablePoints, locale)}P
                                 </Pill>
                               </div>
@@ -2050,7 +2053,7 @@ function MemberAIStarInline({
             active ? "text-white/58" : "text-slate-500",
           )}
         >
-          {copy.scoreLabel} {formatInteger(star.starScore, locale)} ·{" "}
+          {copy.listHint} · {copy.scoreLabel} {formatInteger(star.starScore, locale)} ·{" "}
           {getAIStarStatusLabel(star.status, locale)}
         </p>
       </div>
@@ -2784,11 +2787,12 @@ function getMemberAIStarCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       createdAtLabel: "생성",
-      empty: "AI 스타 프로필 준비 중",
+      empty: "생성된 AI 스타 없음",
       emptyDescription:
-        "이 회원의 AI 스타 프로필이 아직 연결되지 않았습니다. 가입 완료 후 생성되는 AI 스타 정보가 여기 표시됩니다.",
-      emptyTitle: "AI 스타 프로필 준비 중",
-      label: "AI 스타 프로필",
+        "이 회원에게 가입 완료 후 생성되는 AI 스타 프로필이 아직 연결되지 않았습니다.",
+      emptyTitle: "AI 스타 연결 대기",
+      label: "회원 AI 스타",
+      listHint: "가입 후 생성",
       scoreLabel: "스타 점수",
       sourceLabel: "출처",
     };
@@ -2796,11 +2800,12 @@ function getMemberAIStarCopy(locale: Locale) {
 
   return {
     createdAtLabel: "Created",
-    empty: "AI Star profile pending",
+    empty: "No generated AI Star",
     emptyDescription:
-      "This member does not have a linked AI Star profile yet. The AI Star created after activation will appear here.",
-    emptyTitle: "AI Star profile pending",
-    label: "AI Star profile",
+      "The AI Star generated after this member's activation is not linked yet.",
+    emptyTitle: "AI Star connection pending",
+    label: "Member AI Star",
+    listHint: "Generated after signup",
     scoreLabel: "Star score",
     sourceLabel: "Source",
   };
@@ -2929,6 +2934,34 @@ function getMemberSortCopy(locale: Locale) {
   return {
     label: "Sort",
     resultCount: "{count} members",
+  };
+}
+
+function getMemberPointChipCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      lifetime: "누적",
+      spendable: "사용 가능",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      lifetime: "累計",
+      spendable: "利用可能",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      lifetime: "累计",
+      spendable: "可用",
+    };
+  }
+
+  return {
+    lifetime: "Total",
+    spendable: "Spendable",
   };
 }
 

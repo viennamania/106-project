@@ -9974,6 +9974,28 @@ export function CreatorContentStudioPage({
         : locale === "ko"
           ? "콘텐츠를 만들기 전에 AI 스타 이름, 이미지, 소개를 먼저 정리하세요."
           : "Set the AI star name, image, and intro before creating content.";
+    const todayTask = !canUseWorkspace
+      ? locale === "ko"
+        ? "가입 상태 확인"
+        : "Check signup status"
+      : state.profileConfigured
+        ? locale === "ko"
+          ? "새 콘텐츠 1개 만들기"
+          : "Create one new post"
+        : locale === "ko"
+          ? "AI 스타 프로필 완성"
+          : "Complete AI star profile";
+    const todayTaskResult = !canUseWorkspace
+      ? locale === "ko"
+        ? "완료 후 스튜디오가 열립니다."
+        : "Studio opens after completion."
+      : state.profileConfigured
+        ? locale === "ko"
+          ? "게시물 초안이 생성되고 피드에 연결됩니다."
+          : "A draft is created and linked to your feed."
+        : locale === "ko"
+          ? "이름과 프로필 이미지가 콘텐츠에 자동 적용됩니다."
+          : "Name and profile image become the default content identity.";
     const steps = [
       {
         icon: <UserRound className="size-4" />,
@@ -10062,6 +10084,25 @@ export function CreatorContentStudioPage({
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-[22px] border border-white/10 bg-white/[0.06] px-4 py-3">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/48">
+              {locale === "ko" ? "오늘의 작업" : "Today"}
+            </p>
+            <div className="mt-2 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-base font-semibold tracking-tight text-white">
+                  {todayTask}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-white/58">
+                  {todayTaskResult}
+                </p>
+              </div>
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-slate-950">
+                <Check className="size-4" />
+              </span>
             </div>
           </div>
 
