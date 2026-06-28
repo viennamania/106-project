@@ -173,7 +173,7 @@ function getBaseCopy(locale: Locale) {
     relationFounderBody:
       "Participate with invite, Contribution Points, and role inside an AI Star Universe.",
     relationTitle: "Relationship Split",
-    reputationResult: "Reputation result",
+    reputationResult: "Activity record result",
     selectedAiStar: "Selected AI Star",
     heroBody:
       "My AI is not a personal member account. It is the AI Star-specific operating channel for TikTok, content readiness, and activity records.",
@@ -190,15 +190,15 @@ function getBaseCopy(locale: Locale) {
     routeLabel: "FanLetter / My AI",
     source: "Source AI Star Universe",
     status: "Status",
-    steps: ["Operate", "TikTok", "Content", "Reputation"],
+    steps: ["Operate", "TikTok", "Content", "Activity record"],
     tiktok: "TikTok",
     tiktokFocusBody:
       "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an activity record.",
     tiktokFocusReady:
       "All operated AI Stars have TikTok connected. Next, review the activity records.",
     tiktokFocusTitle: "TikTok Next Action",
-    tiktokTestSteps: ["Confirm handle", "Mock connect", "Review reputation"],
-    viewReputation: "View Reputation Records",
+    tiktokTestSteps: ["Confirm handle", "Mock connect", "Review activity record"],
+    viewReputation: "View activity records",
     viewUniverse: "View AI Star Universe",
   };
 }
