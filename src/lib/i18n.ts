@@ -1417,7 +1417,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "조건을 충족한 리워드는 이 화면에서 바로 교환할 수 있으며, 처리 상태와 포인트 잔액이 즉시 반영됩니다.",
       labels: {
         spendablePoints: "교환 가능 포인트",
-        lifetimePoints: "총 적립 포인트",
+        lifetimePoints: "등급 기준 누적 포인트",
         referralRewardPoints: "추천으로 받은 포인트",
         contentActivityPoints: "콘텐츠 활동 포인트",
         currentTier: "현재 등급",
@@ -2330,7 +2330,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "Eligible rewards can now be redeemed directly from this page, with status and point balance updating immediately.",
       labels: {
         spendablePoints: "Redeemable points",
-        lifetimePoints: "Total earned points",
+        lifetimePoints: "Tier lifetime points",
         referralRewardPoints: "Points from referrals",
         contentActivityPoints: "Content activity points",
         currentTier: "Current tier",
@@ -3250,7 +3250,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "条件を満たしたリワードはこの画面から直接交換でき、処理状態とポイント残高がすぐに反映されます。",
       labels: {
         spendablePoints: "交換可能ポイント",
-        lifetimePoints: "総獲得ポイント",
+        lifetimePoints: "ランク用累積ポイント",
         referralRewardPoints: "紹介で獲得したポイント",
         contentActivityPoints: "コンテンツ活動ポイント",
         currentTier: "現在の等級",
@@ -3868,7 +3868,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         joinedAt: "完成注册时间",
         lastConnectedAt: "最近连接",
         level: "层级",
-        lifetimePoints: "累计积分",
+        lifetimePoints: "等级累计积分",
         locale: "会员语言",
         membershipCard: "会员卡",
         memberStatus: "会员状态",
@@ -4155,7 +4155,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "满足条件的奖励现在可以直接在此页面兑换，状态和积分余额会立即刷新。",
       labels: {
         spendablePoints: "可兑换积分",
-        lifetimePoints: "累计获得积分",
+        lifetimePoints: "等级累计积分",
         referralRewardPoints: "推荐获得积分",
         contentActivityPoints: "内容活动积分",
         currentTier: "当前等级",

@@ -707,10 +707,12 @@ export function RewardsPage({
                 <div className="relative">
                   <div className="flex flex-wrap items-center gap-2">
                     <InfoBadge className="border-white/14 bg-white/10 text-white/85">
+                      {pointContextCopy.currentTierLabel} ·{" "}
                       {getTierLabel(state.summary.tier, dictionary)}
                     </InfoBadge>
                     {state.summary.nextTier ? (
                       <InfoBadge className="border-emerald-300/20 bg-emerald-300/12 text-emerald-100">
+                        {pointContextCopy.nextTierLabel} ·{" "}
                         {nextTierStatusLabel}
                       </InfoBadge>
                     ) : (
@@ -735,15 +737,26 @@ export function RewardsPage({
                     {dictionary.rewardsPage.previewNote}
                   </p>
 
+                  <div className="mt-4 rounded-[20px] border border-white/12 bg-white/[0.07] px-3 py-3 sm:mt-5 sm:px-4">
+                    <p className="text-sm font-semibold text-white">
+                      {pointContextCopy.definitionTitle}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
+                      {pointContextCopy.definitionBody}
+                    </p>
+                  </div>
+
                   <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
                     <PointContextCard
                       hint={pointContextCopy.spendableHint}
                       label={pointContextCopy.spendableLabel}
+                      tone="primary"
                       value={formatPoints(state.summary.spendablePoints, locale)}
                     />
                     <PointContextCard
                       hint={pointContextCopy.lifetimeHint}
                       label={pointContextCopy.lifetimeLabel}
+                      tone="neutral"
                       value={formatPoints(state.summary.lifetimePoints, locale)}
                     />
                     <PointContextCard
@@ -757,6 +770,7 @@ export function RewardsPage({
                           ? pointContextCopy.nextTierLabel
                           : pointContextCopy.currentTierLabel
                       }
+                      tone="progress"
                       value={nextTierStatusLabel}
                     />
                   </div>
@@ -1007,18 +1021,44 @@ function MiniStat({
 function PointContextCard({
   hint,
   label,
+  tone = "neutral",
   value,
 }: {
   hint: string;
   label: string;
+  tone?: "neutral" | "primary" | "progress";
   value: string;
 }) {
+  const toneClassName =
+    tone === "primary"
+      ? "border-emerald-300/24 bg-emerald-300/12"
+      : tone === "progress"
+        ? "border-amber-300/24 bg-amber-300/12"
+        : "border-white/12 bg-white/10";
+  const valueClassName =
+    tone === "primary"
+      ? "text-emerald-50"
+      : tone === "progress"
+        ? "text-amber-50"
+        : "text-white";
+
   return (
-    <div className="min-w-0 rounded-[18px] border border-white/12 bg-white/10 px-3 py-3 sm:rounded-[22px] sm:px-4">
+    <div
+      className={cn(
+        "min-w-0 rounded-[18px] border px-3 py-3 sm:rounded-[22px] sm:px-4",
+        toneClassName,
+      )}
+    >
       <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/50">
         {label}
       </p>
-      <p className="mt-1.5 truncate text-sm font-semibold text-white sm:text-base">
+      <p
+        className={cn(
+          "mt-1.5 truncate text-sm font-semibold sm:text-base",
+          valueClassName,
+        )}
+        title={value}
+      >
         {value}
       </p>
       <p className="mt-1 text-[0.68rem] leading-4 text-white/55">{hint}</p>
@@ -2387,6 +2427,9 @@ function getRewardPointContextCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       currentTierLabel: "현재 등급",
+      definitionBody:
+        "교환 가능 잔액은 지금 리워드에 쓰는 포인트이고, 등급 기준 누적은 멤버 등급을 계산하는 전체 적립 기록입니다.",
+      definitionTitle: "포인트는 두 가지로 구분합니다",
       lifetimeHint: "등급 계산에 쓰는 누적 기록",
       lifetimeLabel: "등급 기준 누적",
       maxTierHint: "현재 최고 등급입니다",
@@ -2403,6 +2446,9 @@ function getRewardPointContextCopy(locale: Locale) {
   if (locale === "ja") {
     return {
       currentTierLabel: "現在のランク",
+      definitionBody:
+        "交換可能残高は今リワードに使えるポイントで、ランク用累積はメンバーランクを計算するための全獲得記録です。",
+      definitionTitle: "ポイントは2種類に分けて表示します",
       lifetimeHint: "ランク計算に使う累積記録",
       lifetimeLabel: "ランク用累積",
       maxTierHint: "現在の最高ランクです",
@@ -2419,6 +2465,9 @@ function getRewardPointContextCopy(locale: Locale) {
   if (locale === "zh") {
     return {
       currentTierLabel: "当前等级",
+      definitionBody:
+        "可兑换余额是当前可用于奖励兑换的积分，等级累计积分是用于计算会员等级的全部获取记录。",
+      definitionTitle: "积分分为两类显示",
       lifetimeHint: "用于等级计算的累计记录",
       lifetimeLabel: "等级累计积分",
       maxTierHint: "当前已是最高等级",
@@ -2434,6 +2483,9 @@ function getRewardPointContextCopy(locale: Locale) {
 
   return {
     currentTierLabel: "Current tier",
+    definitionBody:
+      "Redeemable balance is what you can spend now. Tier lifetime total is the full earning record used to calculate your member tier.",
+    definitionTitle: "Points are split into two meanings",
     lifetimeHint: "Lifetime record used for tier",
     lifetimeLabel: "Tier lifetime total",
     maxTierHint: "You are at the top tier",
