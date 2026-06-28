@@ -162,6 +162,16 @@ export function RewardsPage({
     (currentHistoryPage - 1) * HISTORY_PAGE_SIZE,
     currentHistoryPage * HISTORY_PAGE_SIZE,
   );
+  const pointContextCopy = getRewardPointContextCopy(locale);
+  const nextTierName = state.summary.nextTier
+    ? getTierLabel(state.summary.nextTier, dictionary)
+    : null;
+  const nextTierStatusLabel = nextTierName
+    ? pointContextCopy.nextTierNeeded(
+        nextTierName,
+        formatNumber(state.summary.pointsToNextTier, locale),
+      )
+    : dictionary.rewardsPage.labels.maxTier;
 
   useEffect(() => {
     setHistoryPage((currentPage) => Math.min(currentPage, historyPageCount));
@@ -667,9 +677,7 @@ export function RewardsPage({
                     </InfoBadge>
                     {state.summary.nextTier ? (
                       <InfoBadge className="border-emerald-300/20 bg-emerald-300/12 text-emerald-100">
-                        {formatTemplate(dictionary.rewardsPage.labels.pointsToNextTier, {
-                          points: formatNumber(state.summary.pointsToNextTier, locale),
-                        })}
+                        {nextTierStatusLabel}
                       </InfoBadge>
                     ) : (
                       <InfoBadge className="border-amber-300/24 bg-amber-300/14 text-amber-100">
@@ -693,7 +701,33 @@ export function RewardsPage({
                     {dictionary.rewardsPage.previewNote}
                   </p>
 
-                  <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
+                    <PointContextCard
+                      hint={pointContextCopy.spendableHint}
+                      label={dictionary.rewardsPage.labels.spendablePoints}
+                      value={formatPoints(state.summary.spendablePoints, locale)}
+                    />
+                    <PointContextCard
+                      hint={pointContextCopy.lifetimeHint}
+                      label={dictionary.rewardsPage.labels.lifetimePoints}
+                      value={formatPoints(state.summary.lifetimePoints, locale)}
+                    />
+                    <PointContextCard
+                      hint={
+                        nextTierName
+                          ? pointContextCopy.nextTierHint
+                          : pointContextCopy.maxTierHint
+                      }
+                      label={
+                        nextTierName
+                          ? dictionary.rewardsPage.labels.nextTier
+                          : dictionary.rewardsPage.labels.currentTier
+                      }
+                      value={nextTierStatusLabel}
+                    />
+                  </div>
+
+                  <div className="mt-3 hidden gap-3 xl:grid xl:grid-cols-2">
                     <MiniStat
                       label={dictionary.rewardsPage.labels.referralRewardPoints}
                       value={formatPoints(
@@ -707,14 +741,6 @@ export function RewardsPage({
                         state.summary.sourceTotals.contentActivityPoints,
                         locale,
                       )}
-                    />
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.lifetimePoints}
-                      value={formatPoints(state.summary.lifetimePoints, locale)}
-                    />
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.pointTier}
-                      value={getTierLabel(state.summary.tier, dictionary)}
                     />
                   </div>
 
@@ -932,6 +958,28 @@ function MiniStat({
     <div className="rounded-[22px] border border-white/12 bg-white/8 px-4 py-4">
       <p className="text-xs uppercase tracking-[0.22em] text-white/55">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function PointContextCard({
+  hint,
+  label,
+  value,
+}: {
+  hint: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-[18px] border border-white/12 bg-white/10 px-3 py-3 sm:rounded-[22px] sm:px-4">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/50">
+        {label}
+      </p>
+      <p className="mt-1.5 truncate text-sm font-semibold text-white sm:text-base">
+        {value}
+      </p>
+      <p className="mt-1 text-[0.68rem] leading-4 text-white/55">{hint}</p>
     </div>
   );
 }
@@ -2143,6 +2191,49 @@ function getTierLabel(tier: PointTier, dictionary: Dictionary) {
   }
 
   return dictionary.rewardsPage.tiers.basic;
+}
+
+function getRewardPointContextCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      lifetimeHint: "등급 계산에 쓰는 누적 기록",
+      maxTierHint: "현재 최고 등급입니다",
+      nextTierHint: "다음 멤버 등급 기준",
+      nextTierNeeded: (tier: string, points: string) =>
+        `${tier}까지 ${points}P 더 필요`,
+      spendableHint: "리워드 교환에 바로 쓰는 잔액",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      lifetimeHint: "ランク計算に使う累積記録",
+      maxTierHint: "現在の最高ランクです",
+      nextTierHint: "次のメンバーランク基準",
+      nextTierNeeded: (tier: string, points: string) =>
+        `${tier}まであと${points}P`,
+      spendableHint: "リワード交換に使える残高",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      lifetimeHint: "用于等级计算的累计记录",
+      maxTierHint: "当前已是最高等级",
+      nextTierHint: "下一会员等级目标",
+      nextTierNeeded: (tier: string, points: string) =>
+        `距离 ${tier} 还需 ${points}P`,
+      spendableHint: "可直接兑换奖励的余额",
+    };
+  }
+
+  return {
+    lifetimeHint: "Lifetime record used for tier",
+    maxTierHint: "You are at the top tier",
+    nextTierHint: "Target for the next member tier",
+    nextTierNeeded: (tier: string, points: string) => `${points}P to ${tier}`,
+    spendableHint: "Balance you can redeem now",
+  };
 }
 
 function formatDateTime(value: string, locale: string) {
