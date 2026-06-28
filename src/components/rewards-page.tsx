@@ -815,6 +815,9 @@ export function RewardsPage({
                         style={{ width: `${state.summary.progressPercent}%` }}
                       />
                     </div>
+                    <p className="mt-2 break-keep text-xs leading-5 text-white/55">
+                      {pointContextCopy.progressCaption}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -2428,18 +2431,20 @@ function getRewardPointContextCopy(locale: Locale) {
     return {
       currentTierLabel: "현재 등급",
       definitionBody:
-        "교환 가능 잔액은 지금 리워드에 쓰는 포인트이고, 등급 기준 누적은 멤버 등급을 계산하는 전체 적립 기록입니다.",
+        "리워드 교환은 사용 가능 포인트에서 차감되고, 등급은 누적 적립 포인트로 계산합니다.",
       definitionTitle: "포인트는 두 가지로 구분합니다",
-      lifetimeHint: "등급 계산에 쓰는 누적 기록",
-      lifetimeLabel: "등급 기준 누적",
+      lifetimeHint: "등급 계산에만 쓰는 전체 적립 기록",
+      lifetimeLabel: "등급 기준 누적 포인트",
       maxTierHint: "현재 최고 등급입니다",
       nextTierHint: "다음 멤버 등급 기준",
-      nextTierLabel: "다음 등급 조건",
+      nextTierLabel: "다음 등급까지",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier} 등급까지 ${points}P 필요`,
+        `${tier}까지 ${points}P 더 필요`,
+      progressCaption:
+        "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적 포인트로 계산합니다.",
       sourceBreakdownLabel: "포인트 출처",
       spendableHint: "리워드 교환에 바로 쓰는 잔액",
-      spendableLabel: "교환 가능 잔액",
+      spendableLabel: "리워드 교환 가능 포인트",
     };
   }
 
@@ -2447,18 +2452,20 @@ function getRewardPointContextCopy(locale: Locale) {
     return {
       currentTierLabel: "現在のランク",
       definitionBody:
-        "交換可能残高は今リワードに使えるポイントで、ランク用累積はメンバーランクを計算するための全獲得記録です。",
+        "リワード交換は交換可能ポイントから差し引かれ、ランクは累積獲得ポイントで計算されます。",
       definitionTitle: "ポイントは2種類に分けて表示します",
-      lifetimeHint: "ランク計算に使う累積記録",
-      lifetimeLabel: "ランク用累積",
+      lifetimeHint: "ランク計算だけに使う累積記録",
+      lifetimeLabel: "ランク基準累積ポイント",
       maxTierHint: "現在の最高ランクです",
       nextTierHint: "次のメンバーランク基準",
-      nextTierLabel: "次のランク条件",
+      nextTierLabel: "次のランクまで",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}まであと${points}P`,
+        `${tier}まであと${points}P必要`,
+      progressCaption:
+        "ランク進捗は交換可能残高ではなく、ランク基準累積ポイントで計算します。",
       sourceBreakdownLabel: "ポイントの内訳",
       spendableHint: "リワード交換に使える残高",
-      spendableLabel: "交換可能残高",
+      spendableLabel: "リワード交換可能ポイント",
     };
   }
 
@@ -2466,35 +2473,39 @@ function getRewardPointContextCopy(locale: Locale) {
     return {
       currentTierLabel: "当前等级",
       definitionBody:
-        "可兑换余额是当前可用于奖励兑换的积分，等级累计积分是用于计算会员等级的全部获取记录。",
+        "奖励兑换会从可用积分中扣减，会员等级按累计获得积分计算。",
       definitionTitle: "积分分为两类显示",
-      lifetimeHint: "用于等级计算的累计记录",
-      lifetimeLabel: "等级累计积分",
+      lifetimeHint: "仅用于等级计算的累计记录",
+      lifetimeLabel: "等级基准累计积分",
       maxTierHint: "当前已是最高等级",
       nextTierHint: "下一会员等级目标",
-      nextTierLabel: "下一等级条件",
+      nextTierLabel: "距离下一等级",
       nextTierNeeded: (tier: string, points: string) =>
         `距离 ${tier} 还需 ${points}P`,
+      progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
       sourceBreakdownLabel: "积分来源",
       spendableHint: "可直接兑换奖励的余额",
-      spendableLabel: "可兑换余额",
+      spendableLabel: "奖励可兑换积分",
     };
   }
 
   return {
     currentTierLabel: "Current tier",
     definitionBody:
-      "Redeemable balance is what you can spend now. Tier lifetime total is the full earning record used to calculate your member tier.",
+      "Reward exchanges spend your redeemable points. Member tier is calculated from lifetime earned points.",
     definitionTitle: "Points are split into two meanings",
-    lifetimeHint: "Lifetime record used for tier",
-    lifetimeLabel: "Tier lifetime total",
+    lifetimeHint: "Lifetime earning record for tier only",
+    lifetimeLabel: "Tier lifetime points",
     maxTierHint: "You are at the top tier",
     nextTierHint: "Target for the next member tier",
-    nextTierLabel: "Next tier condition",
-    nextTierNeeded: (tier: string, points: string) => `${points}P to ${tier}`,
+    nextTierLabel: "To next tier",
+    nextTierNeeded: (tier: string, points: string) =>
+      `${points}P more to ${tier}`,
+    progressCaption:
+      "Tier progress is calculated from lifetime tier points, not redeemable balance.",
     sourceBreakdownLabel: "Point sources",
     spendableHint: "Balance you can redeem now",
-    spendableLabel: "Redeemable balance",
+    spendableLabel: "Reward redeemable points",
   };
 }
 
