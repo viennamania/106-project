@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
+import { pickFanletterCopy } from "@/lib/fanletter-i18n";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FunnelEventMetadata, FunnelEventName } from "@/lib/funnel";
 import type { Locale } from "@/lib/i18n";
@@ -110,21 +111,64 @@ export function FanletterActionGuide({
   const actionTitle = title
     .replace(/^다음 행동:\s*/u, "")
     .replace(/^Next action:\s*/iu, "");
-  const guideCopy = isKorean
+  const guideCopy = locale
     ? {
-        current: "현재 위치",
-        event: "활동 기록",
-        next: "다음 행동",
-        signal: "내 활동 기록",
-        steps: "진행 상황",
+        current: pickFanletterCopy(locale, {
+          en: "Current location",
+          ko: "현재 위치",
+          ja: "現在地",
+          zh: "当前位置",
+          vi: "Vị trí hiện tại",
+          id: "Lokasi saat ini",
+        }),
+        event: pickFanletterCopy(locale, {
+          en: "Activity record",
+          ko: "활동 기록",
+          ja: "アクティビティ記録",
+          zh: "活动记录",
+          vi: "Nhật ký hoạt động",
+          id: "Catatan aktivitas",
+        }),
+        next: pickFanletterCopy(locale, {
+          en: "Next action",
+          ko: "다음 행동",
+          ja: "次のアクション",
+          zh: "下一步",
+          vi: "Hành động tiếp theo",
+          id: "Tindakan berikutnya",
+        }),
+        signal: pickFanletterCopy(locale, {
+          en: "Activity record",
+          ko: "내 활동 기록",
+          ja: "アクティビティ記録",
+          zh: "活动记录",
+          vi: "Nhật ký hoạt động",
+          id: "Catatan aktivitas",
+        }),
+        steps: pickFanletterCopy(locale, {
+          en: "Progress",
+          ko: "진행 상황",
+          ja: "進捗",
+          zh: "进度",
+          vi: "Tiến độ",
+          id: "Progres",
+        }),
       }
-    : {
-        current: "Current location",
-        event: "Activity record",
-        next: "Next action",
-        signal: "Activity record",
-        steps: "Progress",
-      };
+    : isKorean
+      ? {
+          current: "현재 위치",
+          event: "활동 기록",
+          next: "다음 행동",
+          signal: "내 활동 기록",
+          steps: "진행 상황",
+        }
+      : {
+          current: "Current location",
+          event: "Activity record",
+          next: "Next action",
+          signal: "Activity record",
+          steps: "Progress",
+        };
 
   return (
     <section
