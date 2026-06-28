@@ -404,8 +404,8 @@ function StarActionLink({
         next: "Next action",
         steps:
           action.variant === "connect"
-            ? ["Discover", "Connect", "Join", "Reputation"]
-            : ["Discover", "Join", "Referral", "Reputation"],
+            ? ["Discover", "Connect", "Join", "Activity record"]
+            : ["Discover", "Join", "Referral", "Activity record"],
         title: "Confirm join",
       };
   const eventNames =
@@ -2256,7 +2256,7 @@ export function FanletterStarDetailPage({
             status: "active" as const,
           },
           {
-            label: isKorean ? "활동 기록" : "Reputation",
+            label: isKorean ? "활동 기록" : "Activity record",
             status: "next" as const,
           },
         ]
@@ -2275,7 +2275,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: isKorean ? "활동 기록" : "Reputation",
+              label: isKorean ? "활동 기록" : "Activity record",
               status: "next" as const,
             },
           ]
@@ -2293,7 +2293,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: isKorean ? "활동 기록" : "Reputation",
+              label: isKorean ? "활동 기록" : "Activity record",
               status: "next" as const,
             },
           ];

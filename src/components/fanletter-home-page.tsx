@@ -1214,7 +1214,7 @@ function FanletterProductHomeDashboard({
                     referralCode,
                   }}
                   reputationEventLabel={
-                    isKo ? "활동 기록 생성" : "Reputation Event"
+                    isKo ? "활동 기록 생성" : "Activity record"
                   }
                   secondaryActions={[]}
                   steps={[
