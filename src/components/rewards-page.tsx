@@ -766,7 +766,7 @@ export function RewardsPage({
                     primaryAction={rewardPrimaryAction}
                   />
 
-                  <div className="mt-3 hidden gap-3 xl:grid xl:grid-cols-2">
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-3">
                     <MiniStat
                       label={dictionary.rewardsPage.labels.referralRewardPoints}
                       value={formatPoints(
