@@ -1128,7 +1128,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
 // CTAs and the Creator Club hero title — so those read in-locale. Drafts.
 const v2CopyExtraOverrides: Record<
   "zh" | "vi" | "id",
-  { actions: FanletterV2Copy["actions"]; founderClubTitle: string }
+  {
+    actions: FanletterV2Copy["actions"];
+    founderClubTitle: string;
+    growthLoop: FanletterV2Copy["growthLoop"];
+  }
 > = {
   zh: {
     actions: {
@@ -1142,6 +1146,19 @@ const v2CopyExtraOverrides: Record<
       viewUniverse: "查看明星宇宙",
     },
     founderClubTitle: "发现 AI 明星，作为粉丝参与，成长为创作者。",
+    growthLoop: {
+      steps: [
+        "发现 AI 明星",
+        "参与",
+        "创建推荐码",
+        "分享 SNS 链接",
+        "新成员加入",
+        "获得 CP + 影响力分数",
+        "解锁创作者",
+        "创建新 AI 明星",
+      ],
+      title: "Creator Club 2.0 成长循环",
+    },
   },
   vi: {
     actions: {
@@ -1156,6 +1173,19 @@ const v2CopyExtraOverrides: Record<
     },
     founderClubTitle:
       "Khám phá AI Star, tham gia với tư cách Fan và phát triển thành Creator.",
+    growthLoop: {
+      steps: [
+        "Khám phá AI Star",
+        "Tham gia",
+        "Tạo mã giới thiệu",
+        "Chia sẻ liên kết SNS",
+        "Thành viên mới tham gia",
+        "Nhận CP + Điểm ảnh hưởng",
+        "Mở khóa Creator",
+        "Tạo AI Star mới",
+      ],
+      title: "Vòng tăng trưởng Creator Club 2.0",
+    },
   },
   id: {
     actions: {
@@ -1170,6 +1200,19 @@ const v2CopyExtraOverrides: Record<
     },
     founderClubTitle:
       "Temukan AI Star, ikuti sebagai Fan, dan berkembang menjadi Kreator.",
+    growthLoop: {
+      steps: [
+        "Temukan AI Star",
+        "Gabung",
+        "Buat kode rujukan",
+        "Bagikan tautan SNS",
+        "Anggota baru bergabung",
+        "Dapatkan CP + Skor Pengaruh",
+        "Buka Kreator",
+        "Luncurkan AI Star baru",
+      ],
+      title: "Loop Pertumbuhan Creator Club 2.0",
+    },
   },
 };
 
@@ -1187,6 +1230,7 @@ export function getFanletterV2Copy(locale: Locale) {
         ...fanletterV2CopyByLocale.en.founderClub,
         title: extra.founderClubTitle,
       },
+      growthLoop: extra.growthLoop,
     };
   }
 
