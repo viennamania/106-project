@@ -1682,7 +1682,7 @@ export function FanletterHomePage({
                 surface="light"
               />
               <FanletterAccountStatusLink
-                className="max-w-[6.8rem] sm:max-w-[14rem]"
+                className="max-w-[6.8rem] sm:max-w-[9rem] lg:max-w-[14rem]"
                 locale={locale}
                 referralCode={referralCode}
                 surface="light"
