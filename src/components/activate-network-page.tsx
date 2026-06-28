@@ -298,6 +298,7 @@ export function ActivateNetworkPage({
       return firstMember.email.localeCompare(secondMember.email, locale);
     });
   }, [filteredMembers, locale, memberSortDirection, memberSortKey]);
+  const memberSortOptions = useMemo(() => getMemberSortOptions(locale), [locale]);
 
   const totalMemberPages = Math.max(
     1,
@@ -317,6 +318,16 @@ export function ActivateNetworkPage({
     memberPageStartIndex + paginatedMembers.length,
     sortedMembers.length,
   );
+  const memberListOverviewCopy = getMemberListOverviewCopy(locale);
+  const memberListStartIndex = sortedMembers.length > 0 ? memberPageStartIndex + 1 : 0;
+  const memberListAIStarCount = sortedMembers.reduce(
+    (count, member) => count + (member.ownedAIStar ? 1 : 0),
+    0,
+  );
+  const activeMemberSortLabel =
+    memberSortOptions.find((option) => option.key === memberSortKey)?.label ??
+    memberSortOptions[0]?.label ??
+    "";
   const selectedMember =
     state.members.find((member) => member.email === selectedMemberEmail) ??
     paginatedMembers[0] ??
@@ -1431,7 +1442,7 @@ export function ActivateNetworkPage({
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {getMemberSortOptions(locale).map((option) => {
+                      {memberSortOptions.map((option) => {
                         const isActive = memberSortKey === option.key;
 
                         return (
@@ -1454,6 +1465,32 @@ export function ActivateNetworkPage({
                         );
                       })}
                     </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid-cols-3">
+                    <MemberListOverviewItem
+                      label={memberListOverviewCopy.visibleRange}
+                      value={formatTemplate(memberListOverviewCopy.rangeValue, {
+                        end: formatInteger(memberPageEndIndex, locale),
+                        start: formatInteger(memberListStartIndex, locale),
+                        total: formatInteger(sortedMembers.length, locale),
+                      })}
+                    />
+                    <MemberListOverviewItem
+                      label={memberListOverviewCopy.currentSort}
+                      value={`${activeMemberSortLabel} · ${getMemberSortDirectionLabel(
+                        locale,
+                        memberSortKey,
+                        memberSortDirection,
+                      )}`}
+                    />
+                    <MemberListOverviewItem
+                      label={memberListOverviewCopy.aiStarLinked}
+                      value={formatTemplate(memberListOverviewCopy.aiStarValue, {
+                        count: formatInteger(memberListAIStarCount, locale),
+                        total: formatInteger(sortedMembers.length, locale),
+                      })}
+                    />
                   </div>
 
                   <div className="mt-4 space-y-3">
@@ -1498,13 +1535,20 @@ export function ActivateNetworkPage({
                                     {formatAddressLabel(member.lastWalletAddress)}
                                   </p>
                                 </div>
-                                {member.membershipCardTier !== "none" ? (
-                                  <MembershipCardBadge
-                                    active={isSelected}
-                                    dictionary={dictionary}
-                                    membershipCardTier={member.membershipCardTier}
-                                  />
-                                ) : null}
+                                <div className="flex shrink-0 flex-col items-end gap-2">
+                                  {isSelected ? (
+                                    <span className="inline-flex min-h-7 items-center rounded-full bg-white px-2.5 text-[0.68rem] font-semibold text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+                                      {memberListOverviewCopy.selectedLabel}
+                                    </span>
+                                  ) : null}
+                                  {member.membershipCardTier !== "none" ? (
+                                    <MembershipCardBadge
+                                      active={isSelected}
+                                      dictionary={dictionary}
+                                      membershipCardTier={member.membershipCardTier}
+                                    />
+                                  ) : null}
+                                </div>
                               </div>
 
                               <MemberAIStarInline
@@ -2116,6 +2160,25 @@ function MemberListContextGrid({
         label={copy.aiStarLabel}
         value={starValue}
       />
+    </div>
+  );
+}
+
+function MemberListOverviewItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/8 px-3 py-2.5">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/45">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-sm font-semibold text-white" title={value}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -3128,14 +3191,80 @@ function getNetworkSummaryHintCopy(locale: Locale) {
 function getMemberSortCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      label: "정렬",
-      resultCount: "{count}명 표시 중",
+      label: "정렬 기준",
+      resultCount: "조건에 맞는 회원 {count}명",
     };
   }
 
   return {
-    label: "Sort",
-    resultCount: "{count} members",
+    label: "Sort by",
+    resultCount: "{count} matching members",
+  };
+}
+
+function getMemberListOverviewCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStarLinked: "AI 스타 IP",
+      aiStarValue: "{count}/{total}명 연결",
+      currentSort: "현재 정렬",
+      rangeValue: "{start}-{end} / {total}명",
+      selectedLabel: "상세 보기 중",
+      visibleRange: "목록 범위",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      aiStarLinked: "AIスターIP",
+      aiStarValue: "{count}/{total}名連携",
+      currentSort: "現在の並び替え",
+      rangeValue: "{start}-{end} / {total}名",
+      selectedLabel: "詳細表示中",
+      visibleRange: "表示範囲",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      aiStarLinked: "AI明星IP",
+      aiStarValue: "{count}/{total}人已连接",
+      currentSort: "当前排序",
+      rangeValue: "{start}-{end} / {total}人",
+      selectedLabel: "正在查看",
+      visibleRange: "列表范围",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      aiStarLinked: "AI Star IP",
+      aiStarValue: "{count}/{total} đã liên kết",
+      currentSort: "Sắp xếp hiện tại",
+      rangeValue: "{start}-{end} / {total}",
+      selectedLabel: "Đang xem",
+      visibleRange: "Phạm vi danh sách",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      aiStarLinked: "AI Star IP",
+      aiStarValue: "{count}/{total} tertaut",
+      currentSort: "Urutan saat ini",
+      rangeValue: "{start}-{end} / {total}",
+      selectedLabel: "Sedang dilihat",
+      visibleRange: "Rentang daftar",
+    };
+  }
+
+  return {
+    aiStarLinked: "AI Star IP",
+    aiStarValue: "{count}/{total} linked",
+    currentSort: "Current sort",
+    rangeValue: "{start}-{end} / {total}",
+    selectedLabel: "Viewing details",
+    visibleRange: "List range",
   };
 }
 
