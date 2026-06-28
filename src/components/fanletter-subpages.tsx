@@ -10389,7 +10389,7 @@ export function FanletterOnboardingPage({
               },
               {
                 badge: "팬",
-                body: `${founderUniverseName}에 Founder로 귀속되는지 확인합니다. 새 결제 없이 mock 흐름으로 먼저 검증합니다.`,
+                body: `${founderUniverseName}에 팬으로 귀속되는지 확인합니다. 새 결제 없이 mock 흐름으로 먼저 검증합니다.`,
                 cta: "참여 귀속 확인",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
@@ -10432,7 +10432,7 @@ export function FanletterOnboardingPage({
               "Return to the Star detail page to continue referral code creation and SNS sharing.",
             returnCta: "Back to AI Star Universe",
             secondaryCta: "View AI Star Universe first",
-            title: `Join ${founderStarName} as Founder`,
+            title: `Join ${founderStarName} as a Fan`,
             steps: [
               {
                 badge: "Account",
@@ -10445,12 +10445,12 @@ export function FanletterOnboardingPage({
                 title: "Connect AIAVpark account",
               },
               {
-                badge: "팬",
+                badge: "Fan",
                 body: `Confirm Join attribution in ${founderUniverseName}. This release previews the flow without a new payment.`,
                 cta: "Confirm Join attribution",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
-                meta: "02 · 참여",
+                meta: "02 · Join",
                 title: "Confirm join",
               },
               {
