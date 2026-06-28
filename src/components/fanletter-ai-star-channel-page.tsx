@@ -12,6 +12,7 @@ import {
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { FanletterCreatorPageData } from "@/lib/fanletter-content-service";
+import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -85,10 +86,15 @@ export function FanletterAIStarChannelPage({
     `/${locale}/fanletter/${profile.referralCode}`,
     effectiveReferralCode,
   );
-  const founderHref = setPathSearchParams(`/${locale}/fanletter/onboarding`, {
+  // '참여' = fan-join THIS star's network. Route to the connect flow with the star
+  // context (starId resolved from the referral code) + returnTo=/onboarding so the
+  // connect page's founder-onboarding ('{star} 참여를 이어가세요') framing triggers and
+  // the Fan role + referral attribution attach to this star — instead of the generic
+  // creator onboarding, which ignored the star entirely.
+  const founderHref = setPathSearchParams(`/${locale}/fanletter/connect`, {
     ref: effectiveReferralCode,
-    returnTo: `/${locale}/fanletter/channel/${profile.referralCode}`,
-    star: profile.referralCode,
+    returnTo: `/${locale}/fanletter/onboarding`,
+    starId: getLegacyFanletterStarId(profile.referralCode),
   });
   const metrics = [
     {
