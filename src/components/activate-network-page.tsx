@@ -1468,7 +1468,7 @@ export function ActivateNetworkPage({
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid-cols-3">
+                  <div className="mt-4 grid gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid-cols-2 xl:grid-cols-4">
                     <MemberListOverviewItem
                       label={memberListOverviewCopy.visibleRange}
                       value={formatTemplate(memberListOverviewCopy.rangeValue, {
@@ -1484,6 +1484,10 @@ export function ActivateNetworkPage({
                         memberSortKey,
                         memberSortDirection,
                       )}`}
+                    />
+                    <MemberListOverviewItem
+                      label={memberListOverviewCopy.selectedLabel}
+                      value={selectedMember?.email ?? dictionary.common.notAvailable}
                     />
                     <MemberListOverviewItem
                       label={memberListOverviewCopy.aiStarLinked}
