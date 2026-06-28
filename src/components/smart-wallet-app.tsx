@@ -17,6 +17,7 @@ import {
   Bell,
   Check,
   Copy,
+  Gift,
   LogOut,
   Mail,
   Share2,
@@ -2866,7 +2867,9 @@ function ServiceHubCard({
         ? WalletMinimal
         : icon === "feed"
           ? Share2
-          : Sparkles;
+          : icon === "points"
+            ? Gift
+            : Sparkles;
 
   return (
     <Link
