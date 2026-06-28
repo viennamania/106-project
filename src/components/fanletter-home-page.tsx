@@ -1822,6 +1822,12 @@ export function FanletterHomePage({
             >
               {homeFooterLabels.myAi}
             </Link>
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold !text-zinc-900 transition hover:bg-zinc-50"
+              href={`/${locale}/fanletter/news`}
+            >
+              AIAVpark News
+            </Link>
           </div>
         </div>
       </footer>
