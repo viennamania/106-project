@@ -38,11 +38,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : "ko";
 
   return buildServiceMetadata({
-    title: `${SERVICE_BRAND_NAME} AI Star IP`,
+    title: `${SERVICE_BRAND_NAME} My AI Star`,
     description:
       locale === "ko"
-        ? "1066FRIEND+ 가입 완료 후 자동 생성된 AI 스타 IP의 이름과 프로필 이미지를 관리합니다."
-        : "Manage the AI Star IP name and profile image created after 1066FRIEND+ activation.",
+        ? "1066FRIEND+ 가입 완료 후 자동 생성된 내 AI 스타의 이름과 프로필 이미지를 관리합니다."
+        : "Manage the AI Star profile name and image created after 1066FRIEND+ activation.",
     path: `/${locale}/activate/ai-star`,
   });
 }

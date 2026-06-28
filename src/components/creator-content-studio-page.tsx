@@ -2300,6 +2300,7 @@ export function CreatorContentStudioPage({
   }, [state.posts]);
 
   const canUseWorkspace = !isDisconnected && state.member?.status === "completed";
+  const shouldShowStudioNavigation = showMobileNav && canUseWorkspace;
   const canShareCreatorFeed = canUseWorkspace && Boolean(creatorFeedShareUrl);
   const recoverableStudioError =
     state.error && state.member?.status === "completed" ? state.error : null;
@@ -10867,7 +10868,10 @@ export function CreatorContentStudioPage({
     <>
       <main
         className={cn(
-          "mx-auto flex min-h-screen w-full flex-col gap-3 px-0 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8",
+          "mx-auto flex min-h-screen w-full flex-col gap-3 px-0 pt-0 sm:gap-5 sm:px-6 sm:py-6 lg:px-8",
+          shouldShowStudioNavigation
+            ? "pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+            : "pb-4 sm:pb-6",
           isFanletterPaidUpload
             ? "max-w-7xl bg-[#030504] sm:px-5 lg:px-8"
             : "max-w-6xl",
@@ -10895,9 +10899,14 @@ export function CreatorContentStudioPage({
         }}
       />
 
-      {isFanletterPaidUpload ? null : renderStudioTabs()}
+      {isFanletterPaidUpload || !canUseWorkspace ? null : renderStudioTabs()}
 
-      {view === "hub" ? (
+      {!canUseWorkspace ? (
+        <section className="mx-auto grid w-full max-w-3xl gap-3 sm:gap-5">
+          {renderStudioSignpostCard()}
+          {renderHubActionCards()}
+        </section>
+      ) : view === "hub" ? (
         <>
           {renderMobileHub()}
           <section className="hidden gap-5 lg:grid lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
@@ -11039,7 +11048,7 @@ export function CreatorContentStudioPage({
           onPromptValueChange={setContentVideoPrompt}
         />
       ) : null}
-      {showMobileNav ? (
+      {shouldShowStudioNavigation ? (
         <CreatorStudioMobileNav
           active={view === "character" ? "profile" : view}
           locale={locale}

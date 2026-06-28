@@ -1648,13 +1648,6 @@ function SocialFeedPost({
     `/${locale}/content/bridge/${item.contentId}`,
     referralCode,
   );
-  const publicSignupHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
-    {
-      returnTo: returnToHref,
-      shareId,
-    },
-  );
   const imageRef = useRef<HTMLDivElement | null>(null);
   const lastTapAtRef = useRef(0);
   const mediaOpenTimeoutRef = useRef<number | null>(null);
@@ -1697,9 +1690,8 @@ function SocialFeedPost({
           detail: "게시물 보기",
           hidden: "게시물을 숨겼습니다.",
           hide: "피드에서 숨기기",
-          joinToInteract: "가입하고 계속 보기",
           joinToInteractDescription:
-            "가입 후 좋아요, 댓글, 저장과 포인트 사용을 이어갈 수 있습니다.",
+            "피드를 먼저 둘러본 뒤, 상단 또는 하단 버튼에서 가입을 이어갈 수 있습니다.",
           like: "좋아요",
           likeCount: "좋아요",
           liked: "좋아요 완료",
@@ -1734,9 +1726,8 @@ function SocialFeedPost({
           detail: "View post",
           hidden: "Post hidden.",
           hide: "Hide from feed",
-          joinToInteract: "Join to continue",
           joinToInteractDescription:
-            "After joining, you can like, comment, save, and use points.",
+            "Preview the feed first, then continue signup from the page action.",
           like: "Like",
           likeCount: "likes",
           liked: "Liked",
@@ -2531,16 +2522,10 @@ function SocialFeedPost({
 
       <div className="px-3 pb-4 pt-3">
         {isPublicReferralFeed ? (
-          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <p className="break-keep text-xs font-medium leading-5 text-slate-500 [word-break:keep-all]">
               {actionCopy.joinToInteractDescription}
             </p>
-            <Link
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-              href={publicSignupHref}
-            >
-              {actionCopy.joinToInteract}
-            </Link>
           </div>
         ) : (
           <div className="flex items-center justify-between">

@@ -83,27 +83,27 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
         aiStarBadge: "AI STAR",
         back: "1066FRIEND+ 허브",
         connected: "연결됨",
-        contextAsset: "이름과 프로필 이미지는 콘텐츠, 리워드, 네트워크 피드에서 같은 AI 스타 IP로 누적됩니다.",
-        contextMoat: "가입 회원, 지갑, 추천 코드, AI 스타 IP가 함께 묶여 복제하기 어려운 Context 자산이 됩니다.",
+        contextAsset: "이름과 프로필 이미지는 콘텐츠, 리워드, 네트워크 피드에서 같은 AI 스타 프로필로 누적됩니다.",
+        contextMoat: "가입 회원, 지갑, 추천 코드, AI 스타 프로필이 함께 묶여 복제하기 어려운 Context 자산이 됩니다.",
         description:
-          "가입 완료 후 생성된 AI 스타 IP의 이름과 프로필 이미지를 관리합니다.",
-        errorFallback: "AI 스타 IP 정보를 불러오지 못했습니다.",
+          "가입 완료 후 생성된 내 AI 스타의 이름과 프로필 이미지를 관리합니다.",
+        errorFallback: "AI 스타 프로필을 불러오지 못했습니다.",
         imageLabel: "프로필 이미지",
         imageUploadHelp: "정사각형 이미지가 가장 안정적으로 보입니다. JPG, PNG, WEBP를 지원합니다.",
-        loading: "AI 스타 IP 정보를 확인하는 중입니다.",
+        loading: "AI 스타 프로필을 확인하는 중입니다.",
         missingConnection: "먼저 1066FRIEND+에 연결된 회원 상태가 필요합니다.",
         missingName: "AI 스타 이름을 입력하세요.",
         nameHelp: "콘텐츠 피드와 AI 스타 유니버스에 노출되는 이름입니다.",
         nameLabel: "AI 스타 이름",
         nextAction: "저장 후 콘텐츠 제작과 네트워크 피드에서 같은 AI 스타로 표시됩니다.",
         noImage: "이미지 준비 전",
-        previewLabel: "AI 스타 IP 미리보기",
+        previewLabel: "내 AI 스타 미리보기",
         retry: "다시 확인",
         save: "AI 스타 정보 저장",
-        saved: "AI 스타 IP 정보가 저장되었습니다.",
+        saved: "AI 스타 프로필이 저장되었습니다.",
         saving: "저장 중",
-        sectionKicker: "AI STAR IP",
-        title: "AI 스타 IP 관리",
+        sectionKicker: "MY AI STAR",
+        title: "내 AI 스타 프로필",
         upload: "이미지 변경",
         uploading: "업로드 중",
       };
@@ -140,27 +140,27 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
         aiStarBadge: "AI STAR",
         back: "1066FRIEND+ hub",
         connected: "Connected",
-        contextAsset: "The name and image accumulate as the same AI Star IP across content, rewards, and the network feed.",
-        contextMoat: "Member, wallet, referral code, and AI Star IP become a hard-to-copy Context asset.",
+        contextAsset: "The name and image accumulate as the same AI Star profile across content, rewards, and the network feed.",
+        contextMoat: "Member, wallet, referral code, and AI Star profile become a hard-to-copy Context asset.",
         description:
-          "Manage the AI Star IP name and profile image created after activation.",
-        errorFallback: "Failed to load AI Star IP.",
+          "Manage the AI Star profile name and image created after activation.",
+        errorFallback: "Failed to load the AI Star profile.",
         imageLabel: "Profile image",
         imageUploadHelp: "Square images work best. JPG, PNG, and WEBP are supported.",
-        loading: "Checking your AI Star IP.",
+        loading: "Checking your AI Star profile.",
         missingConnection: "Connect the activated 1066FRIEND+ member first.",
         missingName: "Enter the AI Star name.",
         nameHelp: "This name appears in the content feed and AI Star Universe.",
         nameLabel: "AI Star name",
         nextAction: "After saving, content creation and network feed use the same AI Star identity.",
         noImage: "Image pending",
-        previewLabel: "AI Star IP preview",
+        previewLabel: "AI Star profile preview",
         retry: "Check again",
         save: "Save AI Star",
-        saved: "AI Star IP saved.",
+        saved: "AI Star profile saved.",
         saving: "Saving",
-        sectionKicker: "AI STAR IP",
-        title: "Manage AI Star IP",
+        sectionKicker: "MY AI STAR",
+        title: "My AI Star Profile",
         upload: "Change image",
         uploading: "Uploading",
       };
@@ -200,18 +200,18 @@ function createFallbackPersona({
       name,
       summary:
         current.summary?.trim() ||
-        `${name} is the AI Star IP connected to this 1066FRIEND+ member.`,
+        `${name} is the AI Star profile connected to this 1066FRIEND+ member.`,
     };
   }
 
   return {
     avoidChanges: [],
     id: `friend-ai-star-${referralCode?.toLowerCase() || Date.now()}`,
-    identityPrompt: `${name} is a fictional AI Star IP created for a 1066FRIEND+ activated member. Keep the identity consistent across content, rewards, and network feed surfaces.`,
-    lockedTraits: ["1066FRIEND+ AI Star IP", "member-owned creator identity"],
+    identityPrompt: `${name} is a fictional AI Star profile created for a 1066FRIEND+ activated member. Keep the identity consistent across content, rewards, and network feed surfaces.`,
+    lockedTraits: ["1066FRIEND+ AI Star profile", "member-owned creator identity"],
     name,
     realismProfile: null,
-    summary: `${name} is the AI Star IP connected to this 1066FRIEND+ member.`,
+    summary: `${name} is the AI Star profile connected to this 1066FRIEND+ member.`,
   };
 }
 
@@ -388,8 +388,8 @@ export function ActivateAIStarPage({
         ...current,
         notice:
           locale === "ko"
-            ? "이미지가 업로드되었습니다. 저장을 눌러 AI 스타 IP에 반영하세요."
-            : "Image uploaded. Save to apply it to the AI Star IP.",
+            ? "이미지가 업로드되었습니다. 저장을 눌러 AI 스타 프로필에 반영하세요."
+            : "Image uploaded. Save to apply it to the AI Star profile.",
       }));
     } catch (error) {
       setState((current) => ({

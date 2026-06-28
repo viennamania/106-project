@@ -188,12 +188,12 @@ function getActivationSeparationCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       activationDescription:
-        "가입 완료, 지갑, AI 스타 IP 상태를 한곳에서 확인합니다.",
+        "가입 완료, 지갑, 내 AI 스타 프로필 상태를 한곳에서 확인합니다.",
       activationEyebrow: "signup status",
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "가입과 10 USDT 확인이 완료되었습니다. 필요한 메뉴에서 추천 회원, 포인트, 지갑, AI 스타 IP를 관리하세요.",
+        "가입과 10 USDT 확인이 완료되었습니다. 필요한 메뉴에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
@@ -224,12 +224,12 @@ function getActivationSeparationCopy(locale: Locale) {
 
   return {
     activationDescription:
-      "Check signup, wallet, and AI Star IP status in one place.",
+      "Check signup, wallet, and your AI Star profile status in one place.",
     activationEyebrow: "signup status",
     activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "Signup and the 10 USDT check are complete. Use the menu to manage referrals, points, wallet, and AI Star IP.",
+      "Signup and the 10 USDT check are complete. Use the menu to manage referrals, points, wallet, and your AI Star.",
     coreStatusTitle: "Signup complete",
     growthDescription:
       "Review referral points and reward history in Points.",
@@ -262,9 +262,9 @@ function getActivationHubCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       actionTitle: "오늘 할 일",
-      aiStarIpLabel: "AI 스타 IP",
+      aiStarIpLabel: "내 AI 스타",
       aiStarIpPending: "생성 확인 중",
-      aiStarIpReady: "Creator 등록",
+      aiStarIpReady: "프로필 준비",
       assetDescription: "USDT, BNB, 지갑 보안 상태를 확인합니다.",
       assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
@@ -292,7 +292,7 @@ function getActivationHubCopy(locale: Locale) {
       pendingMessage: "10 USDT 결제 확인이 끝나면 추천 코드와 포인트 관리가 열립니다.",
       pointsDescription: "추천으로 적립된 포인트와 교환 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
-      pointsMetricPrefix: "추천",
+      pointsMetricPrefix: "추천 적립",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
@@ -302,7 +302,7 @@ function getActivationHubCopy(locale: Locale) {
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
       statusTitle: "지금 상태",
-      studioDescription: "내 AI 스타 IP와 콘텐츠 작업을 관리합니다.",
+      studioDescription: "내 AI 스타 프로필과 콘텐츠 작업을 관리합니다.",
       studioLabel: "스튜디오",
       studioMetric: "이동",
       title: "1066FRIEND+ 시작하기",
@@ -313,9 +313,9 @@ function getActivationHubCopy(locale: Locale) {
 
   return {
     actionTitle: "Next action",
-    aiStarIpLabel: "AI Star IP",
+    aiStarIpLabel: "My AI Star",
     aiStarIpPending: "Provisioning",
-    aiStarIpReady: "Creator linked",
+    aiStarIpReady: "Profile ready",
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
@@ -344,7 +344,7 @@ function getActivationHubCopy(locale: Locale) {
     pendingMessage: "After the 10 USDT payment is verified, referral code and points management open.",
     pointsDescription: "Review referral-earned points and redemption history.",
     pointsLabel: "Points",
-    pointsMetricPrefix: "Referral",
+      pointsMetricPrefix: "Referral earned",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
@@ -354,7 +354,7 @@ function getActivationHubCopy(locale: Locale) {
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
     statusTitle: "Current status",
-    studioDescription: "Manage your AI Star IP and content work.",
+    studioDescription: "Manage your AI Star profile and content work.",
     studioLabel: "Studio",
     studioMetric: "Open",
     title: "Start 1066FRIEND+",
@@ -2603,7 +2603,10 @@ function ActivationServiceHub({
     {
       description: copy.networkDescription,
       href: activateNetworkHref,
-      metric: numberFormatter.format(totalReferrals),
+      metric:
+        locale === "ko"
+          ? `${numberFormatter.format(totalReferrals)}명`
+          : `${numberFormatter.format(totalReferrals)} members`,
       title: copy.networkLabel,
     },
     {

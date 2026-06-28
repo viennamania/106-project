@@ -292,7 +292,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "콘텐츠 제작",
-        body: "가입 완료 후 생성되는 AI 스타 IP와 콘텐츠 제작 자격으로 확장됩니다.",
+        body: "가입 완료 후 생성되는 내 AI 스타 프로필과 콘텐츠 제작 자격으로 확장됩니다.",
         label: "창작",
       },
     ],
@@ -334,7 +334,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "Creator path",
-        body: "After activation, your AI Star IP and creator eligibility can expand.",
+        body: "After activation, your AI Star profile and creator eligibility can expand.",
         label: "Create",
       },
     ],
@@ -376,7 +376,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "クリエイター",
-        body: "有効化後、AIスターIPと制作資格へ拡張できます。",
+        body: "有効化後、AIスターのプロフィールと制作資格へ拡張できます。",
         label: "制作",
       },
     ],
@@ -418,7 +418,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "创作者路径",
-        body: "激活后可扩展到 AI Star IP 和内容制作资格。",
+        body: "激活后可扩展到 AI Star 资料和内容制作资格。",
         label: "创作",
       },
     ],
@@ -460,7 +460,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "Đường creator",
-        body: "Sau khi kích hoạt, có thể mở rộng sang AI Star IP và tạo nội dung.",
+        body: "Sau khi kích hoạt, có thể mở rộng sang hồ sơ AI Star và tạo nội dung.",
         label: "Tạo",
       },
     ],
@@ -502,7 +502,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "Creator path",
-        body: "Setelah aktif, AI Star IP dan hak membuat konten bisa berkembang.",
+        body: "Setelah aktif, profil AI Star dan hak membuat konten bisa berkembang.",
         label: "Buat",
       },
     ],
@@ -544,7 +544,7 @@ const serviceLandingCopy: Record<
       },
       {
         title: "Creator path",
-        body: "បន្ទាប់ពីដំណើរការ អាចពង្រីកទៅ AI Star IP និងការបង្កើតមាតិកា។",
+        body: "បន្ទាប់ពីដំណើរការ អាចពង្រីកទៅប្រវត្តិរូប AI Star និងការបង្កើតមាតិកា។",
         label: "បង្កើត",
       },
     ],

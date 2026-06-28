@@ -2763,11 +2763,11 @@ function getMemberAIStarCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       createdAtLabel: "생성",
-      empty: "AI 스타 IP 준비 중",
+      empty: "AI 스타 프로필 준비 중",
       emptyDescription:
-        "이 회원의 AI 스타 IP가 아직 연결되지 않았습니다. 가입 완료 후 생성되는 AI 스타 정보가 여기 표시됩니다.",
-      emptyTitle: "AI 스타 IP 준비 중",
-      label: "AI 스타 IP",
+        "이 회원의 AI 스타 프로필이 아직 연결되지 않았습니다. 가입 완료 후 생성되는 AI 스타 정보가 여기 표시됩니다.",
+      emptyTitle: "AI 스타 프로필 준비 중",
+      label: "AI 스타 프로필",
       scoreLabel: "스타 점수",
       sourceLabel: "출처",
     };
@@ -2775,11 +2775,11 @@ function getMemberAIStarCopy(locale: Locale) {
 
   return {
     createdAtLabel: "Created",
-    empty: "AI Star IP pending",
+    empty: "AI Star profile pending",
     emptyDescription:
-      "This member does not have a linked AI Star IP yet. The AI Star created after activation will appear here.",
-    emptyTitle: "AI Star IP pending",
-    label: "AI Star IP",
+      "This member does not have a linked AI Star profile yet. The AI Star created after activation will appear here.",
+    emptyTitle: "AI Star profile pending",
+    label: "AI Star profile",
     scoreLabel: "Star score",
     sourceLabel: "Source",
   };
