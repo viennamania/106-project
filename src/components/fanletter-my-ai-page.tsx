@@ -606,7 +606,7 @@ export function FanletterMyAIPage({
             <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  크리에이터 여정
+                  {locale === "ko" ? "크리에이터 여정" : "Creator Journey"}
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
                   {copy.tiktokFocusTitle}
