@@ -1497,15 +1497,6 @@ export function ActivateNetworkPage({
                                   >
                                     {formatAddressLabel(member.lastWalletAddress)}
                                   </p>
-                                  <p
-                                    className={cn(
-                                      "mt-1 text-xs font-medium",
-                                      isSelected ? "text-white/55" : "text-slate-500",
-                                    )}
-                                  >
-                                    {dictionary.activateNetworkPage.labels.joinedAt}{" "}
-                                    {formatDateTime(member.registrationCompletedAt, locale)}
-                                  </p>
                                 </div>
                                 {member.membershipCardTier !== "none" ? (
                                   <MembershipCardBadge
@@ -1517,6 +1508,12 @@ export function ActivateNetworkPage({
                               </div>
 
                               <MemberAIStarInline
+                                active={isSelected}
+                                locale={locale}
+                                member={member}
+                              />
+
+                              <MemberListContextGrid
                                 active={isSelected}
                                 locale={locale}
                                 member={member}
@@ -2083,6 +2080,84 @@ function MemberAIStarInline({
           {getAIStarStatusLabel(star.status, locale)}
         </p>
       </div>
+    </div>
+  );
+}
+
+function MemberListContextGrid({
+  active,
+  locale,
+  member,
+}: {
+  active: boolean;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const copy = getMemberListContextCopy(locale);
+  const starValue = member.ownedAIStar
+    ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
+    : copy.aiStarPending;
+
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <MemberListContextItem
+        active={active}
+        label={copy.joinedAtLabel}
+        value={formatDateOnly(member.registrationCompletedAt, locale)}
+      />
+      <MemberListContextItem
+        active={active}
+        label={copy.directLabel}
+        value={`${formatInteger(member.directReferralCount, locale)}${copy.memberSuffix}`}
+      />
+      <MemberListContextItem
+        active={active}
+        className="col-span-2 sm:col-span-1"
+        label={copy.aiStarLabel}
+        value={starValue}
+      />
+    </div>
+  );
+}
+
+function MemberListContextItem({
+  active,
+  className,
+  label,
+  value,
+}: {
+  active: boolean;
+  className?: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "min-w-0 rounded-2xl border px-3 py-2.5",
+        active
+          ? "border-white/10 bg-white/8"
+          : "border-slate-200 bg-slate-50/80",
+        className,
+      )}
+    >
+      <p
+        className={cn(
+          "text-[0.62rem] font-semibold uppercase tracking-[0.14em]",
+          active ? "text-white/45" : "text-slate-400",
+        )}
+      >
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1 truncate text-xs font-semibold",
+          active ? "text-white/82" : "text-slate-700",
+        )}
+        title={value}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -2878,6 +2953,66 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
   };
 }
 
+function getMemberListContextCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStarLabel: "AI 스타",
+      aiStarPending: "생성 대기",
+      directLabel: "직접 하위",
+      joinedAtLabel: "가입일",
+      memberSuffix: "명",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      aiStarLabel: "AIスター",
+      aiStarPending: "生成待ち",
+      directLabel: "直接下位",
+      joinedAtLabel: "登録日",
+      memberSuffix: "名",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      aiStarLabel: "AI明星",
+      aiStarPending: "等待生成",
+      directLabel: "直属下级",
+      joinedAtLabel: "注册日期",
+      memberSuffix: "人",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      aiStarLabel: "AI Star",
+      aiStarPending: "Đang chờ tạo",
+      directLabel: "Trực tiếp",
+      joinedAtLabel: "Ngày tham gia",
+      memberSuffix: " người",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      aiStarLabel: "AI Star",
+      aiStarPending: "Menunggu dibuat",
+      directLabel: "Langsung",
+      joinedAtLabel: "Tanggal gabung",
+      memberSuffix: " anggota",
+    };
+  }
+
+  return {
+    aiStarLabel: "AI Star",
+    aiStarPending: "Pending",
+    directLabel: "Direct",
+    joinedAtLabel: "Joined",
+    memberSuffix: "",
+  };
+}
+
 function getAIStarStatusLabel(status: string, locale: Locale) {
   const isKorean = locale === "ko";
 
@@ -3225,6 +3360,18 @@ function formatDateTime(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
+  }).format(date);
+}
+
+function formatDateOnly(value: string, locale: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
   }).format(date);
 }
 
