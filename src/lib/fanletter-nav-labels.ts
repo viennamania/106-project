@@ -8,24 +8,27 @@ import type { Locale } from "@/lib/i18n";
  */
 export type FanletterNavLabels = {
   browse: string;
+  feed: string;
   club: string;
   create: string;
   myStars: string;
 };
 
 const FANLETTER_NAV_LABELS: Record<Locale, FanletterNavLabels> = {
-  ko: { browse: "둘러보기", club: "내 클럽", create: "만들기", myStars: "내 스타" },
-  en: { browse: "Browse", club: "My Club", create: "Create", myStars: "My Stars" },
-  ja: { browse: "見て回る", club: "マイクラブ", create: "作成", myStars: "マイスター" },
-  zh: { browse: "浏览", club: "我的俱乐部", create: "创建", myStars: "我的明星" },
+  ko: { browse: "둘러보기", feed: "브이로그", club: "내 클럽", create: "만들기", myStars: "내 스타" },
+  en: { browse: "Browse", feed: "Vlogs", club: "My Club", create: "Create", myStars: "My Stars" },
+  ja: { browse: "見て回る", feed: "ブイログ", club: "マイクラブ", create: "作成", myStars: "マイスター" },
+  zh: { browse: "浏览", feed: "视频", club: "我的俱乐部", create: "创建", myStars: "我的明星" },
   vi: {
     browse: "Khám phá",
+    feed: "Vlog",
     club: "CLB của tôi",
     create: "Tạo",
     myStars: "Ngôi sao của tôi",
   },
   id: {
     browse: "Jelajahi",
+    feed: "Vlog",
     club: "Klub Saya",
     create: "Buat",
     myStars: "Bintang Saya",

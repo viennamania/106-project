@@ -23,7 +23,7 @@ export function FanletterPrimaryHeader({
   /** Optional page-specific trailing element (e.g. a status badge). */
   aside?: ReactNode;
   /** The active top-level destination, highlighted in the nav. */
-  current?: "create" | "discovery" | "founder-club" | "my-ai";
+  current?: "create" | "discovery" | "feed" | "founder-club" | "my-ai";
   locale: Locale;
   referralCode: string | null;
 }) {
@@ -34,6 +34,10 @@ export function FanletterPrimaryHeader({
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const discoveryHref = buildPathWithReferral(
     `/${locale}/fanletter/discovery`,
+    referralCode,
+  );
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
     referralCode,
   );
   const myAiHref = buildPathWithReferral(
@@ -71,6 +75,13 @@ export function FanletterPrimaryHeader({
           href={discoveryHref}
         >
           {navLabels.browse}
+        </Link>
+        <Link
+          aria-current={current === "feed" ? "page" : undefined}
+          className={navItemClassName(current === "feed")}
+          href={feedHref}
+        >
+          {navLabels.feed}
         </Link>
         <Link
           aria-current={current === "my-ai" ? "page" : undefined}

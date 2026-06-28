@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bot, LayoutDashboard, Plus, Users } from "lucide-react";
+import { Bot, LayoutDashboard, Play, Plus, Users } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
 
 import type { Locale } from "@/lib/i18n";
@@ -14,7 +14,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "club" | "create" | "discover" | "studio";
+  key: "club" | "create" | "discover" | "feed" | "studio";
   label: string;
   primary?: boolean;
 };
@@ -169,6 +169,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: string;
       create: string;
       discover: string;
+      feed: string;
       label: string;
       studio: string;
     }
@@ -177,6 +178,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "내 클럽",
       create: "만들기",
       discover: "둘러보기",
+      feed: "브이로그",
       label: "AIAVpark 주요 메뉴",
       studio: "내 스타",
     },
@@ -184,6 +186,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "My Club",
       create: "Create",
       discover: "Browse",
+      feed: "Vlogs",
       label: "AIAVpark navigation",
       studio: "My Stars",
     },
@@ -191,6 +194,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "マイクラブ",
       create: "作成",
       discover: "見て回る",
+      feed: "ブイログ",
       label: "AIAVparkナビゲーション",
       studio: "マイスター",
     },
@@ -198,6 +202,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "我的俱乐部",
       create: "创建",
       discover: "浏览",
+      feed: "视频",
       label: "AIAVpark 导航",
       studio: "我的明星",
     },
@@ -205,6 +210,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "CLB của tôi",
       create: "Tạo",
       discover: "Khám phá",
+      feed: "Vlog",
       label: "Điều hướng AIAVpark",
       studio: "Ngôi sao của tôi",
     },
@@ -212,6 +218,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       club: "Klub Saya",
       create: "Buat",
       discover: "Jelajahi",
+      feed: "Vlog",
       label: "Navigasi AIAVpark",
       studio: "Bintang Saya",
     },
@@ -232,6 +239,13 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       icon: Bot,
       key: "discover",
       label: copy.discover,
+    },
+    {
+      activePaths: [`${basePath}/feed`],
+      href: buildHref(`${basePath}/feed`),
+      icon: Play,
+      key: "feed",
+      label: copy.feed,
     },
     {
       activePaths: [
@@ -270,7 +284,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         aria-label={copy.label}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/96 px-2 pb-[calc(env(safe-area-inset-bottom)+0.42rem)] pt-2 text-zinc-950 shadow-[0_-14px_34px_rgba(15,23,42,0.07)] backdrop-blur-xl sm:hidden"
       >
-        <div className="mx-auto grid max-w-md grid-cols-4 items-stretch gap-1">
+        <div className="mx-auto grid max-w-md grid-cols-5 items-stretch gap-1">
           {items.map((item) => {
             const Icon = item.icon;
             const active = resolveFanletterNavActive({

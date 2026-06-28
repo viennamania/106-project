@@ -388,6 +388,10 @@ function DirectoryHeader({
   routePath: string;
 }) {
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
+    referralCode,
+  );
   const discoveryHref = getCharactersHref({ referralCode, routePath });
   const myAiHref = buildPathWithReferral(
     `/${locale}/fanletter/my-ai`,
@@ -422,6 +426,12 @@ function DirectoryHeader({
           href={discoveryHref}
         >
           {getFanletterNavLabels(locale).browse}
+        </Link>
+        <Link
+          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+          href={feedHref}
+        >
+          {getFanletterNavLabels(locale).feed}
         </Link>
         <Link
           className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
