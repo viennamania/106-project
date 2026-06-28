@@ -274,15 +274,15 @@ function getActivationHubCopy(locale: Locale) {
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       disconnectedMessage: "이메일로 시작하면 가입 상태와 추천 코드를 확인할 수 있습니다.",
-      feedDescription: "공개 콘텐츠를 한 화면에서 봅니다.",
-      feedLabel: "공개 콘텐츠 보기",
+      feedDescription: "네트워크에 공개된 콘텐츠를 봅니다.",
+      feedLabel: "공개 콘텐츠",
       feedMetric: "보기",
       hubLabel: "1066FRIEND+",
       menuLockedDescription: "이메일로 시작하면 추천 코드, 포인트, 지갑 메뉴를 이어서 사용할 수 있습니다.",
       menuLockedTitle: "먼저 이메일로 시작하세요",
       menuPendingDescription: "10 USDT 확인이 끝나면 추천 회원, 포인트, 지갑 관리가 열립니다.",
       menuPendingTitle: "서비스 이용료 확인이 필요합니다",
-      menuReadyTitle: "필요한 메뉴",
+      menuReadyTitle: "다음 행동 선택",
       membershipDescription: "이메일 로그인, 지갑 연결, 10 USDT 서비스 이용료 확인을 완료합니다.",
       membershipLabel: "가입 상태",
       nextStepTitle: "다음으로 할 일",
@@ -299,15 +299,15 @@ function getActivationHubCopy(locale: Locale) {
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      readyMessage: "가입이 완료되었습니다. 필요한 메뉴에서 다음 행동을 선택하세요.",
+      readyMessage: "가입이 완료되었습니다. 추천 회원을 확인하거나 포인트를 관리하세요.",
       recommendedLabel: "먼저 확인",
-      secondaryLabel: "서비스 메뉴",
+      secondaryLabel: "다음 행동",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
-      statusTitle: "지금 상태",
+      statusTitle: "현재 위치",
       stateTitleDisconnected: "이메일로 시작하세요",
-      stateTitlePending: "10 USDT 확인 대기",
-      stateTitleReady: "서비스 준비 완료",
+      stateTitlePending: "10 USDT 확인 필요",
+      stateTitleReady: "가입 완료",
       stateTitleUnavailable: "환경 설정 필요",
       studioDescription: "AI 스타 이름, 프로필 이미지, 콘텐츠 작업을 관리합니다.",
       studioLabel: "AI 스타 스튜디오",
@@ -332,7 +332,7 @@ function getActivationHubCopy(locale: Locale) {
       "Check your status and the next action first.",
     disconnected: "Connection required",
     disconnectedMessage: "Start with email to check signup status and referral code.",
-    feedDescription: "Browse public content in one place.",
+    feedDescription: "Browse content published to the network.",
     feedLabel: "Public content",
     feedMetric: "View",
     hubLabel: "1066FRIEND+",
@@ -340,7 +340,7 @@ function getActivationHubCopy(locale: Locale) {
     menuLockedTitle: "Start with email first",
     menuPendingDescription: "Referral members, points, and wallet management open after the 10 USDT check.",
     menuPendingTitle: "Service fee check needed",
-    menuReadyTitle: "Useful menus",
+    menuReadyTitle: "Choose next action",
     membershipDescription:
       "Complete email login, wallet connection, and service fee confirmation.",
     membershipLabel: "Signup status",
@@ -358,15 +358,15 @@ function getActivationHubCopy(locale: Locale) {
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    readyMessage: "Signup is complete. Choose the next action from the menu.",
+    readyMessage: "Signup is complete. Review referral members or manage points.",
     recommendedLabel: "Start here",
-    secondaryLabel: "Service menu",
+    secondaryLabel: "Next action",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
-    statusTitle: "Current status",
+    statusTitle: "Current location",
     stateTitleDisconnected: "Start with email",
-    stateTitlePending: "10 USDT check pending",
-    stateTitleReady: "Service ready",
+    stateTitlePending: "10 USDT check needed",
+    stateTitleReady: "Signup complete",
     stateTitleUnavailable: "Setup required",
     studioDescription: "Manage AI Star name, profile image, and content work.",
     studioLabel: "AI Star Studio",
@@ -2008,7 +2008,9 @@ export function SmartWalletApp({
                         ? dictionary.member.eyebrow
                         : status === "connected" && accountAddress
                           ? dictionary.sponsored.eyebrow
-                          : dictionary.onboarding.eyebrow}
+                          : locale === "ko"
+                            ? "가입 안내"
+                            : "Signup guide"}
                     </p>
                     <h2 className="max-w-2xl text-[1.72rem] font-semibold leading-[1.03] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
                       {!hasThirdwebClientId
@@ -2017,7 +2019,9 @@ export function SmartWalletApp({
                           ? dictionary.member.incomingReferralLimitTitle
                           : status === "connected" && accountAddress
                             ? dictionary.sponsored.title
-                            : dictionary.common.connectWallet}
+                            : locale === "ko"
+                              ? "이메일 인증부터 시작하세요"
+                              : "Start with email verification"}
                     </h2>
                     <p className="max-w-2xl text-[0.96rem] leading-7 text-slate-600 sm:text-lg">
                       {!hasThirdwebClientId
@@ -2035,7 +2039,9 @@ export function SmartWalletApp({
                             ? dictionary.member.pending
                             : isConnectionResolving
                               ? dictionary.member.syncing
-                            : dictionary.member.disconnected}
+                              : locale === "ko"
+                                ? "추천 코드와 가입 순서를 확인했습니다. 위 버튼으로 이메일 인증을 시작하세요."
+                                : "Referral code and signup path are ready. Use the button above to start email verification."}
                     </p>
                   </div>
 
@@ -2047,10 +2053,12 @@ export function SmartWalletApp({
                     />
                   ) : null}
 
-                  <ActivationSeparationCard
-                    copy={activationSeparationCopy}
-                    variant="compact"
-                  />
+                  {!isDisconnected ? (
+                    <ActivationSeparationCard
+                      copy={activationSeparationCopy}
+                      variant="compact"
+                    />
+                  ) : null}
 
                   {!hasThirdwebClientId ? (
                     <div className="rounded-[22px] border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-950 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
@@ -2061,67 +2069,76 @@ export function SmartWalletApp({
                       {dictionary.member.syncing}
                     </div>
                   ) : isDisconnected ? (
-                    <div className="grid gap-2.5 sm:grid-cols-[0.92fr_1.08fr] sm:gap-3">
-                      <div className="order-2 relative overflow-hidden rounded-[24px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_54%,#10213f_100%)] p-3.5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.18)] sm:order-1 sm:rounded-[26px] sm:p-5">
-                        <div className="pointer-events-none absolute -right-8 top-0 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.28),transparent_68%)] blur-3xl" />
-                        <div className="pointer-events-none absolute -bottom-12 left-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_72%)] blur-3xl" />
-
-                        <div className="relative flex h-full flex-col">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/52">
-                                {dictionary.member.labels.requiredDeposit}
-                              </p>
-                              <p className="mt-2 text-sm leading-6 text-white/62">
-                                {dictionary.hero.badges[1]}
-                              </p>
-                            </div>
-                            <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/76">
-                              BSC
-                            </div>
-                          </div>
-
-                          <div className="mt-5 rounded-[20px] border border-white/10 bg-white/7 px-3.5 py-3.5 sm:mt-7 sm:rounded-[22px] sm:px-4 sm:py-4">
-                            <div className="flex items-end justify-end gap-2 text-right">
-                              <span className="text-[2.7rem] leading-none font-black tracking-[-0.06em] text-white tabular-nums sm:text-[3.3rem]">
-                                {MEMBER_SIGNUP_USDT_AMOUNT}
-                              </span>
-                              <span className="pb-1 text-base font-semibold tracking-[0.06em] text-white/72 sm:text-xl">
-                                USDT
-                              </span>
-                            </div>
-                          </div>
+                    <div
+                      className="rounded-[24px] border border-slate-200 bg-white/92 p-4 shadow-[0_20px_54px_rgba(15,23,42,0.06)] scroll-mt-24 sm:rounded-[26px] sm:p-5 sm:scroll-mt-28"
+                      id="wallet-onboarding"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                            {locale === "ko" ? "가입 순서" : "Signup path"}
+                          </p>
+                          <h3 className="mt-2 break-keep text-xl font-semibold tracking-tight text-slate-950 [word-break:keep-all]">
+                            {locale === "ko"
+                              ? "이메일로 시작하면 됩니다"
+                              : "Start with email first"}
+                          </h3>
+                          <p className="mt-2 max-w-xl break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
+                            {locale === "ko"
+                              ? "가입 상태, 10 USDT 확인, 추천 코드 발급은 순서대로 자동 연결됩니다."
+                              : "Signup status, the 10 USDT check, and referral code creation are connected in order."}
+                          </p>
                         </div>
+                        <span className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">
+                          {MEMBER_SIGNUP_USDT_AMOUNT} USDT
+                        </span>
                       </div>
 
-                      <div className="order-1 grid gap-2.5 sm:order-2 sm:gap-3">
-                        <div
-                          className="rounded-[22px] border border-white/70 bg-white/92 p-3.5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] scroll-mt-24 sm:rounded-[24px] sm:p-5 sm:scroll-mt-28"
-                          id="wallet-onboarding"
-                        >
-                          <div className="rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:rounded-[24px] sm:p-5">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-emerald-900">
-                                  <WalletMinimal className="size-3.5" />
-                                  {dictionary.hero.badges[0]}
-                                </div>
-                                <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-                                  {dictionary.onboarding.cards[0].title}
-                                </p>
-                              </div>
-                              <div className="rounded-full border border-slate-200 bg-white px-3 py-3 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
-                                <ArrowUpRight className="size-4" />
-                              </div>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                        {[
+                          {
+                            icon: Mail,
+                            title:
+                              locale === "ko"
+                                ? "이메일 인증"
+                                : "Email verification",
+                          },
+                          {
+                            icon: WalletMinimal,
+                            title:
+                              locale === "ko"
+                                ? "10 USDT 확인"
+                                : "10 USDT check",
+                          },
+                          {
+                            icon: Sparkles,
+                            title:
+                              locale === "ko"
+                                ? "추천 코드 발급"
+                                : "Referral code issued",
+                          },
+                        ].map((step, index) => {
+                          const Icon = step.icon;
+
+                          return (
+                            <div
+                              className="flex min-w-0 items-center gap-2.5 rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3"
+                              key={step.title}
+                            >
+                              <span className="flex size-8 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                                <Icon className="size-4" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                  {index + 1}
+                                </span>
+                                <span className="block truncate text-sm font-semibold text-slate-950">
+                                  {step.title}
+                                </span>
+                              </span>
                             </div>
-
-                            <p className="mt-4 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-sm leading-6 text-slate-600 sm:mt-5">
-                              {dictionary.common.loginDialog.emailDescription}
-                            </p>
-                          </div>
-                        </div>
-
-                        <OnboardingGuideCard dictionary={dictionary} />
+                          );
+                        })}
                       </div>
                     </div>
                   ) : (
@@ -2665,6 +2682,7 @@ function ActivationServiceHub({
       title: copy.feedLabel,
     },
   ];
+  const [primaryMenuItem, ...secondaryMenuItems] = actionItems;
 
   const primaryAction = isSignupCompleted ? null : isConnected ? (
     <a
@@ -2790,20 +2808,32 @@ function ActivationServiceHub({
             </div>
 
             {isSignupCompleted ? (
-              <div className="mt-4 grid gap-2">
-                {actionItems.map((item, index) => (
+              <div className="mt-4 grid gap-2.5">
+                {primaryMenuItem ? (
                   <ServiceHubCard
-                    badgeLabel={item.badge}
-                    description={item.description}
-                    featured={index === 0}
-                    href={item.href}
-                    icon={item.icon}
-                    index={index + 1}
-                    key={item.title}
-                    metric={item.metric}
-                    title={item.title}
+                    badgeLabel={primaryMenuItem.badge}
+                    description={primaryMenuItem.description}
+                    featured
+                    href={primaryMenuItem.href}
+                    icon={primaryMenuItem.icon}
+                    index={1}
+                    metric={primaryMenuItem.metric}
+                    title={primaryMenuItem.title}
                   />
-                ))}
+                ) : null}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {secondaryMenuItems.map((item, index) => (
+                    <ServiceHubMiniCard
+                      badgeLabel={item.badge}
+                      href={item.href}
+                      icon={item.icon}
+                      index={index + 2}
+                      key={item.title}
+                      metric={item.metric}
+                      title={item.title}
+                    />
+                  ))}
+                </div>
               </div>
             ) : isConnected ? (
               <div className="mt-4 rounded-[22px] border border-zinc-200 bg-white p-4">
@@ -2943,6 +2973,65 @@ function ServiceHubCard({
           featured ? "text-white/55 group-hover:text-white" : "text-zinc-400 group-hover:text-zinc-950",
         )}
       />
+    </Link>
+  );
+}
+
+function ServiceHubMiniCard({
+  badgeLabel,
+  href,
+  icon,
+  index,
+  metric,
+  title,
+}: {
+  badgeLabel?: string;
+  href: string;
+  icon: "feed" | "network" | "points" | "studio" | "wallet";
+  index: number;
+  metric: string;
+  title: string;
+}) {
+  const Icon =
+    icon === "network"
+      ? Users
+      : icon === "wallet"
+        ? WalletMinimal
+        : icon === "feed"
+          ? Share2
+          : icon === "points"
+            ? Gift
+            : Sparkles;
+
+  return (
+    <Link
+      className="group min-w-0 rounded-[18px] border border-zinc-200 bg-white px-3 py-3 text-zinc-950 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_14px_30px_rgba(24,24,27,0.06)]"
+      href={href}
+    >
+      <span className="flex items-start gap-2.5">
+        <span className="relative flex size-9 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-950 transition group-hover:bg-zinc-950 group-hover:text-white">
+          <Icon className="size-4" />
+          <span className="absolute -right-1 -top-1 inline-flex size-4 items-center justify-center rounded-full bg-white text-[0.56rem] font-semibold text-zinc-500 ring-1 ring-zinc-200">
+            {index}
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-sm font-semibold tracking-tight text-zinc-950">
+              {title}
+            </span>
+            {badgeLabel ? (
+              <span className="hidden shrink-0 rounded-full bg-zinc-950 px-1.5 py-0.5 text-[0.55rem] font-semibold text-white sm:inline-flex">
+                {badgeLabel}
+              </span>
+            ) : null}
+          </span>
+          <span className="mt-1 block max-w-full truncate text-[0.72rem] font-semibold text-zinc-500">
+            {metric}
+          </span>
+        </span>
+        <ArrowUpRight className="mt-1 size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
+      </span>
     </Link>
   );
 }
@@ -3573,89 +3662,6 @@ function MessageCard({
       )}
     >
       {children}
-    </div>
-  );
-}
-
-function OnboardingGuideCard({
-  dictionary,
-}: {
-  dictionary: Dictionary;
-}) {
-  const steps = [
-    {
-      description: dictionary.runway.steps[0].description,
-      icon: Mail,
-      title: dictionary.runway.steps[0].title,
-    },
-    {
-      description: dictionary.runway.steps[1].description,
-      icon: WalletMinimal,
-      title: dictionary.runway.steps[1].title,
-    },
-    {
-      description: dictionary.runway.steps[2].description,
-      icon: Sparkles,
-      title: dictionary.runway.steps[2].title,
-    },
-  ] as const;
-
-  return (
-    <div className="rounded-[22px] border border-slate-200/80 bg-[linear-gradient(180deg,#edf5ff_0%,#ffffff_100%)] p-3.5 shadow-[0_20px_54px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-sky-900/56">
-            {dictionary.signInMix.eyebrow}
-          </p>
-          <p className="mt-1.5 text-base font-semibold tracking-tight text-slate-950 sm:mt-2 sm:text-lg">
-            {dictionary.signInMix.title}
-          </p>
-        </div>
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/92 text-sky-700 shadow-[0_14px_28px_rgba(15,23,42,0.08)] sm:size-11">
-          <Sparkles className="size-4" />
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
-        {dictionary.signInMix.methods.map((method) => (
-          <div
-            className="rounded-full border border-sky-100 bg-white/85 px-2.5 py-1.5 text-[0.68rem] font-semibold tracking-[0.12em] text-sky-900/72"
-            key={method}
-          >
-            {method}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 grid gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-2.5">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-
-          return (
-            <div
-              className="rounded-[18px] border border-white/85 bg-white/92 px-3 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)] sm:rounded-[20px]"
-              key={step.title}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-[0.7rem] font-bold text-white shadow-[0_10px_22px_rgba(15,23,42,0.16)] sm:size-8 sm:text-xs">
-                  {index + 1}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-slate-950">
-                    <Icon className="size-4 text-sky-700" />
-                    <p className="text-[0.84rem] font-semibold tracking-tight sm:text-sm">
-                      {step.title}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-[0.8rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
