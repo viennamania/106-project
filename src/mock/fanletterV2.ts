@@ -1123,9 +1123,71 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
   },
 };
 
+// zh/vi/id aren't full FanletterV2Copy locales yet (native review pending), so they fall
+// back to English. Override just the highest-visibility, non-financial bits — the action
+// CTAs and the Creator Club hero title — so those read in-locale. Drafts.
+const v2CopyExtraOverrides: Record<
+  "zh" | "vi" | "id",
+  { actions: FanletterV2Copy["actions"]; founderClubTitle: string }
+> = {
+  zh: {
+    actions: {
+      copied: "已复制",
+      copyLink: "复制链接",
+      createAiStar: "创建新 AI 明星",
+      createMockReferral: "创建示例推荐码",
+      joinAsFounder: "参与",
+      openDiscovery: "返回发现",
+      shareLink: "分享链接",
+      viewUniverse: "查看明星宇宙",
+    },
+    founderClubTitle: "发现 AI 明星，作为粉丝参与，成长为创作者。",
+  },
+  vi: {
+    actions: {
+      copied: "Đã sao chép",
+      copyLink: "Sao chép liên kết",
+      createAiStar: "Tạo AI Star mới",
+      createMockReferral: "Tạo mã giới thiệu mẫu",
+      joinAsFounder: "Tham gia",
+      openDiscovery: "Quay lại Khám phá",
+      shareLink: "Chia sẻ liên kết",
+      viewUniverse: "Xem Star Universe",
+    },
+    founderClubTitle:
+      "Khám phá AI Star, tham gia với tư cách Fan và phát triển thành Creator.",
+  },
+  id: {
+    actions: {
+      copied: "Tersalin",
+      copyLink: "Salin tautan",
+      createAiStar: "Buat AI Star baru",
+      createMockReferral: "Buat kode rujukan contoh",
+      joinAsFounder: "Gabung",
+      openDiscovery: "Kembali ke Discovery",
+      shareLink: "Bagikan tautan",
+      viewUniverse: "Lihat Star Universe",
+    },
+    founderClubTitle:
+      "Temukan AI Star, ikuti sebagai Fan, dan berkembang menjadi Kreator.",
+  },
+};
+
 export function getFanletterV2Copy(locale: Locale) {
   if (locale === "ko" || locale === "ja") {
     return fanletterV2CopyByLocale[locale];
+  }
+
+  if (locale === "zh" || locale === "vi" || locale === "id") {
+    const extra = v2CopyExtraOverrides[locale];
+    return {
+      ...fanletterV2CopyByLocale.en,
+      actions: extra.actions,
+      founderClub: {
+        ...fanletterV2CopyByLocale.en.founderClub,
+        title: extra.founderClubTitle,
+      },
+    };
   }
 
   return fanletterV2CopyByLocale.en;
