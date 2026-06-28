@@ -1370,6 +1370,7 @@ export function ActivateNetworkPage({
                 <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
                   <SelectedMemberPanel
                     dictionary={dictionary}
+                    networkReturnHref={currentPageHref}
                     locale={locale}
                     member={selectedMember}
                     onApplyServiceStatus={updateMemberServiceStatus}
@@ -1634,6 +1635,7 @@ export function ActivateNetworkPage({
                 <div className="glass-card rounded-[28px] p-4 sm:p-5">
                   <SelectedMemberPanel
                     dictionary={dictionary}
+                    networkReturnHref={currentPageHref}
                     locale={locale}
                     member={selectedMember}
                     onApplyServiceStatus={updateMemberServiceStatus}
@@ -1728,6 +1730,7 @@ function SelectedMemberPanel({
   dictionary,
   locale,
   member,
+  networkReturnHref,
   onApplyServiceStatus,
   onChangeServiceScope,
   serviceCopy,
@@ -1737,6 +1740,7 @@ function SelectedMemberPanel({
   dictionary: Dictionary;
   locale: Locale;
   member: ManagedReferralTreeNodeRecord | null;
+  networkReturnHref: string;
   onApplyServiceStatus: (action: "release" | "suspend") => void;
   onChangeServiceScope: (scope: ServiceSuspensionScope) => void;
   serviceCopy: ReturnType<typeof getServiceManagementCopy>;
@@ -1760,6 +1764,7 @@ function SelectedMemberPanel({
           dictionary={dictionary}
           locale={locale}
           member={member}
+          networkReturnHref={networkReturnHref}
           onApplyServiceStatus={onApplyServiceStatus}
           onChangeServiceScope={onChangeServiceScope}
           serviceCopy={serviceCopy}
@@ -1780,6 +1785,7 @@ function SelectedMemberCard({
   dictionary,
   locale,
   member,
+  networkReturnHref,
   onApplyServiceStatus,
   onChangeServiceScope,
   serviceCopy,
@@ -1790,6 +1796,7 @@ function SelectedMemberCard({
   dictionary: Dictionary;
   locale: Locale;
   member: ManagedReferralTreeNodeRecord;
+  networkReturnHref: string;
   onApplyServiceStatus: (action: "release" | "suspend") => void;
   onChangeServiceScope: (scope: ServiceSuspensionScope) => void;
   serviceCopy: ReturnType<typeof getServiceManagementCopy>;
@@ -1859,7 +1866,11 @@ function SelectedMemberCard({
         </div>
       </div>
 
-      <SelectedMemberAIStarCard locale={locale} member={member} />
+      <SelectedMemberAIStarCard
+        locale={locale}
+        member={member}
+        networkReturnHref={networkReturnHref}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <InfoCard
@@ -2228,9 +2239,11 @@ function MemberListContextItem({
 function SelectedMemberAIStarCard({
   locale,
   member,
+  networkReturnHref,
 }: {
   locale: Locale;
   member: ManagedReferralTreeNodeRecord;
+  networkReturnHref: string;
 }) {
   const copy = getMemberAIStarCopy(locale);
   const star = member.ownedAIStar;
@@ -2251,7 +2264,13 @@ function SelectedMemberAIStarCard({
     );
   }
 
-  const aiStarHref = `/${locale}/fanletter/${encodeURIComponent(star.starId)}`;
+  const aiStarHref = setPathSearchParams(
+    `/${locale}/fanletter/${encodeURIComponent(star.starId)}`,
+    {
+      returnTo: networkReturnHref,
+      source: "activate_network_member_ai_star",
+    },
+  );
 
   return (
     <div className="rounded-[24px] border border-violet-100 bg-[linear-gradient(135deg,#ffffff_0%,#faf5ff_52%,#f8fafc_100%)] p-4 shadow-[0_16px_38px_rgba(88,28,135,0.08)]">
