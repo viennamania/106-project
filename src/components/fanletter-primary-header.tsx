@@ -60,7 +60,7 @@ export function FanletterPrimaryHeader({
     <header className="flex items-center justify-between gap-2 sm:gap-4">
       <Link className="flex min-h-11 min-w-0 items-center gap-2" href={homeHref}>
         <FanletterBrandMark className="size-9 shrink-0" />
-        <span className="hidden truncate text-xl font-semibold tracking-tight text-black sm:inline">
+        <span className="truncate text-xl font-semibold tracking-tight text-black">
           AIAVpark
         </span>
       </Link>
