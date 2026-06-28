@@ -19,13 +19,11 @@ import {
   Copy,
   LogOut,
   Mail,
-  Megaphone,
   Share2,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
   Users,
-  Vault,
   WalletMinimal,
 } from "lucide-react";
 import { getContract } from "thirdweb";
@@ -50,8 +48,6 @@ import { NotificationCenterSheet } from "@/components/notification-center-sheet"
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
 import { CopyTextButton } from "@/components/copy-text-button";
-import { ReferralNetworkExplorer } from "@/components/referral-network-explorer";
-import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
   useWalletUnlockGate,
   WalletUnlockAction,
@@ -64,7 +60,6 @@ import {
   setPathSearchParams,
   type LandingPageBranding,
 } from "@/lib/landing-branding";
-import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import { getContentCopy } from "@/lib/content-copy";
 import type {
   AppNotificationPreferencesRecord,
@@ -76,7 +71,6 @@ import {
   type IncomingReferralState,
   MEMBER_SIGNUP_USDT_AMOUNT,
   MEMBER_SIGNUP_USDT_AMOUNT_WEI,
-  REFERRAL_SIGNUP_LIMIT,
   type MemberReferralsResponse,
   type MemberRecord,
   type ReferralRewardsSummaryRecord,
@@ -542,10 +536,6 @@ export function SmartWalletApp({
       returnTo: activatePageHref,
     },
   );
-  const announcementsPageHref = setLandingLanguageContext(
-    buildPathWithReferral(`/${locale}/announcements`, preferredReferralCode),
-    landingLanguage,
-  );
   const activateNetworkHref = setLandingLanguageContext(
     buildPathWithReferral(`/${locale}/activate/network`, preferredReferralCode),
     landingLanguage,
@@ -578,9 +568,6 @@ export function SmartWalletApp({
     : assetWalletUnlock.unlockHref;
   const notificationCopy = dictionary.activateNetworkPage.notifications;
   const suspendedCopy = getServiceSuspensionCopy(locale);
-  const isSelfIncomingReferral =
-    incomingReferralCode !== null &&
-    memberSync.member?.referralCode === incomingReferralCode;
   const isSignupCompleted = memberSync.member?.status === "completed";
   const signupPaymentVerificationCopy =
     getSignupPaymentVerificationCopy(locale);
@@ -1974,9 +1961,7 @@ export function SmartWalletApp({
         {isSignupCompleted && memberSync.member ? (
           <CompletedHomeDashboard
             activateNetworkHref={activateNetworkHref}
-            announcementsPageHref={announcementsPageHref}
             dictionary={dictionary}
-            isSelfIncomingReferral={isSelfIncomingReferral}
             isRefreshing={
               memberSync.status === "syncing" ||
               referralDashboard.status === "loading"
@@ -1988,8 +1973,6 @@ export function SmartWalletApp({
             }}
             referralDashboard={referralDashboard}
             rewardsHref={rewardsHref}
-            assetManagementHref={assetManagementHref}
-            assetManagementLocked={!assetWalletUnlock.isUnlocked}
           />
         ) : isMembershipLoading ? (
           <MembershipLoadingSection dictionary={dictionary} />
@@ -3081,11 +3064,7 @@ function ActivationSeparationCard({
 
 function CompletedHomeDashboard({
   activateNetworkHref,
-  announcementsPageHref,
-  assetManagementHref,
-  assetManagementLocked,
   dictionary,
-  isSelfIncomingReferral,
   isRefreshing,
   locale,
   member,
@@ -3094,11 +3073,7 @@ function CompletedHomeDashboard({
   rewardsHref,
 }: {
   activateNetworkHref: string;
-  announcementsPageHref: string;
-  assetManagementHref: string;
-  assetManagementLocked: boolean;
   dictionary: Dictionary;
-  isSelfIncomingReferral: boolean;
   isRefreshing: boolean;
   locale: Locale;
   member: MemberRecord;
@@ -3106,11 +3081,10 @@ function CompletedHomeDashboard({
   referralDashboard: ReferralDashboardState;
   rewardsHref: string;
 }) {
-  const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
   const activationCopy = getActivationSeparationCopy(locale);
   const contentCopy = getContentCopy(locale);
-  const assetCopy = getAssetManagementCopy(locale);
+  const numberFormatter = new Intl.NumberFormat(locale);
   const referralSharePath = buildPathWithReferral(
     `/${locale}/referral/bridge`,
     member.referralCode,
@@ -3122,12 +3096,41 @@ function CompletedHomeDashboard({
   const [shareState, setShareState] = useState<
     "copied" | "error" | "idle" | "sharing"
   >("idle");
-  const firstLevelLimitHint = formatTemplate(
-    dictionary.referralsPage.firstLevelLimitHint,
-    {
-      limit: REFERRAL_SIGNUP_LIMIT,
-    },
-  );
+  const updatedAt = referralDashboard.lastUpdatedAt
+    ? formatDateTime(referralDashboard.lastUpdatedAt, locale)
+    : dictionary.common.notAvailable;
+  const quickLabels =
+    locale === "ko"
+      ? {
+          copied: "복사 완료",
+          current: "현재 상태",
+          manageNetwork: "추천 회원 관리",
+          manageRewards: "포인트 보기",
+          points: "추천 보상 포인트",
+          referralCode: "내 추천 코드",
+          referralLink: "추천 링크",
+          referralLinkDescription:
+            "이 링크로 가입이 완료되면 추천 보상과 포인트 기록이 이어집니다.",
+          refresh: "새로 확인",
+          signups: "추천 회원",
+          snapshot: "서비스 요약",
+          updated: "최근 확인",
+        }
+      : {
+          copied: "Copied",
+          current: "Current status",
+          manageNetwork: "Manage referrals",
+          manageRewards: "View points",
+          points: "Referral reward points",
+          referralCode: "Referral code",
+          referralLink: "Referral link",
+          referralLinkDescription:
+            "Completed signups from this link create referral rewards and point records.",
+          refresh: "Refresh",
+          signups: "Referral members",
+          snapshot: "Service snapshot",
+          updated: "Last checked",
+        };
 
   useEffect(() => {
     if (shareState !== "copied" && shareState !== "error") {
@@ -3198,496 +3201,160 @@ function CompletedHomeDashboard({
   ]);
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-      <LandingReveal variant="hero">
-        <div className="glass-card relative overflow-hidden rounded-[30px] p-4 sm:p-6">
-        <div className="absolute inset-x-6 top-0 h-28 rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.12),transparent_68%)] blur-3xl" />
-        <div className="relative space-y-6">
-          <div className="flex flex-wrap gap-2">
+    <section className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+      <LandingReveal variant="soft">
+        <div className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_18px_54px_rgba(24,24,27,0.08)] sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge icon={<Check className="size-3.5" />}>
               {dictionary.member.completedValue}
             </Badge>
-            <Badge icon={<ShieldCheck className="size-3.5" />}>
-              {activationCopy.coreBadge}
+            <Badge icon={<Share2 className="size-3.5" />}>
+              {quickLabels.referralLink}
             </Badge>
           </div>
 
-          <div className="space-y-3">
-            <p className="eyebrow">{activationCopy.activationEyebrow}</p>
-            <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
-              {activationCopy.activationTitle}
+          <div className="mt-5 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
+              {activationCopy.growthLinkCodeLabel}
+            </p>
+            <h2 className="break-all font-mono text-[2.25rem] font-semibold leading-none tracking-[-0.055em] text-zinc-950 sm:text-[2.8rem]">
+              {member.referralCode ?? dictionary.common.notAvailable}
             </h2>
-            <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
-              {activationCopy.activationDescription}
+            <p className="break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
+              {quickLabels.referralLinkDescription}
             </p>
           </div>
 
-          <ActivationSeparationCard copy={activationCopy} />
-
-          {isSelfIncomingReferral ? (
-            <MessageCard>{dictionary.member.selfReferralNotice}</MessageCard>
+          {referralShareUrl ? (
+            <div className="mt-5 rounded-[22px] border border-zinc-200 bg-zinc-50 p-3.5">
+              <p className="break-all text-sm font-medium leading-6 text-zinc-700">
+                {referralShareUrl}
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                  onClick={() => {
+                    void handleShareReferralLink();
+                  }}
+                  type="button"
+                >
+                  <Share2 className="size-4 shrink-0" />
+                  <span>
+                    {shareState === "sharing"
+                      ? contentCopy.actions.sharing
+                      : contentCopy.actions.share}
+                  </span>
+                </button>
+                <CopyTextButton
+                  className="h-11 w-full rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 hover:bg-zinc-50"
+                  copiedLabel={
+                    shareState === "copied"
+                      ? quickLabels.copied
+                      : dictionary.common.copied
+                  }
+                  copyLabel={dictionary.common.copyLink}
+                  text={referralShareUrl}
+                />
+              </div>
+              {shareState === "error" ? (
+                <p className="mt-2 text-sm font-medium text-rose-600">
+                  {contentCopy.messages.shareFailed}
+                </p>
+              ) : null}
+            </div>
           ) : null}
-
-          <div className="grid gap-4 lg:grid-cols-[1.16fr_0.84fr]">
-            <div className="relative min-w-0 overflow-hidden rounded-[26px] border border-slate-900/85 bg-[linear-gradient(160deg,#081225_0%,#0f172a_48%,#10213f_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] sm:rounded-[30px] sm:p-5">
-              <div className="pointer-events-none absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.32),transparent_68%)] blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-14 left-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.18),transparent_72%)] blur-3xl" />
-
-              <div className="relative space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/55">
-                      {activationCopy.growthLinkTitle}
-                    </p>
-                    <p className="mt-2 max-w-md text-sm leading-6 text-white/72">
-                      {activationCopy.growthLinkDescription}
-                    </p>
-                  </div>
-                  <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/82 backdrop-blur">
-                    <Check className="size-3.5" />
-                    {dictionary.member.completedValue}
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:p-5">
-                  <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-white/45">
-                    {activationCopy.growthLinkCodeLabel}
-                  </p>
-                  <p className="mt-3 break-all font-mono text-[2rem] font-semibold leading-[0.92] tracking-[-0.05em] text-white sm:text-[2.45rem]">
-                    {member.referralCode ?? dictionary.common.notAvailable}
-                  </p>
-                </div>
-
-                {referralShareUrl ? (
-                  <>
-                    <div
-                      className="rounded-[22px] border border-white/10 bg-black/10 p-3.5"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/45">
-                          {activationCopy.growthLinkLabel}
-                        </p>
-                        <span className="rounded-full bg-white/10 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/55">
-                          {dictionary.member.completedValue}
-                        </span>
-                      </div>
-                      <p className="mt-2 break-all text-sm font-medium leading-6 text-white/92">
-                        {referralShareUrl}
-                      </p>
-                    </div>
-
-                    <div className="grid gap-2.5">
-                      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
-                        <button
-                          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-slate-100"
-                          onClick={() => {
-                            void handleShareReferralLink();
-                          }}
-                          type="button"
-                        >
-                          <Share2 className="size-4 shrink-0" />
-                          <span className="whitespace-nowrap">
-                            {shareState === "sharing"
-                              ? contentCopy.actions.sharing
-                              : contentCopy.actions.share}
-                          </span>
-                        </button>
-                        <CopyTextButton
-                          className="h-12 w-full rounded-2xl border-0 bg-white px-4 text-[0.95rem] font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] hover:bg-slate-100"
-                          copiedLabel={
-                            shareState === "copied"
-                              ? contentCopy.actions.copiedLink
-                              : dictionary.common.copied
-                          }
-                          copyLabel={dictionary.common.copyLink}
-                          text={referralShareUrl}
-                        />
-                      </div>
-                    </div>
-                    {shareState === "error" ? (
-                      <p className="text-sm font-medium text-rose-200">
-                        {contentCopy.messages.shareFailed}
-                      </p>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              <AssetVaultEntryCard
-                assetCopy={assetCopy}
-                bnbTitle={dictionary.bnbPage.title}
-                href={assetManagementHref}
-                isLocked={assetManagementLocked}
-                locale={locale}
-                walletTitle={dictionary.walletPage.title}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <MetricCard
-                  animateValue
-                  hint={firstLevelLimitHint}
-                  label={activationCopy.growthDirectLabel}
-                  locale={locale}
-                  value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
-                />
-                <MetricCard
-                  animateValue
-                  hint={dictionary.referralsPage.depthHint.replace(
-                    "{depth}",
-                    "6",
-                  )}
-                  label={activationCopy.growthNetworkLabel}
-                  locale={locale}
-                  value={String(totalReferralCount)}
-                />
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
       </LandingReveal>
 
-      <Panel
-        compactMobileHeader
-        contentClassName="gap-4"
-        eyebrow={dictionary.member.eyebrow}
-        description={activationCopy.memberPanelDescription}
-        revealDelay={120}
-        title={activationCopy.memberPanelTitle}
-      >
-        <div className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-4">
-          <p className="text-[0.92rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
-            {activationCopy.coreStatusDescription}
-          </p>
-        </div>
-
-        <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.emailKey}
-            value={member.email}
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.signupStatus}
-            value={dictionary.member.completedValue}
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.completionAt}
-            value={
-              member.registrationCompletedAt
-                ? formatDateTime(member.registrationCompletedAt, locale)
-                : dictionary.common.notAvailable
-            }
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.paymentReceivedAt}
-            value={
-              member.paymentReceivedAt
-                ? formatDateTime(member.paymentReceivedAt, locale)
-                : dictionary.common.notAvailable
-            }
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.lastConnectedAt}
-            value={formatDateTime(member.lastConnectedAt, locale)}
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.requiredDeposit}
-            valueContent={
-              <AnimatedNumberText
-                locale={locale}
-                value={`${member.requiredDepositAmount} USDT`}
-              />
-            }
-            value={`${member.requiredDepositAmount} USDT`}
-          />
-        </div>
-
-      </Panel>
-
-      <LandingReveal className="lg:col-span-2" delay={160} variant="soft">
-        <section className="glass-card rounded-[24px] p-4 sm:rounded-[28px] sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <LandingReveal delay={120} variant="soft">
+        <div className="rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_18px_54px_rgba(24,24,27,0.08)] sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                {activationCopy.growthEyebrow}
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                {quickLabels.snapshot}
               </p>
-              <p className="mt-1 text-sm font-medium text-slate-700">
-                {referralDashboard.lastUpdatedAt
-                  ? formatDateTime(referralDashboard.lastUpdatedAt, locale)
-                  : dictionary.common.notAvailable}
+              <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-950">
+                {activationCopy.memberPanelTitle}
+              </h3>
+              <p className="mt-1 break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
+                {activationCopy.memberPanelDescription}
               </p>
             </div>
             <button
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isRefreshing}
               onClick={onRefresh}
               type="button"
             >
-              {isRefreshing
-                ? dictionary.referralsPage.loading
-                : dictionary.referralsPage.actions.refresh}
+              {isRefreshing ? dictionary.referralsPage.loading : quickLabels.refresh}
             </button>
           </div>
-        </section>
-      </LandingReveal>
 
-      <Panel
-        className="lg:col-span-2"
-        contentClassName="gap-4"
-        description={activationCopy.growthDescription}
-        eyebrow={activationCopy.growthEyebrow}
-        revealDelay={180}
-        title={activationCopy.growthTitle}
-      >
-        <div className="rounded-[22px] border border-[#e7d6b7] bg-[linear-gradient(135deg,#fff9ec_0%,#ffffff_72%)] p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <div className="inline-flex items-center rounded-full border border-[#ead7b5] bg-[#fff5df] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#8d7142]">
-                  {dictionary.rewardsPage.labels.rewardCatalog}
-                </div>
-                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-700">
-                  {dictionary.referralsPage.rewards.totalPoints}
-                  <span className="ml-2 text-slate-950">
-                    {new Intl.NumberFormat(locale).format(
-                      referralDashboard.rewards.totalPoints,
-                    )}
-                    P
-                  </span>
-                </div>
-              </div>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                {activationCopy.growthDescription}
+          <div className="mt-5 grid gap-2.5 sm:grid-cols-3">
+            <div className="rounded-[18px] border border-zinc-200 bg-zinc-50 px-3 py-3">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                {quickLabels.signups}
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">
+                {numberFormatter.format(totalReferralCount)}
               </p>
             </div>
-            <Link
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_18px_35px_rgba(15,23,42,0.14)] transition hover:bg-slate-800"
-              href={rewardsHref}
-            >
-              <span className="!text-white">{dictionary.rewardsPage.title}</span>
-              <ArrowUpRight className="size-4 !text-white" />
-            </Link>
+            <div className="rounded-[18px] border border-zinc-200 bg-zinc-50 px-3 py-3">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                {quickLabels.points}
+              </p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">
+                {numberFormatter.format(referralDashboard.rewards.totalPoints)}P
+              </p>
+            </div>
+            <div className="rounded-[18px] border border-zinc-200 bg-zinc-50 px-3 py-3">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                {quickLabels.updated}
+              </p>
+              <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-zinc-950">
+                {updatedAt}
+              </p>
+            </div>
           </div>
-        </div>
-        <MessageCard>{dictionary.referralsPage.rewards.description}</MessageCard>
-        <ReferralRewardsPanel
-          dictionary={dictionary}
-          locale={locale}
-          rewards={referralDashboard.rewards}
-          showHeader={false}
-        />
-      </Panel>
 
-      <Panel
-        className="lg:col-span-2"
-        contentClassName="gap-4"
-        eyebrow={activationCopy.growthEyebrow}
-        revealDelay={220}
-        title={activationCopy.growthMembersTitle}
-      >
-        <div className="flex justify-end">
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#ead7b5] bg-[#fff8ea] px-4 text-sm font-semibold text-[#7c6137] shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:border-[#dfc79e] hover:bg-[#fff1d2]"
-              href={announcementsPageHref}
-            >
-              <Megaphone className="size-4" />
-              {dictionary.announcementsPage.title}
-            </Link>
-            <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
               href={activateNetworkHref}
             >
-              {dictionary.activateNetworkPage.actions.openManagement}
+              {quickLabels.manageNetwork}
+              <ArrowUpRight className="size-4" />
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-50"
+              href={rewardsHref}
+            >
+              {quickLabels.manageRewards}
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <InfoRow
+              alignValueRight
+              compactMobile
+              label={dictionary.member.labels.emailKey}
+              value={member.email}
+            />
+            <InfoRow
+              alignValueRight
+              compactMobile
+              label={dictionary.member.labels.completionAt}
+              value={
+                member.registrationCompletedAt
+                  ? formatDateTime(member.registrationCompletedAt, locale)
+                  : dictionary.common.notAvailable
+              }
+            />
+          </div>
         </div>
-
-        {referralDashboard.error ? (
-          <MessageCard tone="error">{referralDashboard.error}</MessageCard>
-        ) : null}
-
-        {referralDashboard.status === "loading" ? (
-          <MessageCard>{dictionary.referralsPage.loading}</MessageCard>
-        ) : (
-          <ReferralNetworkExplorer
-            dictionary={dictionary}
-            key={`${member.email}:${referralDashboard.totalReferrals}:${referralDashboard.levelCounts.join("-")}`}
-            levelCounts={referralDashboard.levelCounts}
-            locale={locale}
-            referrals={referralDashboard.referrals}
-            totalReferrals={referralDashboard.totalReferrals}
-          />
-        )}
-      </Panel>
+      </LandingReveal>
     </section>
-  );
-}
-
-function AssetVaultEntryCard({
-  assetCopy,
-  bnbTitle,
-  href,
-  isLocked,
-  locale,
-  walletTitle,
-}: {
-  assetCopy: ReturnType<typeof getAssetManagementCopy>;
-  bnbTitle: string;
-  href: string;
-  isLocked: boolean;
-  locale: Locale;
-  walletTitle: string;
-}) {
-  const title = locale === "ko" ? "자산 금고" : "Asset Vault";
-  const description =
-    locale === "ko"
-      ? "테더, BNB, 지갑 보안을 한 번 더 확인하고 관리합니다."
-      : "Review USDT, BNB, and wallet security behind an extra PIN check.";
-  const statusLabel = locale === "ko" ? "PIN 보호" : "PIN protected";
-  const actionLabel = isLocked
-    ? locale === "ko"
-      ? "PIN 확인 후 열기"
-      : "Open with PIN"
-    : locale === "ko"
-      ? "자산 관리 열기"
-      : "Open assets";
-
-  return (
-    <Link
-      className="group relative isolate overflow-hidden rounded-[26px] border border-slate-900 bg-[linear-gradient(145deg,#07111f_0%,#111827_52%,#12372f_100%)] p-4 text-white shadow-[0_26px_70px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_32px_82px_rgba(15,23,42,0.28)] sm:p-5"
-      href={href}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.45),transparent)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0)_34%,rgba(255,255,255,0.05)_100%)]" />
-
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-300/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-emerald-100/82">
-            <ShieldCheck className="size-3.5" />
-            {statusLabel}
-          </div>
-          <p className="mt-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/45">
-            {assetCopy.eyebrow}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <div className="inline-flex size-11 items-center justify-center rounded-[18px] border border-white/12 bg-white/10 text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur">
-            <Vault className="size-5" />
-          </div>
-          <ArrowUpRight className="size-4 text-white/52 transition group-hover:text-white" />
-        </div>
-      </div>
-
-      <div className="relative mt-4">
-        <p className="text-2xl font-semibold tracking-tight text-white">
-          {title}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-white/70">
-          {description}
-        </p>
-      </div>
-
-      <div className="relative mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-white/7 px-4 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="grid size-16 shrink-0 place-items-center rounded-full border border-amber-200/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))]">
-              <div className="grid size-11 place-items-center rounded-full border border-amber-100/24 bg-slate-950/35 text-amber-100">
-                <Vault className="size-5" />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">
-                {assetCopy.title}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-white/55">
-                {assetCopy.usdt.label} · {assetCopy.bnb.label}
-              </p>
-            </div>
-          </div>
-          <div className="hidden rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold text-white/76 sm:inline-flex">
-            BSC
-          </div>
-        </div>
-      </div>
-
-      <div className="relative mt-4 grid gap-2">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2.5">
-            <p className="truncate text-xs font-semibold text-white">
-              {walletTitle}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-white/52">
-              {assetCopy.usdt.metric}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-2.5">
-            <p className="truncate text-xs font-semibold text-white">
-              {bnbTitle}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-white/52">
-              {assetCopy.bnb.metric}
-            </p>
-          </div>
-        </div>
-        <div className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-slate-950 shadow-[0_18px_38px_rgba(255,255,255,0.14)] transition group-hover:bg-emerald-50">
-          <Vault className="size-4 !text-slate-950" />
-          {actionLabel}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function MetricCard({
-  animateValue = false,
-  className,
-  label,
-  locale,
-  value,
-  hint,
-}: {
-  animateValue?: boolean;
-  className?: string;
-  label: string;
-  locale: Locale;
-  value: string;
-  hint: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex min-h-[116px] flex-col rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
-        className,
-      )}
-    >
-      <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-6 text-right text-2xl font-semibold tracking-tight text-slate-950 tabular-nums">
-        {animateValue ? (
-          <AnimatedNumberText locale={locale} value={value} />
-        ) : (
-          value
-        )}
-      </p>
-      <p className="mt-1 text-sm text-slate-500">{hint}</p>
-    </div>
   );
 }
 
