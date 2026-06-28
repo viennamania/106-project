@@ -2878,7 +2878,7 @@ function getMemberSortOptions(locale: Locale) {
     {
       defaultDirection: "desc",
       key: "lifetimePoints",
-      label: isKorean ? "총 포인트" : "Total points",
+      label: isKorean ? "누적 포인트" : "Lifetime points",
     },
     {
       defaultDirection: "desc",
