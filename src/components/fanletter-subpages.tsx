@@ -30,6 +30,7 @@ import {
 import { Fragment, type ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
 import {
@@ -6148,17 +6149,29 @@ export function FanletterFeedPage({
   );
 
   return (
-    <FanletterShell
-      currentSection="feed"
-      description={copy.feed.title}
-      eyebrow={copy.feed.eyebrow}
-      locale={locale}
-      referralCode={referralCode}
-      title={locale === "ko" ? "AIAVpark AI 캐릭터 브이로그 피드" : "AIAVpark AI Character Vlog Feed"}
-      descriptionClassName="mt-4 !text-sm !leading-6 sm:!text-lg sm:!leading-7"
-      heroSpacingClassName="pt-10 sm:pt-24"
-      titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
-    >
+    <main className="fanletter-v2-surface min-h-screen bg-[#f6f8f4] text-black">
+      <div className="px-4 pt-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[92rem]">
+          <FanletterPrimaryHeader
+            current="feed"
+            locale={locale}
+            referralCode={referralCode}
+          />
+          <div className="mt-8 sm:mt-12">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
+              {copy.feed.eyebrow}
+            </p>
+            <h1 className="mt-3 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-black [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+              {locale === "ko"
+                ? "AIAVpark AI 캐릭터 브이로그 피드"
+                : "AIAVpark AI Character Vlog Feed"}
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-black/60 [word-break:keep-all] sm:text-lg sm:leading-7">
+              {copy.feed.title}
+            </p>
+          </div>
+        </div>
+      </div>
       <section className="overflow-hidden bg-[#f6f8f4] px-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <FanletterChannelSectionTabs
@@ -6355,7 +6368,7 @@ export function FanletterFeedPage({
           />
         </div>
       </section>
-    </FanletterShell>
+    </main>
   );
 }
 
