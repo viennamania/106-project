@@ -1471,6 +1471,10 @@ export function FanletterHomePage({
 }) {
   const copy = getFanletterCopy(locale);
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const feedHref = buildPathWithReferral(
+    `/${locale}/fanletter/feed`,
+    referralCode,
+  );
   const topGrowingStarsHref = buildPathWithReferral(
     `/${locale}/fanletter/discovery`,
     referralCode,
@@ -1637,6 +1641,12 @@ export function FanletterHomePage({
                 href={topGrowingStarsHref}
               >
                 {getFanletterNavLabels(locale).browse}
+              </Link>
+              <Link
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                href={feedHref}
+              >
+                {getFanletterNavLabels(locale).feed}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
