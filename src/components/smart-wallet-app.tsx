@@ -292,12 +292,13 @@ function getActivationHubCopy(locale: Locale) {
       pendingMessage: "10 USDT 결제 확인이 끝나면 추천 코드와 포인트 관리가 열립니다.",
       pointsDescription: "추천 보상 포인트와 교환 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
-      pointsMetricPrefix: "추천 보상",
+      pointsMetricPrefix: "사용 가능",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
       readyMessage: "가입이 완료되었습니다. 필요한 메뉴에서 다음 행동을 선택하세요.",
+      recommendedLabel: "먼저 확인",
       secondaryLabel: "서비스 메뉴",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
@@ -348,12 +349,13 @@ function getActivationHubCopy(locale: Locale) {
     pendingMessage: "After the 10 USDT payment is verified, referral code and points management open.",
     pointsDescription: "Review referral reward points and redemption history.",
     pointsLabel: "Points",
-    pointsMetricPrefix: "Referral reward",
+    pointsMetricPrefix: "Available",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
     readyMessage: "Signup is complete. Choose the next action from the menu.",
+    recommendedLabel: "Start here",
     secondaryLabel: "Service menu",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
@@ -2616,6 +2618,7 @@ function ActivationServiceHub({
   ];
   const actionItems = [
     {
+      badge: copy.recommendedLabel,
       description: copy.networkDescription,
       href: activateNetworkHref,
       icon: "network" as const,
@@ -2782,6 +2785,7 @@ function ActivationServiceHub({
               <div className="mt-4 grid gap-2">
                 {actionItems.map((item, index) => (
                   <ServiceHubCard
+                    badgeLabel={item.badge}
                     description={item.description}
                     featured={index === 0}
                     href={item.href}
@@ -2830,6 +2834,7 @@ function ActivationServiceHub({
 }
 
 function ServiceHubCard({
+  badgeLabel,
   description,
   featured = false,
   href,
@@ -2838,6 +2843,7 @@ function ServiceHubCard({
   metric,
   title,
 }: {
+  badgeLabel?: string;
   description: string;
   featured?: boolean;
   href: string;
@@ -2893,6 +2899,16 @@ function ServiceHubCard({
           >
             {title}
           </span>
+          {badgeLabel ? (
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                featured ? "bg-white text-zinc-950" : "bg-zinc-950 text-white",
+              )}
+            >
+              {badgeLabel}
+            </span>
+          ) : null}
           <span
             className={cn(
               "max-w-[92px] shrink-0 truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[120px] sm:px-2.5 sm:py-1 sm:text-xs",
