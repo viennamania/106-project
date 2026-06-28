@@ -435,6 +435,40 @@ export function RewardsPage({
 
     return accumulator;
   }, {});
+  const rewardsActionCopy = getRewardsActionCopy(locale);
+  const nextRedeemableReward = state.catalog.find((reward) => {
+    if (state.summary.spendablePoints < reward.costPoints) {
+      return false;
+    }
+
+    return (
+      isRepeatableRewardCatalogId(reward.rewardId) ||
+      !latestRedemptionsByReward[reward.rewardId]
+    );
+  });
+  const nearestLockedReward = state.catalog
+    .filter((reward) => state.summary.spendablePoints < reward.costPoints)
+    .sort((first, second) => first.costPoints - second.costPoints)[0];
+  const nextRewardTitle = nextRedeemableReward
+    ? getRewardTitle(nextRedeemableReward.rewardId, dictionary)
+    : nearestLockedReward
+      ? getRewardTitle(nearestLockedReward.rewardId, dictionary)
+      : null;
+  const nextRewardPointGap = nearestLockedReward
+    ? Math.max(0, nearestLockedReward.costPoints - state.summary.spendablePoints)
+    : 0;
+  const rewardPrimaryAction =
+    activeMember && activeMember.status !== "completed"
+      ? rewardsActionCopy.completeSignup
+      : nextRedeemableReward
+        ? rewardsActionCopy.redeemReady(nextRewardTitle ?? "")
+        : nearestLockedReward
+          ? rewardsActionCopy.needMorePoints(
+              nextRewardTitle ?? "",
+              formatNumber(nextRewardPointGap, locale),
+            )
+          : rewardsActionCopy.reviewHistory;
+
   function handleRedeemReward(rewardId: RewardCatalogId) {
     const reward = state.catalog.find((item) => item.rewardId === rewardId);
 
@@ -726,6 +760,11 @@ export function RewardsPage({
                       value={nextTierStatusLabel}
                     />
                   </div>
+
+                  <RewardActionRail
+                    copy={rewardsActionCopy}
+                    primaryAction={rewardPrimaryAction}
+                  />
 
                   <div className="mt-3 hidden gap-3 xl:grid xl:grid-cols-2">
                     <MiniStat
@@ -1219,6 +1258,50 @@ function DialogMetric({ label, value }: { label: string; value: string }) {
         {label}
       </p>
       <p className="mt-1.5 truncate text-sm font-semibold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function RewardActionRail({
+  copy,
+  primaryAction,
+}: {
+  copy: ReturnType<typeof getRewardsActionCopy>;
+  primaryAction: string;
+}) {
+  return (
+    <div className="mt-4 rounded-[22px] border border-white/12 bg-white/[0.08] p-3 sm:mt-5 sm:rounded-[24px] sm:p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/55 sm:text-xs sm:tracking-[0.24em]">
+            {copy.nextActionLabel}
+          </p>
+          <p className="mt-1 break-keep text-sm font-semibold leading-5 text-white sm:text-base">
+            {primaryAction}
+          </p>
+        </div>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/14 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/82">
+          <Sparkles className="size-3.5" />
+          {copy.recordLabel}
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {copy.steps.map((step, index) => (
+          <div
+            className="min-w-0 rounded-2xl border border-white/10 bg-black/16 px-3 py-2.5"
+            key={step}
+          >
+            <div className="flex items-center gap-2">
+              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[0.62rem] font-semibold text-slate-950">
+                {index + 1}
+              </span>
+              <span className="min-w-0 truncate text-xs font-medium text-white/78">
+                {step}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2233,6 +2316,58 @@ function getRewardPointContextCopy(locale: Locale) {
     nextTierHint: "Target for the next member tier",
     nextTierNeeded: (tier: string, points: string) => `${points}P to ${tier}`,
     spendableHint: "Balance you can redeem now",
+  };
+}
+
+function getRewardsActionCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      completeSignup: "가입 상태를 먼저 완료하면 리워드를 사용할 수 있습니다",
+      needMorePoints: (reward: string, points: string) =>
+        `${reward}까지 ${points}P 더 모으면 됩니다`,
+      nextActionLabel: "다음 행동",
+      recordLabel: "교환 기록 생성",
+      redeemReady: (reward: string) => `${reward} 교환 가능`,
+      reviewHistory: "현재 포인트와 교환 기록을 확인하세요",
+      steps: ["포인트 확인", "리워드 선택", "교환 기록"],
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      completeSignup: "登録状態を完了するとリワードを利用できます",
+      needMorePoints: (reward: string, points: string) =>
+        `${reward}まであと${points}P`,
+      nextActionLabel: "次のアクション",
+      recordLabel: "交換記録を作成",
+      redeemReady: (reward: string) => `${reward}を交換できます`,
+      reviewHistory: "ポイントと交換履歴を確認してください",
+      steps: ["ポイント確認", "リワード選択", "交換記録"],
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      completeSignup: "完成注册状态后即可使用奖励",
+      needMorePoints: (reward: string, points: string) =>
+        `距离 ${reward} 还需 ${points}P`,
+      nextActionLabel: "下一步",
+      recordLabel: "生成兑换记录",
+      redeemReady: (reward: string) => `可兑换 ${reward}`,
+      reviewHistory: "请查看积分与兑换记录",
+      steps: ["确认积分", "选择奖励", "兑换记录"],
+    };
+  }
+
+  return {
+    completeSignup: "Complete signup before using rewards",
+    needMorePoints: (reward: string, points: string) =>
+      `${points}P more to ${reward}`,
+    nextActionLabel: "Next action",
+    recordLabel: "Redemption record",
+    redeemReady: (reward: string) => `${reward} is ready`,
+    reviewHistory: "Review your points and redemption history",
+    steps: ["Check points", "Choose reward", "Record redemption"],
   };
 }
 
