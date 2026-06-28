@@ -26,6 +26,7 @@ import {
   HumanMemberAvatar,
   MemberPortfolio,
 } from "@/components/fanletter-founder-club-v2";
+import { pickFanletterCopy } from "@/lib/fanletter-i18n";
 import type { Locale } from "@/lib/i18n";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
@@ -57,7 +58,7 @@ function isKorean(locale: Locale) {
   return locale === "ko";
 }
 
-function getCopy(locale: Locale) {
+function getBaseCopy(locale: Locale) {
   if (isKorean(locale)) {
     return {
       back: "FanLetter 홈",
@@ -212,6 +213,179 @@ function getCopy(locale: Locale) {
       founderHint: "Joined networks",
       label: "Relationship view",
     },
+  };
+}
+
+// Localize the high-visibility structural strings (hero, relationship-view tabs, share
+// section, metric labels, relation links) to ja/zh/vi/id on top of the ko/en base.
+// The dynamic signpost (functions) + myAiEntry stay on the English fallback. Drafts —
+// native review required; financial concepts (CP) keep their term, just translated.
+function getCopy(locale: Locale) {
+  const base = getBaseCopy(locale);
+  return {
+    ...base,
+    heroEyebrow: pickFanletterCopy(locale, {
+      en: "Creator Club",
+      ko: "크리에이터 클럽",
+      ja: "クリエイタークラブ",
+      zh: "创作者俱乐部",
+      vi: "Câu lạc bộ Creator",
+      id: "Klub Kreator",
+    }),
+    heroTitle: pickFanletterCopy(locale, {
+      en: "My FanLetter Portfolio",
+      ko: "내 FanLetter 포트폴리오",
+      ja: "マイFanLetterポートフォリオ",
+      zh: "我的 FanLetter 作品集",
+      vi: "Danh mục FanLetter của tôi",
+      id: "Portofolio FanLetter Saya",
+    }),
+    heroBody: pickFanletterCopy(locale, {
+      en: "Separate the AI Stars you operate from the Creator Networks you participate in, then choose the next action.",
+      ko: "내가 운영하는 AI 스타와 참여 중인 크리에이터 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
+      ja: "運営するAIスターと参加中のクリエイターネットワークを分けて確認し、次のアクションを選びましょう。",
+      zh: "区分你运营的 AI 明星和你参与的创作者网络，然后选择下一步。",
+      vi: "Tách riêng các AI Star bạn vận hành và Mạng lưới Creator bạn tham gia, rồi chọn hành động tiếp theo.",
+      id: "Pisahkan AI Star yang Anda kelola dari Jaringan Kreator yang Anda ikuti, lalu pilih tindakan berikutnya.",
+    }),
+    shareSectionEyebrow: pickFanletterCopy(locale, {
+      en: "Referral Manager",
+      ko: "추천 관리",
+      ja: "リファラル管理",
+      zh: "推荐管理",
+      vi: "Quản lý giới thiệu",
+      id: "Manajemen rujukan",
+    }),
+    shareSectionTitle: pickFanletterCopy(locale, {
+      en: "AI Star Referral Links",
+      ko: "AI 스타별 추천 링크",
+      ja: "AIスター別リファラルリンク",
+      zh: "各 AI 明星推荐链接",
+      vi: "Liên kết giới thiệu theo AI Star",
+      id: "Tautan rujukan per AI Star",
+    }),
+    universeCta: pickFanletterCopy(locale, {
+      en: "View AI Star Universe",
+      ko: "AI 스타 유니버스 보기",
+      ja: "AIスターユニバースを見る",
+      zh: "查看 AI 明星宇宙",
+      vi: "Xem AI Star Universe",
+      id: "Lihat AI Star Universe",
+    }),
+    creatorUnlock: pickFanletterCopy(locale, {
+      en: "Creator Permission",
+      ko: "크리에이터 권한 활성화",
+      ja: "クリエイター権限の有効化",
+      zh: "创作者权限激活",
+      vi: "Kích hoạt quyền Creator",
+      id: "Aktivasi izin Kreator",
+    }),
+    referralCode: pickFanletterCopy(locale, {
+      en: "Referral Code",
+      ko: "추천 코드",
+      ja: "リファラルコード",
+      zh: "推荐码",
+      vi: "Mã giới thiệu",
+      id: "Kode rujukan",
+    }),
+    shareLink: pickFanletterCopy(locale, {
+      en: "Share Link",
+      ko: "공유 링크",
+      ja: "共有リンク",
+      zh: "分享链接",
+      vi: "Liên kết chia sẻ",
+      id: "Tautan berbagi",
+    }),
+    relationLinks: pickFanletterCopy(locale, {
+      en: { creator: "View operated AI Stars", founder: "View joined networks" },
+      ko: { creator: "운영 AI 스타 보기", founder: "참여 네트워크 보기" },
+      ja: { creator: "運営AIスターを見る", founder: "参加ネットワークを見る" },
+      zh: { creator: "查看运营的 AI 明星", founder: "查看参与的网络" },
+      vi: { creator: "Xem AI Star vận hành", founder: "Xem mạng lưới đã tham gia" },
+      id: { creator: "Lihat AI Star dikelola", founder: "Lihat jaringan diikuti" },
+    }),
+    metrics: pickFanletterCopy(locale, {
+      en: {
+        cp: "Contribution Points",
+        creatorStars: "Creator AI Stars",
+        founderNetworks: "Creator Networks",
+        invites: "Successful Invites",
+      },
+      ko: {
+        cp: "기여 포인트",
+        creatorStars: "운영 AI 스타",
+        founderNetworks: "참여 네트워크",
+        invites: "성공 초대",
+      },
+      ja: {
+        cp: "貢献ポイント",
+        creatorStars: "運営AIスター",
+        founderNetworks: "参加ネットワーク",
+        invites: "成功した招待",
+      },
+      zh: {
+        cp: "贡献点数",
+        creatorStars: "运营 AI 明星",
+        founderNetworks: "参与网络",
+        invites: "成功邀请",
+      },
+      vi: {
+        cp: "Điểm đóng góp",
+        creatorStars: "AI Star vận hành",
+        founderNetworks: "Mạng lưới tham gia",
+        invites: "Lời mời thành công",
+      },
+      id: {
+        cp: "Poin Kontribusi",
+        creatorStars: "AI Star Kreator",
+        founderNetworks: "Jaringan Kreator",
+        invites: "Undangan Berhasil",
+      },
+    }),
+    viewTabs: pickFanletterCopy(locale, {
+      en: {
+        creator: "Creator relationship",
+        creatorHint: "Operated AI Stars",
+        founder: "Fan relationship",
+        founderHint: "Joined networks",
+        label: "Relationship view",
+      },
+      ko: {
+        creator: "운영 관계",
+        creatorHint: "운영 AI 스타",
+        founder: "참여 관계",
+        founderHint: "참여 네트워크",
+        label: "관계 보기",
+      },
+      ja: {
+        creator: "運営の関係",
+        creatorHint: "運営AIスター",
+        founder: "参加の関係",
+        founderHint: "参加ネットワーク",
+        label: "関係の表示",
+      },
+      zh: {
+        creator: "运营关系",
+        creatorHint: "运营 AI 明星",
+        founder: "参与关系",
+        founderHint: "参与网络",
+        label: "关系视图",
+      },
+      vi: {
+        creator: "Quan hệ vận hành",
+        creatorHint: "AI Star vận hành",
+        founder: "Quan hệ tham gia",
+        founderHint: "Mạng lưới tham gia",
+        label: "Xem quan hệ",
+      },
+      id: {
+        creator: "Hubungan operasi",
+        creatorHint: "AI Star dikelola",
+        founder: "Hubungan partisipasi",
+        founderHint: "Jaringan diikuti",
+        label: "Tampilan hubungan",
+      },
+    }),
   };
 }
 
