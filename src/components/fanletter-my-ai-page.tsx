@@ -36,7 +36,7 @@ function formatNumber(value: number, locale: Locale) {
   );
 }
 
-function getCopy(locale: Locale) {
+function getBaseCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       aiStar: "AI STAR",
@@ -200,6 +200,112 @@ function getCopy(locale: Locale) {
     tiktokTestSteps: ["Confirm handle", "Mock connect", "Review reputation"],
     viewReputation: "View Reputation Records",
     viewUniverse: "View AI Star Universe",
+  };
+}
+
+// Localize the high-visibility structural strings (hero + section titles + empty state)
+// to ja/zh/vi/id on top of the ko/en base. Long prose + financial copy (CP, etc.) stay
+// on the English fallback pending native review. Drafts — native review required.
+function getCopy(locale: Locale) {
+  const base = getBaseCopy(locale);
+  return {
+    ...base,
+    heroEyebrow: pickFanletterCopy(locale, {
+      en: "My AI",
+      ko: "내 AI",
+      ja: "マイAI",
+      zh: "我的 AI",
+      vi: "AI của tôi",
+      id: "AI Saya",
+    }),
+    heroTitle: pickFanletterCopy(locale, {
+      en: "AI Stars I operate",
+      ko: "내가 운영하는 AI 스타",
+      ja: "私が運営するAIスター",
+      zh: "我运营的 AI 明星",
+      vi: "AI Star tôi vận hành",
+      id: "AI Star yang saya kelola",
+    }),
+    heroBody: pickFanletterCopy(locale, {
+      en: base.heroBody,
+      ko: base.heroBody,
+      ja: "マイAIは個人会員アカウントではなく、AIスターごとの運営チャンネルです。TikTok連携・コンテンツ準備・アクティビティ記録を一画面で確認できます。",
+      zh: "我的 AI 不是个人会员账户，而是每个 AI 明星的运营频道。在一个界面查看 TikTok 连接、内容准备与活动记录。",
+      vi: "AI của tôi không phải tài khoản thành viên cá nhân mà là kênh vận hành riêng cho từng AI Star. Xem kết nối TikTok, chuẩn bị nội dung và nhật ký hoạt động trong một màn hình.",
+      id: "AI Saya bukan akun anggota pribadi, melainkan saluran operasi khusus tiap AI Star. Lihat koneksi TikTok, kesiapan konten, dan catatan aktivitas dalam satu layar.",
+    }),
+    overviewTitle: pickFanletterCopy(locale, {
+      en: "Operating Summary",
+      ko: "운영 요약",
+      ja: "運営サマリー",
+      zh: "运营摘要",
+      vi: "Tóm tắt vận hành",
+      id: "Ringkasan operasi",
+    }),
+    relationTitle: pickFanletterCopy(locale, {
+      en: "Relationship Split",
+      ko: "관계 구분",
+      ja: "関係の区分",
+      zh: "关系区分",
+      vi: "Phân loại quan hệ",
+      id: "Jenis hubungan",
+    }),
+    queueTitle: pickFanletterCopy(locale, {
+      en: "Next Action Queue",
+      ko: "다음 행동 대기열",
+      ja: "次のアクション待ち",
+      zh: "下一步队列",
+      vi: "Hàng đợi hành động tiếp theo",
+      id: "Antrean tindakan berikutnya",
+    }),
+    tiktokFocusTitle: pickFanletterCopy(locale, {
+      en: "TikTok Next Action",
+      ko: "TikTok 다음 행동",
+      ja: "TikTok 次のアクション",
+      zh: "TikTok 下一步",
+      vi: "Hành động TikTok tiếp theo",
+      id: "Tindakan TikTok berikutnya",
+    }),
+    founderNetworks: pickFanletterCopy(locale, {
+      en: "Joined Creator Networks",
+      ko: "참여 중인 크리에이터 네트워크",
+      ja: "参加中のクリエイターネットワーク",
+      zh: "已加入的创作者网络",
+      vi: "Mạng lưới Creator đã tham gia",
+      id: "Jaringan Kreator yang diikuti",
+    }),
+    contextAssetTitle: pickFanletterCopy(locale, {
+      en: "Context Asset",
+      ko: "맥락 자산",
+      ja: "コンテキスト資産",
+      zh: "上下文资产",
+      vi: "Tài sản ngữ cảnh",
+      id: "Aset konteks",
+    }),
+    selectedAiStar: pickFanletterCopy(locale, {
+      en: "Selected AI Star",
+      ko: "선택 AI 스타",
+      ja: "選択中のAIスター",
+      zh: "已选 AI 明星",
+      vi: "AI Star đã chọn",
+      id: "AI Star terpilih",
+    }),
+    emptyTitle: pickFanletterCopy(locale, {
+      en: "No operated AI Stars yet",
+      ko: "운영 중인 AI 스타가 없습니다",
+      ja: "運営中のAIスターはまだありません",
+      zh: "暂无运营中的 AI 明星",
+      vi: "Chưa có AI Star nào đang vận hành",
+      id: "Belum ada AI Star yang dikelola",
+    }),
+    emptyCta: pickFanletterCopy(locale, {
+      en: "View Creator Permission",
+      ko: "크리에이터 권한 활성화 보기",
+      ja: "クリエイター権限の有効化を見る",
+      zh: "查看创作者权限激活",
+      vi: "Xem kích hoạt quyền Creator",
+      id: "Lihat aktivasi izin Kreator",
+    }),
   };
 }
 
