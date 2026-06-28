@@ -1756,6 +1756,17 @@ function SelectedMemberCard({
   serviceStatusUpdate: ServiceStatusUpdateState;
 }) {
   const isServiceSuspended = Boolean(member.serviceSuspendedAt);
+  const summaryCopy = getSelectedMemberSummaryCopy(locale);
+  const aiStarStatus = member.ownedAIStar
+    ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
+    : summaryCopy.aiStarPending;
+  const networkPosition =
+    locale === "ko"
+      ? `${member.depth}단계 · 직접 ${formatInteger(member.directReferralCount, locale)}명`
+      : `Level ${formatInteger(member.depth, locale)} · ${formatInteger(member.directReferralCount, locale)} direct`;
+  const nextCheck = member.ownedAIStar
+    ? summaryCopy.nextCheckContent
+    : summaryCopy.nextCheckProfile;
 
   return (
     <div className={cn("mt-5 space-y-4", className)}>
@@ -1788,6 +1799,21 @@ function SelectedMemberCard({
             label={dictionary.activateNetworkPage.labels.spendablePoints}
             locale={locale}
             value={`${formatInteger(member.spendablePoints, locale)}P`}
+          />
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <MemberSignalCard
+            label={summaryCopy.positionLabel}
+            value={networkPosition}
+          />
+          <MemberSignalCard
+            label={summaryCopy.aiStarLabel}
+            value={aiStarStatus}
+          />
+          <MemberSignalCard
+            label={summaryCopy.nextCheckLabel}
+            value={nextCheck}
           />
         </div>
       </div>
@@ -2611,6 +2637,25 @@ function DarkMetric({
   );
 }
 
+function MemberSignalCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-[18px] border border-white/10 bg-black/18 px-3 py-3">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/38">
+        {label}
+      </p>
+      <p className="mt-1.5 line-clamp-2 break-keep text-xs font-semibold leading-5 text-white/82 [word-break:keep-all]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function InfoCard({
   className,
   label,
@@ -2808,6 +2853,28 @@ function getMemberAIStarCopy(locale: Locale) {
     listHint: "Generated after signup",
     scoreLabel: "Star score",
     sourceLabel: "Source",
+  };
+}
+
+function getSelectedMemberSummaryCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStarLabel: "AI 스타",
+      aiStarPending: "가입 후 생성 정보 대기",
+      nextCheckContent: "콘텐츠와 포인트 이력 확인",
+      nextCheckLabel: "다음 확인",
+      nextCheckProfile: "AI 스타 프로필 연결 확인",
+      positionLabel: "네트워크 위치",
+    };
+  }
+
+  return {
+    aiStarLabel: "AI Star",
+    aiStarPending: "Generated profile pending",
+    nextCheckContent: "Review content and points history",
+    nextCheckLabel: "Next check",
+    nextCheckProfile: "Confirm AI Star profile link",
+    positionLabel: "Network position",
   };
 }
 
