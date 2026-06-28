@@ -923,7 +923,7 @@ export function FanletterFounderClubPage({
                   <p className="text-sm font-semibold text-black/52">
                     {isMyAiEntry ? copy.myAiEntry.pill : copy.heroEyebrow}
                   </p>
-                  <h1 className="text-[2.35rem] font-semibold leading-none tracking-normal text-black [word-break:keep-all] sm:text-[4rem]">
+                  <h1 className="text-[1.9rem] font-semibold leading-[1.05] tracking-normal text-black [word-break:keep-all] sm:text-[4rem] sm:leading-none">
                     {isMyAiEntry ? copy.myAiEntry.title : copy.heroTitle}
                   </h1>
                 </div>

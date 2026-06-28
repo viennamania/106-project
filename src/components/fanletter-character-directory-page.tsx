@@ -853,7 +853,7 @@ export function FanletterCharacterDirectoryPage({
             </p>
           </div>
 
-          <div className="grid gap-2 rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_18px_52px_rgba(8,18,12,0.06)] sm:grid-cols-3 lg:grid-cols-1">
+          <div className="grid grid-cols-2 gap-2 rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_18px_52px_rgba(8,18,12,0.06)] sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-2xl bg-[#44f26e] px-4 py-3 text-black sm:col-span-3 lg:col-span-1">
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] opacity-70">
                 {copy.stats.totalCharacters}
