@@ -3064,49 +3064,49 @@ function getNetworkSummaryHintCopy(locale: Locale) {
     en: {
       contentBonus: "Points from content activity in this network",
       directMembers: "Members directly invited by this account",
-      lifetime: "All points accumulated by the downline",
+      lifetime: "Tier lifetime points accumulated by the downline",
       referralRewards: "Rewards earned from referral signups",
-      spendable: "Redeemable points held by the downline",
+      spendable: "Redeemable balances currently held by the downline",
       totalMembers: "Completed members in this downline",
     },
     id: {
       contentBonus: "Poin dari aktivitas konten di jaringan ini",
       directMembers: "Member yang diundang langsung oleh akun ini",
-      lifetime: "Semua poin yang dikumpulkan downline",
+      lifetime: "Akumulasi poin untuk level anggota di downline",
       referralRewards: "Reward dari pendaftaran referral",
-      spendable: "Poin redeemable yang dimiliki downline",
+      spendable: "Saldo poin yang bisa ditukar oleh downline",
       totalMembers: "Member selesai di downline ini",
     },
     ja: {
       contentBonus: "このネットワークのコンテンツ活動ポイント",
       directMembers: "このアカウントが直接招待した会員",
-      lifetime: "下位ネットワークが累計した全ポイント",
+      lifetime: "下位会員のランク計算用累積ポイント",
       referralRewards: "紹介登録から発生した報酬ポイント",
-      spendable: "下位会員が現在利用できるポイント",
+      spendable: "下位会員が現在交換に使える残高",
       totalMembers: "この下位ネットワークの完了会員",
     },
     ko: {
       contentBonus: "콘텐츠 활동으로 받은 포인트",
       directMembers: "이 계정이 직접 초대한 회원",
-      lifetime: "하위 전체가 누적한 모든 포인트",
+      lifetime: "하위 회원의 등급 기준 누적 포인트",
       referralRewards: "추천 가입으로 받은 보상",
-      spendable: "하위 회원이 지금 쓸 수 있는 포인트",
+      spendable: "하위 회원이 지금 교환에 쓸 수 있는 포인트",
       totalMembers: "이 계정 아래 가입 완료 회원",
     },
     vi: {
       contentBonus: "Điểm từ hoạt động nội dung trong mạng này",
       directMembers: "Thành viên được tài khoản này mời trực tiếp",
-      lifetime: "Tổng điểm mà tuyến dưới đã tích lũy",
+      lifetime: "Điểm tích lũy dùng để tính hạng của tuyến dưới",
       referralRewards: "Điểm thưởng từ đăng ký giới thiệu",
-      spendable: "Điểm có thể dùng của tuyến dưới",
+      spendable: "Số dư điểm có thể đổi của tuyến dưới",
       totalMembers: "Thành viên đã hoàn tất trong tuyến dưới",
     },
     zh: {
       contentBonus: "此网络中的内容活动积分",
       directMembers: "此账号直接邀请的会员",
-      lifetime: "下级网络累计的全部积分",
+      lifetime: "下级会员用于等级计算的累计积分",
       referralRewards: "推荐注册产生的奖励积分",
-      spendable: "下级会员当前可用积分",
+      spendable: "下级会员当前可兑换的积分余额",
       totalMembers: "此下级网络中已完成会员",
     },
   } satisfies Record<
@@ -3142,28 +3142,28 @@ function getMemberSortCopy(locale: Locale) {
 function getMemberPointChipCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      lifetime: "누적",
-      spendable: "사용 가능",
+      lifetime: "등급 누적",
+      spendable: "교환 가능",
     };
   }
 
   if (locale === "ja") {
     return {
-      lifetime: "累計",
-      spendable: "利用可能",
+      lifetime: "ランク累積",
+      spendable: "交換可能",
     };
   }
 
   if (locale === "zh") {
     return {
-      lifetime: "累计",
-      spendable: "可用",
+      lifetime: "等级累计",
+      spendable: "可兑换",
     };
   }
 
   return {
-    lifetime: "Total",
-    spendable: "Spendable",
+    lifetime: "Tier total",
+    spendable: "Redeemable",
   };
 }
 
@@ -3200,12 +3200,12 @@ function getMemberSortOptions(locale: Locale) {
     {
       defaultDirection: "desc",
       key: "lifetimePoints",
-      label: isKorean ? "누적 포인트" : "Lifetime points",
+      label: isKorean ? "등급 누적 P" : "Tier lifetime",
     },
     {
       defaultDirection: "desc",
       key: "spendablePoints",
-      label: isKorean ? "사용 가능 P" : "Spendable",
+      label: isKorean ? "교환 가능 P" : "Redeemable",
     },
     {
       defaultDirection: "desc",
