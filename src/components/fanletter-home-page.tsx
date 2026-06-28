@@ -1637,31 +1637,31 @@ export function FanletterHomePage({
               className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
             >
               <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
                 {getFanletterNavLabels(locale).browse}
               </Link>
               <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={feedHref}
               >
                 {getFanletterNavLabels(locale).feed}
               </Link>
               <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={myAiHref}
               >
                 {getFanletterNavLabels(locale).myStars}
               </Link>
               <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={founderClubHref}
               >
                 {getFanletterNavLabels(locale).club}
               </Link>
               <Link
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={createHref}
               >
                 {getFanletterNavLabels(locale).create}

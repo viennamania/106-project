@@ -29,8 +29,8 @@ export function FanletterPrimaryHeader({
 }) {
   const navItemClassName = (active: boolean) =>
     active
-      ? "inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
-      : "inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black";
+      ? "inline-flex min-h-8 items-center whitespace-nowrap rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+      : "inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3 transition hover:bg-zinc-100 hover:text-black";
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const discoveryHref = buildPathWithReferral(
     `/${locale}/fanletter/discovery`,
