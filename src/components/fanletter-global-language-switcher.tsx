@@ -76,7 +76,10 @@ export function FanletterGlobalLanguageSwitcher({
         <div
           className={cn(
             "hidden min-w-0 items-center gap-2 pl-3 pr-1",
-            !tight && (compact ? "xl:flex" : "lg:flex"),
+            // Verbose "글로벌 서비스 / N개 언어 지원" block only at xl — at lg the
+            // full primary nav + account already fill the row, so showing it
+            // there squeezed the nav chips (word-broke labels) and wordmark.
+            !tight && "xl:flex",
           )}
         >
           <span
