@@ -1810,8 +1810,8 @@ function SelectedMemberCard({
     : summaryCopy.aiStarPending;
   const networkPosition =
     locale === "ko"
-      ? `${member.depth}단계 · 직접 ${formatInteger(member.directReferralCount, locale)}명`
-      : `Level ${formatInteger(member.depth, locale)} · ${formatInteger(member.directReferralCount, locale)} direct`;
+      ? `${member.depth}단계 · 직접 ${formatInteger(member.directReferralCount, locale)}명 · 전체 ${formatInteger(member.totalReferralCount, locale)}명`
+      : `Level ${formatInteger(member.depth, locale)} · ${formatInteger(member.directReferralCount, locale)} direct · ${formatInteger(member.totalReferralCount, locale)} network`;
   const nextCheck = member.ownedAIStar
     ? summaryCopy.nextCheckContent
     : summaryCopy.nextCheckProfile;
@@ -2154,7 +2154,7 @@ function MemberListContextGrid({
     : copy.aiStarPending;
 
   return (
-    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div className="mt-3 grid grid-cols-2 gap-2">
       <MemberListContextItem
         active={active}
         label={copy.joinedAtLabel}
@@ -2167,7 +2167,11 @@ function MemberListContextGrid({
       />
       <MemberListContextItem
         active={active}
-        className="col-span-2 sm:col-span-1"
+        label={copy.totalLabel}
+        value={`${formatInteger(member.totalReferralCount, locale)}${copy.memberSuffix}`}
+      />
+      <MemberListContextItem
+        active={active}
         label={copy.aiStarLabel}
         value={starValue}
       />
@@ -3055,6 +3059,7 @@ function getMemberListContextCopy(locale: Locale) {
       directLabel: "직접 하위",
       joinedAtLabel: "가입일",
       memberSuffix: "명",
+      totalLabel: "전체 하위",
     };
   }
 
@@ -3065,6 +3070,7 @@ function getMemberListContextCopy(locale: Locale) {
       directLabel: "直接下位",
       joinedAtLabel: "登録日",
       memberSuffix: "名",
+      totalLabel: "全体下位",
     };
   }
 
@@ -3075,6 +3081,7 @@ function getMemberListContextCopy(locale: Locale) {
       directLabel: "直属下级",
       joinedAtLabel: "注册日期",
       memberSuffix: "人",
+      totalLabel: "全部下级",
     };
   }
 
@@ -3085,6 +3092,7 @@ function getMemberListContextCopy(locale: Locale) {
       directLabel: "Trực tiếp",
       joinedAtLabel: "Ngày tham gia",
       memberSuffix: " người",
+      totalLabel: "Toàn mạng",
     };
   }
 
@@ -3095,6 +3103,7 @@ function getMemberListContextCopy(locale: Locale) {
       directLabel: "Langsung",
       joinedAtLabel: "Tanggal gabung",
       memberSuffix: " anggota",
+      totalLabel: "Jaringan",
     };
   }
 
@@ -3104,6 +3113,7 @@ function getMemberListContextCopy(locale: Locale) {
     directLabel: "Direct",
     joinedAtLabel: "Joined",
     memberSuffix: "",
+    totalLabel: "Network",
   };
 }
 
