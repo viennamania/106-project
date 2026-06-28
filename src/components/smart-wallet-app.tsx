@@ -194,7 +194,7 @@ function getActivationSeparationCopy(locale: Locale) {
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "가입과 10 USDT 확인이 완료되었습니다. 필요한 메뉴에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
+        "가입과 10 USDT 확인이 완료되었습니다. 다음 행동에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
@@ -212,14 +212,14 @@ function getActivationSeparationCopy(locale: Locale) {
         "회원 정보에는 가입 완료와 지갑 연결 상태만 표시합니다.",
       memberPanelTitle: "가입 상태",
       separationDescription:
-        "필요한 메뉴를 먼저 보여주고, 보상과 콘텐츠 작업은 각 메뉴에서 이어집니다.",
+        "지금 할 일을 먼저 보여주고, 보상과 콘텐츠 작업은 각 전용 화면에서 이어집니다.",
       separationLabel: "운영 원칙",
       separationPoints: [
         "상태 확인",
         "메뉴 이동",
         "보상 관리",
       ],
-      separationTitle: "지금 필요한 메뉴만 보여줍니다",
+      separationTitle: "지금 할 일만 먼저 보여줍니다",
     };
   }
 
@@ -230,7 +230,7 @@ function getActivationSeparationCopy(locale: Locale) {
     activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "Signup and the 10 USDT check are complete. Use the menu to manage referrals, points, wallet, and your AI Star.",
+      "Signup and the 10 USDT check are complete. Use next actions to manage referrals, points, wallet, and your AI Star.",
     coreStatusTitle: "Signup complete",
     growthDescription:
       "Review referral points and reward history in Points.",
@@ -248,14 +248,14 @@ function getActivationSeparationCopy(locale: Locale) {
       "Member information shows signup completion and wallet connection only.",
     memberPanelTitle: "Signup status",
     separationDescription:
-      "Useful menus come first. Rewards and content work continue in their own menus.",
+      "Next actions come first. Rewards and content work continue in their own screens.",
     separationLabel: "Operating rule",
     separationPoints: [
       "Check status",
       "Open menu",
       "Manage rewards",
     ],
-    separationTitle: "Only useful next menus are shown",
+    separationTitle: "Only the next useful actions are shown",
   };
 }
 
