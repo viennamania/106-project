@@ -302,6 +302,10 @@ function getActivationHubCopy(locale: Locale) {
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
       statusTitle: "지금 상태",
+      stateTitleDisconnected: "이메일로 시작하세요",
+      stateTitlePending: "10 USDT 확인 대기",
+      stateTitleReady: "서비스 준비 완료",
+      stateTitleUnavailable: "환경 설정 필요",
       studioDescription: "내 AI 스타 프로필과 콘텐츠 작업을 관리합니다.",
       studioLabel: "스튜디오",
       studioMetric: "이동",
@@ -354,6 +358,10 @@ function getActivationHubCopy(locale: Locale) {
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
     statusTitle: "Current status",
+    stateTitleDisconnected: "Start with email",
+    stateTitlePending: "10 USDT check pending",
+    stateTitleReady: "Service ready",
+    stateTitleUnavailable: "Setup required",
     studioDescription: "Manage your AI Star profile and content work.",
     studioLabel: "Studio",
     studioMetric: "Open",
@@ -2584,6 +2592,13 @@ function ActivationServiceHub({
       : isConnected
         ? copy.pendingMessage
         : copy.disconnectedMessage;
+  const heroTitle = !hasThirdwebClientId
+    ? copy.stateTitleUnavailable
+    : isSignupCompleted
+      ? copy.stateTitleReady
+      : isConnected
+        ? copy.stateTitlePending
+        : copy.stateTitleDisconnected;
   const statusItems = [
     { label: copy.membershipLabel, value: membershipStatus },
     { label: copy.walletLabel, value: walletStatus },
@@ -2603,6 +2618,7 @@ function ActivationServiceHub({
     {
       description: copy.networkDescription,
       href: activateNetworkHref,
+      icon: "network" as const,
       metric:
         locale === "ko"
           ? `${numberFormatter.format(totalReferrals)}명`
@@ -2612,24 +2628,28 @@ function ActivationServiceHub({
     {
       description: copy.pointsDescription,
       href: rewardsHref,
+      icon: "points" as const,
       metric: `${copy.pointsMetricPrefix} ${numberFormatter.format(totalPoints)}P`,
       title: copy.pointsLabel,
     },
     {
       description: assetManagementLocked ? copy.walletDescription : copy.assetDescription,
       href: assetManagementHref,
+      icon: "wallet" as const,
       metric: assetManagementLocked ? copy.disconnected : copy.connected,
       title: copy.assetLabel,
     },
     {
       description: copy.studioDescription,
       href: creatorStudioHref,
+      icon: "studio" as const,
       metric: copy.studioMetric,
       title: copy.studioLabel,
     },
     {
       description: copy.feedDescription,
       href: networkFeedHref,
+      icon: "feed" as const,
       metric: copy.feedMetric,
       title: copy.feedLabel,
     },
@@ -2674,7 +2694,7 @@ function ActivationServiceHub({
                 {copy.statusTitle}
               </p>
               <h2 className="break-keep text-[2.25rem] font-semibold leading-[0.98] tracking-[-0.055em] text-white [word-break:keep-all] sm:text-[3.2rem]">
-                {copy.title}
+                {heroTitle}
               </h2>
               <p className="max-w-md break-keep text-sm leading-6 text-white/62 [word-break:keep-all] sm:text-[0.98rem] sm:leading-7">
                 {statusMessage}
@@ -2763,7 +2783,9 @@ function ActivationServiceHub({
                 {actionItems.map((item, index) => (
                   <ServiceHubCard
                     description={item.description}
+                    featured={index === 0}
                     href={item.href}
+                    icon={item.icon}
                     index={index + 1}
                     key={item.title}
                     metric={item.metric}
@@ -2809,39 +2831,92 @@ function ActivationServiceHub({
 
 function ServiceHubCard({
   description,
+  featured = false,
   href,
+  icon,
   index,
   metric,
   title,
 }: {
   description: string;
+  featured?: boolean;
   href: string;
+  icon: "feed" | "network" | "points" | "studio" | "wallet";
   index: number;
   metric: string;
   title: string;
 }) {
+  const Icon =
+    icon === "network"
+      ? Users
+      : icon === "wallet"
+        ? WalletMinimal
+        : icon === "feed"
+          ? Share2
+          : Sparkles;
+
   return (
     <Link
-      className="group flex min-w-0 items-center gap-3 rounded-[18px] border border-zinc-200 bg-white px-3 py-3 transition hover:border-zinc-300 hover:bg-white sm:px-3.5 sm:py-3.5"
+      className={cn(
+        "group flex min-w-0 items-center gap-3 rounded-[20px] border px-3 py-3 transition duration-200 sm:px-3.5 sm:py-3.5",
+        featured
+          ? "border-zinc-950 bg-zinc-950 text-white shadow-[0_20px_46px_rgba(24,24,27,0.18)] hover:-translate-y-0.5 hover:bg-zinc-900"
+          : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-300 hover:bg-white hover:shadow-[0_14px_30px_rgba(24,24,27,0.06)]",
+      )}
       href={href}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-xs font-semibold text-white sm:size-9">
-        {index}
+      <span
+        className={cn(
+          "relative flex size-10 shrink-0 items-center justify-center rounded-2xl text-xs font-semibold sm:size-11",
+          featured
+            ? "bg-white text-zinc-950"
+            : "bg-zinc-100 text-zinc-950 group-hover:bg-zinc-950 group-hover:text-white",
+        )}
+      >
+        <Icon className="size-4" />
+        <span
+          className={cn(
+            "absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full text-[0.62rem] font-semibold",
+            featured ? "bg-zinc-800 text-white" : "bg-white text-zinc-500",
+          )}
+        >
+          {index}
+        </span>
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-semibold tracking-tight text-zinc-950 sm:text-base">
+          <span
+            className={cn(
+              "truncate text-sm font-semibold tracking-tight sm:text-base",
+              featured ? "text-white" : "text-zinc-950",
+            )}
+          >
             {title}
           </span>
-          <span className="max-w-[92px] shrink-0 truncate rounded-full bg-zinc-100 px-2 py-0.5 text-[0.7rem] font-semibold text-zinc-600 sm:max-w-[120px] sm:px-2.5 sm:py-1 sm:text-xs">
+          <span
+            className={cn(
+              "max-w-[92px] shrink-0 truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[120px] sm:px-2.5 sm:py-1 sm:text-xs",
+              featured ? "bg-white/10 text-white/72" : "bg-zinc-100 text-zinc-600",
+            )}
+          >
             {metric}
           </span>
         </span>
-        <span className="mt-0.5 line-clamp-1 text-[0.72rem] leading-5 text-zinc-500 sm:text-xs">
+        <span
+          className={cn(
+            "mt-0.5 line-clamp-1 text-[0.72rem] leading-5 sm:text-xs",
+            featured ? "text-white/58" : "text-zinc-500",
+          )}
+        >
           {description}
         </span>
       </span>
-      <ArrowUpRight className="size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
+      <ArrowUpRight
+        className={cn(
+          "size-4 shrink-0 transition",
+          featured ? "text-white/55 group-hover:text-white" : "text-zinc-400 group-hover:text-zinc-950",
+        )}
+      />
     </Link>
   );
 }
