@@ -344,10 +344,7 @@ function getPrimaryAction({
       helper: isKorean
         ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 크리에이터 네트워크에 참여하고 내 추천 링크를 생성합니다."
         : "Your account is connected. Join this AI Star Universe Creator Network and create your referral link.",
-      // Use the connect flow (star context + onboarding-kind returnTo) so the join
-      // actually attaches to THIS star — joinHref → /onboarding ignored the star and
-      // dropped the connected member into the generic creator onboarding.
-      href: connectHref,
+      href: joinHref,
       label: isKorean ? "참여하기" : "Join",
       status: isKorean ? "계정 연결됨" : "Account connected",
       variant: "join",
