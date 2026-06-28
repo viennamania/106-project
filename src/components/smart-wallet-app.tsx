@@ -293,6 +293,7 @@ function getActivationHubCopy(locale: Locale) {
       pointsDescription: "추천 보상 포인트와 교환 내역을 확인합니다.",
       pointsLabel: "포인트 관리",
       pointsMetricPrefix: "사용 가능",
+      profileFirstLabel: "프로필 먼저",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
@@ -309,7 +310,8 @@ function getActivationHubCopy(locale: Locale) {
       stateTitleUnavailable: "환경 설정 필요",
       studioDescription: "내 AI 스타 프로필과 콘텐츠 작업을 관리합니다.",
       studioLabel: "스튜디오",
-      studioMetric: "이동",
+      studioProfileMetric: "프로필 확인",
+      studioReadyMetric: "콘텐츠 준비",
       title: "1066FRIEND+ 시작하기",
       walletDescription: "USDT와 BNB 지갑 상태를 봅니다.",
       walletLabel: "내 지갑",
@@ -350,6 +352,7 @@ function getActivationHubCopy(locale: Locale) {
     pointsDescription: "Review referral reward points and redemption history.",
     pointsLabel: "Points",
     pointsMetricPrefix: "Available",
+    profileFirstLabel: "Profile first",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
@@ -366,7 +369,8 @@ function getActivationHubCopy(locale: Locale) {
     stateTitleUnavailable: "Setup required",
     studioDescription: "Manage your AI Star profile and content work.",
     studioLabel: "Studio",
-    studioMetric: "Open",
+    studioProfileMetric: "Check profile",
+    studioReadyMetric: "Content ready",
     title: "Start 1066FRIEND+",
     walletDescription: "Check USDT and BNB wallet status.",
     walletLabel: "My wallet",
@@ -2579,9 +2583,11 @@ function ActivationServiceHub({
           ? copy.pending
           : copy.disconnected;
   const walletStatus = isConnected ? copy.connected : copy.disconnected;
-  const aiStarIpStatus = member?.fanletterStarterStarId
-    ? copy.aiStarIpReady
-    : copy.aiStarIpPending;
+  const hasStarterAIStar = Boolean(member?.fanletterStarterStarId);
+  const aiStarIpStatus = hasStarterAIStar ? copy.aiStarIpReady : copy.aiStarIpPending;
+  const studioHref = hasStarterAIStar ? creatorStudioHref : activateAIStarHref;
+  const studioMetric = hasStarterAIStar ? copy.studioReadyMetric : copy.studioProfileMetric;
+  const studioBadge = hasStarterAIStar ? copy.aiStarIpReady : copy.profileFirstLabel;
   const primaryLabel = !hasThirdwebClientId
     ? copy.primaryUnavailable
     : isConnected
@@ -2643,10 +2649,11 @@ function ActivationServiceHub({
       title: copy.assetLabel,
     },
     {
+      badge: studioBadge,
       description: copy.studioDescription,
-      href: creatorStudioHref,
+      href: studioHref,
       icon: "studio" as const,
-      metric: copy.studioMetric,
+      metric: studioMetric,
       title: copy.studioLabel,
     },
     {
