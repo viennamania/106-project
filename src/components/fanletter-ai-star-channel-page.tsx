@@ -86,15 +86,14 @@ export function FanletterAIStarChannelPage({
     `/${locale}/fanletter/${profile.referralCode}`,
     effectiveReferralCode,
   );
-  // '참여' = fan-join THIS star's network. Route to the connect flow with the star
-  // context (starId resolved from the referral code) + returnTo=/onboarding so the
-  // connect page's founder-onboarding ('{star} 참여를 이어가세요') framing triggers and
-  // the Fan role + referral attribution attach to this star — instead of the generic
-  // creator onboarding, which ignored the star entirely.
-  const founderHref = setPathSearchParams(`/${locale}/fanletter/connect`, {
+  // '참여' = fan-join THIS star's network. The onboarding page is star-aware when given
+  // a starId (renders '{star} 팬으로 참여하기'), but the channel only has the referral
+  // code — resolve it to a starId so onboarding shows the fan-join variant instead of
+  // the generic creator onboarding (consistent with the star-detail join CTA).
+  const founderHref = setPathSearchParams(`/${locale}/fanletter/onboarding`, {
     ref: effectiveReferralCode,
-    returnTo: `/${locale}/fanletter/onboarding`,
-    starId: getLegacyFanletterStarId(profile.referralCode),
+    returnTo: `/${locale}/fanletter/channel/${profile.referralCode}`,
+    star: getLegacyFanletterStarId(profile.referralCode),
   });
   const metrics = [
     {
