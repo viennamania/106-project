@@ -738,12 +738,12 @@ export function RewardsPage({
                   <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
                     <PointContextCard
                       hint={pointContextCopy.spendableHint}
-                      label={dictionary.rewardsPage.labels.spendablePoints}
+                      label={pointContextCopy.spendableLabel}
                       value={formatPoints(state.summary.spendablePoints, locale)}
                     />
                     <PointContextCard
                       hint={pointContextCopy.lifetimeHint}
-                      label={dictionary.rewardsPage.labels.lifetimePoints}
+                      label={pointContextCopy.lifetimeLabel}
                       value={formatPoints(state.summary.lifetimePoints, locale)}
                     />
                     <PointContextCard
@@ -754,8 +754,8 @@ export function RewardsPage({
                       }
                       label={
                         nextTierName
-                          ? dictionary.rewardsPage.labels.nextTier
-                          : dictionary.rewardsPage.labels.currentTier
+                          ? pointContextCopy.nextTierLabel
+                          : pointContextCopy.currentTierLabel
                       }
                       value={nextTierStatusLabel}
                     />
@@ -2386,47 +2386,63 @@ function getTierLabel(tier: PointTier, dictionary: Dictionary) {
 function getRewardPointContextCopy(locale: Locale) {
   if (locale === "ko") {
     return {
+      currentTierLabel: "현재 등급",
       lifetimeHint: "등급 계산에 쓰는 누적 기록",
+      lifetimeLabel: "등급 기준 누적",
       maxTierHint: "현재 최고 등급입니다",
       nextTierHint: "다음 멤버 등급 기준",
+      nextTierLabel: "다음 등급 조건",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier} 등급까지 ${points}P 필요`,
       sourceBreakdownLabel: "포인트 출처",
       spendableHint: "리워드 교환에 바로 쓰는 잔액",
+      spendableLabel: "교환 가능 잔액",
     };
   }
 
   if (locale === "ja") {
     return {
+      currentTierLabel: "現在のランク",
       lifetimeHint: "ランク計算に使う累積記録",
+      lifetimeLabel: "ランク用累積",
       maxTierHint: "現在の最高ランクです",
       nextTierHint: "次のメンバーランク基準",
+      nextTierLabel: "次のランク条件",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier}まであと${points}P`,
       sourceBreakdownLabel: "ポイントの内訳",
       spendableHint: "リワード交換に使える残高",
+      spendableLabel: "交換可能残高",
     };
   }
 
   if (locale === "zh") {
     return {
+      currentTierLabel: "当前等级",
       lifetimeHint: "用于等级计算的累计记录",
+      lifetimeLabel: "等级累计积分",
       maxTierHint: "当前已是最高等级",
       nextTierHint: "下一会员等级目标",
+      nextTierLabel: "下一等级条件",
       nextTierNeeded: (tier: string, points: string) =>
         `距离 ${tier} 还需 ${points}P`,
       sourceBreakdownLabel: "积分来源",
       spendableHint: "可直接兑换奖励的余额",
+      spendableLabel: "可兑换余额",
     };
   }
 
   return {
+    currentTierLabel: "Current tier",
     lifetimeHint: "Lifetime record used for tier",
+    lifetimeLabel: "Tier lifetime total",
     maxTierHint: "You are at the top tier",
     nextTierHint: "Target for the next member tier",
+    nextTierLabel: "Next tier condition",
     nextTierNeeded: (tier: string, points: string) => `${points}P to ${tier}`,
     sourceBreakdownLabel: "Point sources",
     spendableHint: "Balance you can redeem now",
+    spendableLabel: "Redeemable balance",
   };
 }
 
