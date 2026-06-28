@@ -8,10 +8,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
-import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
-import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterStarShareButton } from "@/components/fanletter-star-share-button";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
@@ -22,7 +20,6 @@ import type {
 import { fanletterCharacterDirectorySortOptions } from "@/lib/fanletter-content-service";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import type { Locale } from "@/lib/i18n";
-import { getFanletterNavLabels } from "@/lib/fanletter-nav-labels";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -375,105 +372,6 @@ function getCharactersHref({
       q: query,
       sort: sort && sort !== "featured" ? sort : null,
     },
-  );
-}
-
-function DirectoryHeader({
-  locale,
-  referralCode,
-  routePath,
-}: {
-  locale: Locale;
-  referralCode: string | null;
-  routePath: string;
-}) {
-  const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
-  const feedHref = buildPathWithReferral(
-    `/${locale}/fanletter/feed`,
-    referralCode,
-  );
-  const discoveryHref = getCharactersHref({ referralCode, routePath });
-  const myAiHref = buildPathWithReferral(
-    `/${locale}/fanletter/my-ai`,
-    referralCode,
-  );
-  const founderClubHref = buildPathWithReferral(
-    `/${locale}/fanletter/founder-club`,
-    referralCode,
-  );
-  // '만들기' tab → creator activation hub (creator-unlock); hub links to /create.
-  const createHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator-unlock`,
-    referralCode,
-  );
-
-  return (
-    <header className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
-      <Link className="flex min-h-11 min-w-0 items-center gap-2" href={homeHref}>
-        <FanletterBrandMark className="size-9 shrink-0" />
-        <span className="hidden truncate text-xl font-semibold tracking-tight text-black sm:inline">
-          AIAVpark
-        </span>
-      </Link>
-
-      <nav
-        aria-label={locale === "ko" ? "핵심 여정" : "Primary journey"}
-        className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
-      >
-        <Link
-          aria-current="page"
-          className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
-          href={discoveryHref}
-        >
-          {getFanletterNavLabels(locale).browse}
-        </Link>
-        <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-          href={feedHref}
-        >
-          {getFanletterNavLabels(locale).feed}
-        </Link>
-        <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-          href={myAiHref}
-        >
-          {getFanletterNavLabels(locale).myStars}
-        </Link>
-        <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-          href={founderClubHref}
-        >
-          {getFanletterNavLabels(locale).club}
-        </Link>
-        <Link
-          className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-          href={createHref}
-        >
-          {getFanletterNavLabels(locale).create}
-        </Link>
-      </nav>
-
-      <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
-        <FanletterGlobalLanguageSwitcher
-          className="inline-flex sm:hidden"
-          compact
-          locale={locale}
-          surface="light"
-          tight
-        />
-        <FanletterGlobalLanguageSwitcher
-          className="hidden sm:inline-flex"
-          locale={locale}
-          surface="light"
-        />
-        <FanletterAccountStatusLink
-          className="max-w-[6.8rem] sm:max-w-[14rem]"
-          locale={locale}
-          referralCode={referralCode}
-          surface="light"
-        />
-      </div>
-    </header>
   );
 }
 
@@ -845,11 +743,13 @@ export function FanletterCharacterDirectoryPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-black sm:pb-0">
       <section className="border-b border-black/10">
-        <DirectoryHeader
-          locale={locale}
-          referralCode={referralCode}
-          routePath={directoryRoutePath}
-        />
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          <FanletterPrimaryHeader
+            current="discovery"
+            locale={locale}
+            referralCode={referralCode}
+          />
+        </div>
         <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-7 pt-7 sm:px-6 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:px-8">
           <div className="min-w-0">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
