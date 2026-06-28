@@ -3993,6 +3993,7 @@ export function FanletterCreatorUnlockPage({
     <FanletterActionGuide
       className="mt-5"
       currentLabel={locale === "ko" ? "크리에이터 여정" : "Creator Journey"}
+      locale={locale}
       metrics={[
         {
           label: locale === "ko" ? "조건" : "Conditions",
