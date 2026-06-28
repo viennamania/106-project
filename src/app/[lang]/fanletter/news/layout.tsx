@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
 import { FanletterNewsMobileBottomNav } from "@/components/fanletter-news-mobile-bottom-nav";
@@ -31,6 +32,15 @@ export default async function FanletterNewsLayout({
 
   return (
     <FanletterNewsNavigationPendingProvider copy={navigationPendingCopy}>
+      <div className="px-4 pt-3 sm:px-6">
+        <Link
+          aria-label={locale === "ko" ? "AIAVpark 메인으로" : "Back to AIAVpark"}
+          className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/90 px-3 py-1.5 text-xs font-semibold text-black shadow-sm backdrop-blur transition hover:bg-white"
+          href={`/${locale}/fanletter`}
+        >
+          ← AIAVpark
+        </Link>
+      </div>
       {children}
       <Suspense fallback={null}>
         <FanletterNewsMobileBottomNav locale={locale} />
