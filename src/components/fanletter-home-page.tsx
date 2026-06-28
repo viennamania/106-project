@@ -1188,6 +1188,7 @@ function FanletterProductHomeDashboard({
           <>
                 <FanletterActionGuide
                   currentLabel={productCopy.today}
+                  locale={locale}
                   metrics={[
                     {
                       label: productCopy.founder,

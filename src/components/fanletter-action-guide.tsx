@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FunnelEventMetadata, FunnelEventName } from "@/lib/funnel";
+import type { Locale } from "@/lib/i18n";
 
 type ActionGuideAction = {
   agentRank?: AgentRankInteractionSignal | null;
@@ -36,6 +37,7 @@ type ActionGuideMetric = {
 type FanletterActionGuideProps = {
   className?: string;
   currentLabel: string;
+  locale?: Locale;
   metrics?: ActionGuideMetric[];
   primaryAction?: ActionGuideAction;
   primaryActionSlot?: ReactNode;
@@ -76,6 +78,7 @@ function renderAction(
 export function FanletterActionGuide({
   className,
   currentLabel,
+  locale,
   metrics = [],
   primaryAction,
   primaryActionSlot,
@@ -98,8 +101,12 @@ export function FanletterActionGuide({
     steps.length > 0
       ? Math.min(100, Math.round((progressStepCount / steps.length) * 100))
       : 0;
-  const isKorean =
-    /[가-힣]/.test(`${currentLabel} ${title} ${subtitle} ${reputationEventLabel}`);
+  // Prefer the explicit locale; only fall back to content sniffing when a caller
+  // hasn't passed one. Sniffing alone misfires for stars with Korean names — the
+  // star name lands in currentLabel and forces Korean labels on non-ko pages.
+  const isKorean = locale
+    ? locale === "ko"
+    : /[가-힣]/.test(`${currentLabel} ${title} ${subtitle} ${reputationEventLabel}`);
   const actionTitle = title
     .replace(/^다음 행동:\s*/u, "")
     .replace(/^Next action:\s*/iu, "");

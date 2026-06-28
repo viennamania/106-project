@@ -354,6 +354,7 @@ export function FanletterMyAIPage({
 
         <FanletterActionGuide
           currentLabel={currentLabel}
+          locale={locale}
           metrics={[
             {
               label: copy.creatorStatus,

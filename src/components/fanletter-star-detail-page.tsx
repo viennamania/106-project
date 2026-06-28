@@ -2368,6 +2368,7 @@ export function FanletterStarDetailPage({
 
           <FanletterActionGuide
             className="mt-5 hidden sm:block"
+            locale={locale}
             currentLabel={
               isKorean
                 ? `${displayStarName} AI 스타 유니버스`
