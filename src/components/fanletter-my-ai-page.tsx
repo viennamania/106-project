@@ -688,7 +688,7 @@ export function FanletterMyAIPage({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                Creator Network
+                {locale === "ko" ? "크리에이터 네트워크" : "Creator Network"}
               </span>
               <span className="mt-1 block truncate text-base font-semibold text-zinc-950">
                 {copy.founderNetworks}
