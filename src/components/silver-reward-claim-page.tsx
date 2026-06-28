@@ -329,6 +329,19 @@ export function SilverRewardClaimPage({
     dictionary,
     eligibilityReason: state.eligibilityReason,
   });
+  const flowCopy = getSilverClaimFlowCopy(locale);
+  const activeFlowStep =
+    state.claim?.status === "completed"
+      ? 2
+      : state.claim?.status === "pending" || state.canClaim
+        ? 1
+        : 0;
+  const nextActionText = getSilverClaimNextActionText({
+    canClaim: state.canClaim,
+    claim: state.claim,
+    eligibilityReason: state.eligibilityReason,
+    locale,
+  });
   const silverCardStatusLabel =
     state.rewardRedemption?.status === "completed"
       ? dictionary.rewardsPage.silverClaim.statuses.silverCardCompleted
@@ -516,6 +529,15 @@ export function SilverRewardClaimPage({
                       {dictionary.rewardsPage.silverClaim.quoteNote}
                     </p>
                   </div>
+
+                  <div className="mt-4 rounded-[22px] border border-emerald-300/20 bg-emerald-300/10 px-4 py-4">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-emerald-100/70">
+                      {flowCopy.nextActionLabel}
+                    </p>
+                    <p className="mt-2 break-keep text-base font-semibold leading-6 text-white">
+                      {nextActionText}
+                    </p>
+                  </div>
                 </div>
               </section>
 
@@ -596,6 +618,8 @@ export function SilverRewardClaimPage({
                 value={claimStatusLabel}
               />
             </section>
+
+            <SilverClaimFlow activeStep={activeFlowStep} copy={flowCopy} />
 
             {actionNotice ? <MessageCard>{actionNotice}</MessageCard> : null}
             {actionError ? <MessageCard tone="error">{actionError}</MessageCard> : null}
@@ -736,6 +760,71 @@ function MetricStatCard({
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-2 text-base font-semibold text-slate-950">{value}</p>
     </div>
+  );
+}
+
+function SilverClaimFlow({
+  activeStep,
+  copy,
+}: {
+  activeStep: number;
+  copy: ReturnType<typeof getSilverClaimFlowCopy>;
+}) {
+  return (
+    <section className="rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_18px_48px_rgba(24,24,27,0.06)] sm:p-5">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            {copy.eyebrow}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+            {copy.title}
+          </h2>
+        </div>
+        <p className="break-keep text-sm leading-6 text-slate-500">
+          {copy.description}
+        </p>
+      </div>
+      <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+        {copy.steps.map((step, index) => {
+          const isActive = index <= activeStep;
+
+          return (
+            <li
+              className={cn(
+                "rounded-[22px] border px-4 py-3 transition",
+                isActive
+                  ? "border-slate-950 bg-slate-950 text-white shadow-[0_16px_34px_rgba(15,23,42,0.14)]"
+                  : "border-slate-200 bg-slate-50 text-slate-600",
+              )}
+              key={step.title}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                    isActive
+                      ? "bg-white text-slate-950"
+                      : "bg-white text-slate-500",
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <p className="break-keep text-sm font-semibold">{step.title}</p>
+              </div>
+              <p
+                className={cn(
+                  "mt-2 break-keep text-xs leading-5",
+                  isActive ? "text-white/68" : "text-slate-500",
+                )}
+              >
+                {step.description}
+              </p>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
@@ -889,6 +978,204 @@ function getSilverClaimMessage({
   }
 
   return null;
+}
+
+function getSilverClaimFlowCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      description: "Silver 교환 후 BNB 지급까지의 현재 위치입니다.",
+      eyebrow: "reward flow",
+      nextActionLabel: "다음 행동",
+      steps: [
+        {
+          description: "Silver 멤버 카드 교환 기록이 있어야 합니다.",
+          title: "Silver 교환",
+        },
+        {
+          description: "현재 시세로 예상 BNB 수량과 지급 지갑을 확인합니다.",
+          title: "지급 확인",
+        },
+        {
+          description: "클레임이 완료되면 거래 기록으로 확인합니다.",
+          title: "거래 확인",
+        },
+      ],
+      title: "BNB 지급 흐름",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      description: "Silver交換後、BNB支給までの現在位置です。",
+      eyebrow: "reward flow",
+      nextActionLabel: "次の操作",
+      steps: [
+        {
+          description: "Silverメンバーカードの交換記録が必要です。",
+          title: "Silver交換",
+        },
+        {
+          description: "現在価格で推定BNB数量と支給ウォレットを確認します。",
+          title: "支給確認",
+        },
+        {
+          description: "クレーム完了後、取引記録で確認します。",
+          title: "取引確認",
+        },
+      ],
+      title: "BNB支給フロー",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      description: "Silver 兑换后到 BNB 发放的当前位置。",
+      eyebrow: "reward flow",
+      nextActionLabel: "下一步",
+      steps: [
+        {
+          description: "需要先有 Silver 会员卡兑换记录。",
+          title: "Silver 兑换",
+        },
+        {
+          description: "按当前价格确认预计 BNB 数量和发放钱包。",
+          title: "发放确认",
+        },
+        {
+          description: "领取完成后可通过交易记录确认。",
+          title: "交易确认",
+        },
+      ],
+      title: "BNB 发放流程",
+    };
+  }
+
+  return {
+    description: "Your current position from Silver redemption to BNB payout.",
+    eyebrow: "reward flow",
+    nextActionLabel: "Next action",
+    steps: [
+      {
+        description: "A completed Silver member card redemption is required.",
+        title: "Silver redeemed",
+      },
+      {
+        description: "Review the estimated BNB amount and destination wallet.",
+        title: "Payout review",
+      },
+      {
+        description: "After completion, verify the transaction record.",
+        title: "Transaction check",
+      },
+    ],
+    title: "BNB payout flow",
+  };
+}
+
+function getSilverClaimNextActionText({
+  canClaim,
+  claim,
+  eligibilityReason,
+  locale,
+}: {
+  canClaim: boolean;
+  claim: SilverRewardClaimRecord | null;
+  eligibilityReason: SilverRewardClaimEligibilityReason | null;
+  locale: Locale;
+}) {
+  if (locale === "ko") {
+    if (claim?.status === "completed") {
+      return "BNB 지급이 완료되었습니다. 거래 기록을 확인하세요.";
+    }
+
+    if (claim?.status === "pending" || eligibilityReason === "claim_pending") {
+      return "BNB 전송 처리 중입니다. 잠시 후 새로고침하세요.";
+    }
+
+    if (canClaim) {
+      return "지급 지갑과 예상 BNB 수량을 확인한 뒤 클레임을 신청하세요.";
+    }
+
+    if (eligibilityReason === "silver_card_incomplete") {
+      return "먼저 Silver 멤버 카드를 교환해야 BNB 클레임이 가능합니다.";
+    }
+
+    if (eligibilityReason === "signup_incomplete") {
+      return "가입 완료 후 Silver BNB 클레임을 진행할 수 있습니다.";
+    }
+
+    return "지갑 연결과 Silver 카드 상태를 확인하세요.";
+  }
+
+  if (locale === "ja") {
+    if (claim?.status === "completed") {
+      return "BNB支給が完了しました。取引記録を確認してください。";
+    }
+
+    if (claim?.status === "pending" || eligibilityReason === "claim_pending") {
+      return "BNB送金を処理中です。しばらくしてから更新してください。";
+    }
+
+    if (canClaim) {
+      return "支給ウォレットと推定BNB数量を確認してから申請してください。";
+    }
+
+    if (eligibilityReason === "silver_card_incomplete") {
+      return "先にSilverメンバーカードを交換するとBNBクレームが可能です。";
+    }
+
+    if (eligibilityReason === "signup_incomplete") {
+      return "登録完了後にSilver BNBクレームを進められます。";
+    }
+
+    return "ウォレット接続とSilverカード状態を確認してください。";
+  }
+
+  if (locale === "zh") {
+    if (claim?.status === "completed") {
+      return "BNB 已发放完成。请查看交易记录。";
+    }
+
+    if (claim?.status === "pending" || eligibilityReason === "claim_pending") {
+      return "BNB 转账处理中，请稍后刷新。";
+    }
+
+    if (canClaim) {
+      return "确认发放钱包和预计 BNB 数量后提交领取。";
+    }
+
+    if (eligibilityReason === "silver_card_incomplete") {
+      return "请先兑换 Silver 会员卡，之后才能领取 BNB。";
+    }
+
+    if (eligibilityReason === "signup_incomplete") {
+      return "完成注册后可以继续 Silver BNB 领取。";
+    }
+
+    return "请确认钱包连接和 Silver 卡状态。";
+  }
+
+  if (claim?.status === "completed") {
+    return "BNB payout is complete. Review the transaction record.";
+  }
+
+  if (claim?.status === "pending" || eligibilityReason === "claim_pending") {
+    return "BNB transfer is processing. Refresh again shortly.";
+  }
+
+  if (canClaim) {
+    return "Review the destination wallet and estimated BNB, then submit the claim.";
+  }
+
+  if (eligibilityReason === "silver_card_incomplete") {
+    return "Redeem the Silver member card first to enable this BNB claim.";
+  }
+
+  if (eligibilityReason === "signup_incomplete") {
+    return "Complete signup before continuing to the Silver BNB claim.";
+  }
+
+  return "Check your wallet connection and Silver card status.";
 }
 
 function formatAddressLabel(address: string) {
