@@ -1861,7 +1861,7 @@ export function FanletterAIStarSocialAccountCard({
                     {actorMemberName}
                   </p>
                   <p className="truncate text-xs font-semibold text-zinc-500">
-                    {roleLabel} · ID {actorMemberId}
+                    {roleLabel}
                   </p>
                 </div>
               </div>
@@ -2087,7 +2087,7 @@ export function FanletterAIStarSocialAccountCard({
                       {social.creatorMemberName}
                     </p>
                     <p className="truncate text-xs font-semibold text-zinc-500">
-                      {roleLabel} · ID {social.creatorMemberId}
+                      {roleLabel}
                     </p>
                   </div>
                 </div>
