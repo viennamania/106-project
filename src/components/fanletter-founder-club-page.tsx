@@ -912,7 +912,7 @@ export function FanletterFounderClubPage({
         />
 
         <section className="mt-6 rounded-lg border border-black/10 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-6">
-          <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
+          <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
                 <HumanMemberAvatar
