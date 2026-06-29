@@ -1809,6 +1809,7 @@ function SelectedMemberCard({
 }) {
   const isServiceSuspended = Boolean(member.serviceSuspendedAt);
   const summaryCopy = getSelectedMemberSummaryCopy(locale);
+  const detailCopy = getSelectedMemberDetailCopy(locale);
   const aiStarStatus = member.ownedAIStar
     ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
     : summaryCopy.aiStarPending;
@@ -1913,38 +1914,59 @@ function SelectedMemberCard({
           label={dictionary.activateNetworkPage.labels.descendants}
           value={formatInteger(member.totalReferralCount, locale)}
         />
-        <InfoCard
-          className="sm:col-span-2"
-          label={dictionary.activateNetworkPage.labels.walletAddress}
-          value={member.lastWalletAddress}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.referralCode}
-          value={member.referralCode ?? dictionary.common.notAvailable}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.referredByCode}
-          value={member.referredByCode ?? dictionary.common.notAvailable}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.placementReferralCode}
-          value={
-            member.placementReferralCode ?? dictionary.common.notAvailable
-          }
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.placementEmail}
-          value={member.placementEmail ?? dictionary.common.notAvailable}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.pointTier}
-          value={getTierLabel(dictionary, member.tier)}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.membershipCard}
-          value={getMembershipCardLabel(dictionary, member.membershipCardTier)}
-        />
       </div>
+
+      <details className="group rounded-[24px] border border-slate-200 bg-white/86 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              {detailCopy.eyebrow}
+            </p>
+            <p className="mt-1 text-base font-semibold text-slate-950">
+              {detailCopy.title}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {detailCopy.description}
+            </p>
+          </div>
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition group-open:rotate-90">
+            <ChevronRight className="size-4" />
+          </span>
+        </summary>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <InfoCard
+            className="sm:col-span-2"
+            label={dictionary.activateNetworkPage.labels.walletAddress}
+            value={member.lastWalletAddress}
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.referralCode}
+            value={member.referralCode ?? dictionary.common.notAvailable}
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.referredByCode}
+            value={member.referredByCode ?? dictionary.common.notAvailable}
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.placementReferralCode}
+            value={
+              member.placementReferralCode ?? dictionary.common.notAvailable
+            }
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.placementEmail}
+            value={member.placementEmail ?? dictionary.common.notAvailable}
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.pointTier}
+            value={getTierLabel(dictionary, member.tier)}
+          />
+          <InfoCard
+            label={dictionary.activateNetworkPage.labels.membershipCard}
+            value={getMembershipCardLabel(dictionary, member.membershipCardTier)}
+          />
+        </div>
+      </details>
 
       <div className="rounded-[24px] border border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,223,0.92))] p-4 shadow-[0_18px_45px_rgba(217,119,6,0.08)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -3052,6 +3074,59 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
     nextCheckLabel: "Next check",
     nextCheckProfile: "Confirm AI Star profile link",
     positionLabel: "Network position",
+  };
+}
+
+function getSelectedMemberDetailCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      description:
+        "운영 확인에 필요한 지갑 주소, 추천 코드, 배치 코드만 접어서 확인합니다.",
+      eyebrow: "상세 정보",
+      title: "지갑·추천 코드 보기",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      description:
+        "運用確認に必要なウォレットアドレス、紹介コード、配置コードだけを折りたたんで確認します。",
+      eyebrow: "詳細情報",
+      title: "ウォレット・紹介コードを見る",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      description: "折叠查看运营确认所需的钱包地址、推荐码和位置码。",
+      eyebrow: "详细信息",
+      title: "查看钱包和推荐码",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      description:
+        "Mở khi cần kiểm tra địa chỉ ví, mã giới thiệu và mã vị trí vận hành.",
+      eyebrow: "Chi tiết",
+      title: "Xem ví và mã giới thiệu",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      description:
+        "Buka saat perlu memeriksa alamat wallet, kode referral, dan kode penempatan.",
+      eyebrow: "Detail",
+      title: "Lihat wallet dan kode referral",
+    };
+  }
+
+  return {
+    description:
+      "Open only when you need wallet, referral, and placement details for operations.",
+    eyebrow: "Details",
+    title: "View wallet and referral codes",
   };
 }
 
