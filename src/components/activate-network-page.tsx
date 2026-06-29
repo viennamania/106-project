@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Trophy,
   Users,
+  X,
 } from "lucide-react";
 import {
   useActiveAccount,
@@ -226,6 +227,8 @@ export function ActivateNetworkPage({
   const [selectedMemberEmail, setSelectedMemberEmail] = useState<string | null>(
     null,
   );
+  const [isSelectedMemberSheetOpen, setIsSelectedMemberSheetOpen] =
+    useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const {
     isDisconnected,
@@ -369,6 +372,7 @@ export function ActivateNetworkPage({
       status: "idle",
     });
     setSelectedMemberEmail(null);
+    setIsSelectedMemberSheetOpen(false);
     setNotificationsState({
       error: null,
       hasMore: false,
@@ -389,6 +393,12 @@ export function ActivateNetworkPage({
       status: "idle",
     });
   }, [selectedMemberEmail]);
+
+  useEffect(() => {
+    if (!selectedMember) {
+      setIsSelectedMemberSheetOpen(false);
+    }
+  }, [selectedMember]);
 
   useEffect(() => {
     setMemberPage(1);
@@ -1367,19 +1377,14 @@ export function ActivateNetworkPage({
 
             <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
               <div className="space-y-4">
-                <section className="glass-card rounded-[28px] p-4 sm:p-5 lg:hidden">
-                  <SelectedMemberPanel
-                    dictionary={dictionary}
-                    networkReturnHref={currentPageHref}
-                    locale={locale}
-                    member={selectedMember}
-                    onApplyServiceStatus={updateMemberServiceStatus}
-                    onChangeServiceScope={setServiceScope}
-                    serviceCopy={serviceCopy}
-                    serviceScope={serviceScope}
-                    serviceStatusUpdate={serviceStatusUpdate}
-                  />
-                </section>
+                <MobileSelectedMemberSummary
+                  dictionary={dictionary}
+                  locale={locale}
+                  member={selectedMember}
+                  onOpen={() => {
+                    setIsSelectedMemberSheetOpen(true);
+                  }}
+                />
 
                 <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="space-y-1">
@@ -1523,6 +1528,7 @@ export function ActivateNetworkPage({
                               className="w-full text-left"
                               onClick={() => {
                                 setSelectedMemberEmail(member.email);
+                                setIsSelectedMemberSheetOpen(true);
                               }}
                               type="button"
                             >
@@ -1670,6 +1676,7 @@ export function ActivateNetworkPage({
                   locale={locale}
                   onSelectMember={(email) => {
                     setSelectedMemberEmail(email);
+                    setIsSelectedMemberSheetOpen(true);
                   }}
                   referrals={state.referrals}
                   totalReferrals={state.totalReferrals}
@@ -1679,6 +1686,21 @@ export function ActivateNetworkPage({
           </>
         )}
       </main>
+      <SelectedMemberBottomSheet
+        dictionary={dictionary}
+        locale={locale}
+        member={selectedMember}
+        networkReturnHref={currentPageHref}
+        onApplyServiceStatus={updateMemberServiceStatus}
+        onChangeServiceScope={setServiceScope}
+        onClose={() => {
+          setIsSelectedMemberSheetOpen(false);
+        }}
+        open={isSelectedMemberSheetOpen}
+        serviceCopy={serviceCopy}
+        serviceScope={serviceScope}
+        serviceStatusUpdate={serviceStatusUpdate}
+      />
       <NotificationCenterSheet
         closeLabel={dictionary.common.loginDialog.close}
         eyebrow={dictionary.activateNetworkPage.eyebrow}
@@ -1726,6 +1748,156 @@ export function ActivateNetworkPage({
           walletAddress={accountAddress ?? null}
         />
       </NotificationCenterSheet>
+    </div>
+  );
+}
+
+function MobileSelectedMemberSummary({
+  dictionary,
+  locale,
+  member,
+  onOpen,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord | null;
+  onOpen: () => void;
+}) {
+  const copy = getMobileSelectedMemberCopy(locale);
+
+  if (!member) {
+    return null;
+  }
+
+  return (
+    <section className="glass-card rounded-[26px] p-4 lg:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            {copy.eyebrow}
+          </p>
+          <h2 className="mt-2 break-all text-lg font-semibold tracking-tight text-slate-950">
+            {member.email}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            {member.ownedAIStar
+              ? `${member.ownedAIStar.name} · ${copy.aiStarReady}`
+              : copy.aiStarPending}
+          </p>
+        </div>
+        <Pill>
+          {dictionary.activateNetworkPage.labels.level} {member.depth}
+        </Pill>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.directChildren}
+          value={formatInteger(member.directReferralCount, locale)}
+        />
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.descendants}
+          value={formatInteger(member.totalReferralCount, locale)}
+        />
+      </div>
+
+      <button
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(15,23,42,0.16)] transition hover:bg-slate-800"
+        onClick={onOpen}
+        type="button"
+      >
+        {copy.action}
+        <ChevronRight className="size-4" />
+      </button>
+    </section>
+  );
+}
+
+function SelectedMemberBottomSheet({
+  dictionary,
+  locale,
+  member,
+  networkReturnHref,
+  onApplyServiceStatus,
+  onChangeServiceScope,
+  onClose,
+  open,
+  serviceCopy,
+  serviceScope,
+  serviceStatusUpdate,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord | null;
+  networkReturnHref: string;
+  onApplyServiceStatus: (action: "release" | "suspend") => void;
+  onChangeServiceScope: (scope: ServiceSuspensionScope) => void;
+  onClose: () => void;
+  open: boolean;
+  serviceCopy: ReturnType<typeof getServiceManagementCopy>;
+  serviceScope: ServiceSuspensionScope;
+  serviceStatusUpdate: ServiceStatusUpdateState;
+}) {
+  const copy = getMobileSelectedMemberCopy(locale);
+
+  if (!open || !member) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/52 px-0 backdrop-blur-sm lg:hidden"
+      onClick={onClose}
+    >
+      <section
+        aria-label={copy.sheetTitle}
+        aria-modal="true"
+        className="max-h-[88vh] w-full overflow-hidden rounded-t-[30px] border border-white/70 bg-white shadow-[0_-24px_70px_rgba(15,23,42,0.26)]"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        role="dialog"
+      >
+        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {copy.eyebrow}
+              </p>
+              <h2 className="mt-1 break-all text-lg font-semibold tracking-tight text-slate-950">
+                {copy.sheetTitle}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                {member.email}
+              </p>
+            </div>
+            <button
+              aria-label={dictionary.common.loginDialog.close}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:bg-slate-50"
+              onClick={onClose}
+              type="button"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(88vh-104px)] overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4">
+          <SelectedMemberCard
+            className="mt-0"
+            dictionary={dictionary}
+            locale={locale}
+            member={member}
+            networkReturnHref={networkReturnHref}
+            onApplyServiceStatus={onApplyServiceStatus}
+            onChangeServiceScope={onChangeServiceScope}
+            serviceCopy={serviceCopy}
+            serviceScope={serviceScope}
+            serviceStatusUpdate={serviceStatusUpdate}
+          />
+        </div>
+      </section>
     </div>
   );
 }
@@ -3127,6 +3299,66 @@ function getSelectedMemberDetailCopy(locale: Locale) {
       "Open only when you need wallet, referral, and placement details for operations.",
     eyebrow: "Details",
     title: "View wallet and referral codes",
+  };
+}
+
+function getMobileSelectedMemberCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      action: "회원 상세 보기",
+      aiStarPending: "AI 스타 준비 중",
+      aiStarReady: "AI 스타 연결됨",
+      eyebrow: "보고 있는 회원",
+      sheetTitle: "회원 상세",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      action: "メンバー詳細を見る",
+      aiStarPending: "AIスター準備中",
+      aiStarReady: "AIスター連携済み",
+      eyebrow: "表示中のメンバー",
+      sheetTitle: "メンバー詳細",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      action: "查看会员详情",
+      aiStarPending: "AI Star 准备中",
+      aiStarReady: "已连接 AI Star",
+      eyebrow: "正在查看的会员",
+      sheetTitle: "会员详情",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      action: "Xem chi tiết thành viên",
+      aiStarPending: "AI Star đang chuẩn bị",
+      aiStarReady: "AI Star đã kết nối",
+      eyebrow: "Thành viên đang xem",
+      sheetTitle: "Chi tiết thành viên",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      action: "Lihat detail member",
+      aiStarPending: "AI Star sedang disiapkan",
+      aiStarReady: "AI Star terhubung",
+      eyebrow: "Member yang dilihat",
+      sheetTitle: "Detail member",
+    };
+  }
+
+  return {
+    action: "View member details",
+    aiStarPending: "AI Star pending",
+    aiStarReady: "AI Star connected",
+    eyebrow: "Viewing member",
+    sheetTitle: "Member details",
   };
 }
 
