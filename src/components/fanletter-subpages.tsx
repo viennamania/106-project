@@ -1126,6 +1126,7 @@ function FanletterShell({
                 className="hidden sm:inline-flex"
                 compact={isStartSection}
                 locale={locale}
+                tight
               />
               <FanletterAccountStatusLink
                 className={
