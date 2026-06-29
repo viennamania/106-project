@@ -15,6 +15,7 @@ import {
   GitBranch,
   Hexagon,
   RefreshCcw,
+  X,
 } from "lucide-react";
 import {
   useActiveAccount,
@@ -60,6 +61,21 @@ type ActivateNetworkHexState = {
   totalReferrals: number;
 };
 
+type HexFocusedMemberDetail = {
+  aiStarName: string | null;
+  cardLabel: string | null;
+  depthLabel: string;
+  directMembers: number;
+  email: string;
+  lifetimePoints: number | null;
+  referralCode: string | null;
+  spendablePoints: number | null;
+  statusLabel: string;
+  tierLabel: string | null;
+  totalMembers: number;
+  walletAddress: string | null;
+};
+
 const mobileSlotPositions = [
   { left: "50%", top: "16%" },
   { left: "80.5%", top: "34%" },
@@ -93,10 +109,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "Your code root",
       hexView: "Hex dashboard",
       openList: "Open list view",
+      aiStar: "AI Star IP",
+      card: "Member card",
+      close: "Close",
+      currentFocus: "Current focus",
+      detailSubtitle: "Slot status, points, wallet, and AI Star IP in one view.",
+      detailTitle: "Viewing member",
+      directMembers: "Direct members",
+      lifetimePoints: "Lifetime P",
+      noAiStar: "Not created yet",
+      openDetail: "Member details",
+      referralCode: "Referral code",
       slot: "Slot",
       slotJump: "Slot jump",
       slotMoveEmpty: "Empty",
+      spendablePoints: "Spendable P",
       stepUp: "Go up",
+      tier: "Point tier",
+      totalMembers: "Total downline",
+      wallet: "Wallet",
     },
     id: {
       backToRoot: "Kembali ke root",
@@ -108,10 +139,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "Root kode saya",
       hexView: "Dasbor heks",
       openList: "Buka tampilan daftar",
+      aiStar: "IP AI Star",
+      card: "Kartu member",
+      close: "Tutup",
+      currentFocus: "Fokus saat ini",
+      detailSubtitle: "Status slot, poin, dompet, dan IP AI Star dalam satu tampilan.",
+      detailTitle: "Anggota yang dilihat",
+      directMembers: "Anggota langsung",
+      lifetimePoints: "Total P",
+      noAiStar: "Belum dibuat",
+      openDetail: "Detail anggota",
+      referralCode: "Kode referral",
       slot: "Slot",
       slotJump: "Pindah slot",
       slotMoveEmpty: "Kosong",
+      spendablePoints: "P tersedia",
       stepUp: "Naik satu tingkat",
+      tier: "Tingkat poin",
+      totalMembers: "Total downline",
+      wallet: "Dompet",
     },
     ja: {
       backToRoot: "ルートへ戻る",
@@ -123,10 +169,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "自分のコードのルート",
       hexView: "ヘックスダッシュボード",
       openList: "一覧管理を開く",
+      aiStar: "AI Star IP",
+      card: "メンバーカード",
+      close: "閉じる",
+      currentFocus: "現在の中心",
+      detailSubtitle: "スロット状態、ポイント、ウォレット、AI Star IPを一画面で確認します。",
+      detailTitle: "表示中の会員",
+      directMembers: "直接メンバー",
+      lifetimePoints: "累計P",
+      noAiStar: "未作成",
+      openDetail: "会員詳細",
+      referralCode: "紹介コード",
       slot: "スロット",
       slotJump: "スロット移動",
       slotMoveEmpty: "空き",
+      spendablePoints: "利用可能P",
       stepUp: "一段上へ",
+      tier: "ポイントランク",
+      totalMembers: "全下位",
+      wallet: "ウォレット",
     },
     ko: {
       backToRoot: "처음으로",
@@ -138,10 +199,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "내 코드 루트",
       hexView: "육각형 대시보드",
       openList: "목록 관리 열기",
+      aiStar: "AI 스타 IP",
+      card: "멤버 카드",
+      close: "닫기",
+      currentFocus: "현재 중심",
+      detailSubtitle: "슬롯 상태, 포인트, 지갑, AI 스타 IP를 한 번에 확인합니다.",
+      detailTitle: "보고 있는 회원",
+      directMembers: "직속 회원",
+      lifetimePoints: "누적 P",
+      noAiStar: "아직 없음",
+      openDetail: "회원 상세",
+      referralCode: "추천 코드",
       slot: "슬롯",
       slotJump: "슬롯 바로 이동",
       slotMoveEmpty: "빈 슬롯",
+      spendablePoints: "사용 가능 P",
       stepUp: "한 단계 위",
+      tier: "포인트 등급",
+      totalMembers: "전체 하위",
+      wallet: "지갑",
     },
     vi: {
       backToRoot: "Về gốc",
@@ -153,10 +229,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "Gốc mã của tôi",
       hexView: "Bảng lục giác",
       openList: "Mở dạng danh sách",
+      aiStar: "IP AI Star",
+      card: "Thẻ thành viên",
+      close: "Đóng",
+      currentFocus: "Trọng tâm hiện tại",
+      detailSubtitle: "Xem trạng thái slot, điểm, ví và IP AI Star trên một màn hình.",
+      detailTitle: "Thành viên đang xem",
+      directMembers: "Thành viên trực tiếp",
+      lifetimePoints: "Tổng P",
+      noAiStar: "Chưa tạo",
+      openDetail: "Chi tiết thành viên",
+      referralCode: "Mã giới thiệu",
       slot: "Slot",
       slotJump: "Nhảy slot",
       slotMoveEmpty: "Trống",
+      spendablePoints: "P khả dụng",
       stepUp: "Lên một cấp",
+      tier: "Hạng điểm",
+      totalMembers: "Tổng tuyến dưới",
+      wallet: "Ví",
     },
     zh: {
       backToRoot: "回到根节点",
@@ -168,10 +259,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: "我的代码根节点",
       hexView: "六角仪表盘",
       openList: "打开列表管理",
+      aiStar: "AI Star IP",
+      card: "会员卡",
+      close: "关闭",
+      currentFocus: "当前中心",
+      detailSubtitle: "在一个视图中查看槽位状态、积分、钱包和 AI Star IP。",
+      detailTitle: "正在查看的会员",
+      directMembers: "直属会员",
+      lifetimePoints: "累计积分",
+      noAiStar: "尚未创建",
+      openDetail: "会员详情",
+      referralCode: "推荐码",
       slot: "槽位",
       slotJump: "槽位跳转",
       slotMoveEmpty: "空位",
+      spendablePoints: "可用积分",
       stepUp: "返回上一级",
+      tier: "积分等级",
+      totalMembers: "全部下级",
+      wallet: "钱包",
     },
   } satisfies Record<
     Locale,
@@ -183,10 +289,25 @@ function getHexCopy(locale: Locale) {
       focusRoot: string;
       hexView: string;
       openList: string;
+      aiStar: string;
+      card: string;
+      close: string;
+      currentFocus: string;
+      detailSubtitle: string;
+      detailTitle: string;
+      directMembers: string;
+      lifetimePoints: string;
+      noAiStar: string;
+      openDetail: string;
+      referralCode: string;
       slot: string;
       stepUp: string;
       slotJump: string;
       slotMoveEmpty: string;
+      spendablePoints: string;
+      tier: string;
+      totalMembers: string;
+      wallet: string;
     }
   >;
 
@@ -235,6 +356,18 @@ function formatHexMemberLabel(email: string, isMobileCompact: boolean) {
   }
 
   return `${localPart.slice(0, 7)}…`;
+}
+
+function formatShortAddress(address: string | null) {
+  if (!address) {
+    return "-";
+  }
+
+  if (address.length <= 16) {
+    return address;
+  }
+
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function getMemberStatusLabel(
@@ -609,6 +742,155 @@ function HexCenterTile({
   );
 }
 
+function DetailMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
+      <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-amber-100/56">
+        {label}
+      </p>
+      <div className="mt-1 min-w-0 text-sm font-semibold text-amber-50">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function HexFocusedMemberCard({
+  copy,
+  detail,
+  locale,
+  onClose,
+}: {
+  copy: ReturnType<typeof getHexCopy>;
+  detail: HexFocusedMemberDetail;
+  locale: Locale;
+  onClose?: () => void;
+}) {
+  return (
+    <section className="rounded-t-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(24,16,8,0.98),rgba(12,8,4,0.98))] p-5 text-amber-50 shadow-[0_-24px_80px_rgba(15,23,42,0.38)] sm:rounded-[30px]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[0.64rem] font-semibold uppercase tracking-[0.24em] text-amber-100/54">
+            {copy.currentFocus}
+          </p>
+          <h2 className="mt-2 truncate text-xl font-semibold tracking-tight">
+            {detail.email}
+          </h2>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-amber-100/14 bg-white/8 px-2.5 py-1 text-xs font-semibold text-amber-50/72">
+              {detail.depthLabel}
+            </span>
+            <span className="rounded-full border border-emerald-200/18 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-50">
+              {detail.statusLabel}
+            </span>
+          </div>
+        </div>
+        {onClose ? (
+          <button
+            aria-label={copy.close}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/8 text-amber-50 transition hover:bg-white/14"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-4" />
+          </button>
+        ) : null}
+      </div>
+
+      <p className="mt-4 text-sm leading-6 text-amber-50/62">
+        {copy.detailSubtitle}
+      </p>
+
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <DetailMetric
+          label={copy.directMembers}
+          value={formatInteger(detail.directMembers, locale)}
+        />
+        <DetailMetric
+          label={copy.totalMembers}
+          value={formatInteger(detail.totalMembers, locale)}
+        />
+        <DetailMetric label={copy.referralCode} value={detail.referralCode ?? "-"} />
+        <DetailMetric label={copy.wallet} value={formatShortAddress(detail.walletAddress)} />
+        {detail.lifetimePoints !== null ? (
+          <DetailMetric
+            label={copy.lifetimePoints}
+            value={`${formatInteger(detail.lifetimePoints, locale)}P`}
+          />
+        ) : null}
+        {detail.spendablePoints !== null ? (
+          <DetailMetric
+            label={copy.spendablePoints}
+            value={`${formatInteger(detail.spendablePoints, locale)}P`}
+          />
+        ) : null}
+        {detail.tierLabel ? (
+          <DetailMetric label={copy.tier} value={detail.tierLabel} />
+        ) : null}
+        {detail.cardLabel ? (
+          <DetailMetric label={copy.card} value={detail.cardLabel} />
+        ) : null}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-emerald-200/18 bg-emerald-400/8 px-4 py-3">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-emerald-100/70">
+          {copy.aiStar}
+        </p>
+        <p className="mt-1 text-sm font-semibold text-emerald-50">
+          {detail.aiStarName ?? copy.noAiStar}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function MobileHexFocusedMemberSheet({
+  copy,
+  detail,
+  locale,
+  onClose,
+  open,
+}: {
+  copy: ReturnType<typeof getHexCopy>;
+  detail: HexFocusedMemberDetail | null;
+  locale: Locale;
+  onClose: () => void;
+  open: boolean;
+}) {
+  if (!open || !detail) {
+    return null;
+  }
+
+  return (
+    <div
+      aria-modal="true"
+      className="fixed inset-0 z-[70] flex items-end bg-slate-950/52 px-0 pt-16 backdrop-blur-[3px] sm:hidden"
+      onClick={onClose}
+      role="dialog"
+    >
+      <div
+        className="w-full"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <HexFocusedMemberCard
+          copy={copy}
+          detail={detail}
+          locale={locale}
+          onClose={onClose}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ActivateNetworkHexPage({
   dictionary,
   locale,
@@ -634,6 +916,7 @@ export function ActivateNetworkHexPage({
       : null;
   const copy = getHexCopy(locale);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [isFocusedMemberSheetOpen, setIsFocusedMemberSheetOpen] = useState(false);
   const [focusedEmail, setFocusedEmail] = useState<string | null>(null);
   const [state, setState] = useState<ActivateNetworkHexState>({
     error: null,
@@ -783,6 +1066,7 @@ export function ActivateNetworkHexPage({
     }
 
     setFocusedEmail(null);
+    setIsFocusedMemberSheetOpen(false);
   }, [status]);
 
   useEffect(() => {
@@ -963,6 +1247,43 @@ export function ActivateNetworkHexPage({
   ] as const;
   const slotAnchorPoints = isMobileCompact ? mobileSlotPositions : desktopSlotPositions;
   const canStepUp = !isRootFocus && Boolean(parentFocusEmail);
+  const focusedMemberDetail = useMemo<HexFocusedMemberDetail | null>(() => {
+    if (!state.member) {
+      return null;
+    }
+
+    if (!isRootFocus && focusedNode) {
+      return {
+        aiStarName: focusedNode.ownedAIStar?.name ?? null,
+        cardLabel: getMembershipCardLabel(locale, focusedNode.membershipCardTier),
+        depthLabel: `${dictionary.activateNetworkPage.labels.level} ${focusedNode.depth}`,
+        directMembers: focusedNode.directReferralCount,
+        email: focusedNode.email,
+        lifetimePoints: focusedNode.lifetimePoints,
+        referralCode: focusedNode.referralCode,
+        spendablePoints: focusedNode.spendablePoints,
+        statusLabel: getMemberStatusLabel(dictionary, focusedNode.status),
+        tierLabel: getTierLabel(locale, focusedNode.tier),
+        totalMembers: focusedNode.totalReferralCount,
+        walletAddress: focusedNode.lastWalletAddress,
+      };
+    }
+
+    return {
+      aiStarName: null,
+      cardLabel: null,
+      depthLabel: copy.focusRoot,
+      directMembers: state.summary.directMembers,
+      email: state.member.email,
+      lifetimePoints: null,
+      referralCode: state.member.referralCode,
+      spendablePoints: null,
+      statusLabel: getMemberStatusLabel(dictionary, state.member.status),
+      tierLabel: null,
+      totalMembers: state.summary.totalMembers,
+      walletAddress: state.member.lastWalletAddress,
+    };
+  }, [copy.focusRoot, dictionary, focusedNode, isRootFocus, locale, state.member, state.summary.directMembers, state.summary.totalMembers]);
 
   return (
     <div className="friend-service-surface relative isolate overflow-hidden">
@@ -1013,6 +1334,7 @@ export function ActivateNetworkHexPage({
                 onClick={() => {
                   if (rootEmail) {
                     setFocusedEmail(rootEmail);
+                    setIsFocusedMemberSheetOpen(false);
                   }
                 }}
                 title={copy.backToRoot}
@@ -1026,6 +1348,7 @@ export function ActivateNetworkHexPage({
                 onClick={() => {
                   if (parentFocusEmail) {
                     setFocusedEmail(parentFocusEmail);
+                    setIsFocusedMemberSheetOpen(false);
                   }
                 }}
                 title={copy.stepUp}
@@ -1106,6 +1429,7 @@ export function ActivateNetworkHexPage({
                   onClick={() => {
                     if (parentFocusEmail) {
                       setFocusedEmail(parentFocusEmail);
+                      setIsFocusedMemberSheetOpen(false);
                     }
                   }}
                   type="button"
@@ -1119,6 +1443,7 @@ export function ActivateNetworkHexPage({
                   onClick={() => {
                     if (rootEmail) {
                       setFocusedEmail(rootEmail);
+                      setIsFocusedMemberSheetOpen(false);
                     }
                   }}
                   type="button"
@@ -1202,6 +1527,7 @@ export function ActivateNetworkHexPage({
                     member
                       ? () => {
                           setFocusedEmail(member.email);
+                          setIsFocusedMemberSheetOpen(true);
                         }
                       : undefined
                   }
@@ -1288,6 +1614,7 @@ export function ActivateNetworkHexPage({
                         onClick={() => {
                           if (member) {
                             setFocusedEmail(member.email);
+                            setIsFocusedMemberSheetOpen(true);
                           }
                         }}
                         type="button"
@@ -1303,12 +1630,41 @@ export function ActivateNetworkHexPage({
                       </button>
                     ))}
                   </div>
+                  {focusedMemberDetail ? (
+                    <button
+                      className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-amber-200/20 bg-white/10 px-3 py-2 text-sm font-semibold text-amber-50 transition hover:border-amber-100/35 hover:bg-white/16 sm:hidden"
+                      onClick={() => {
+                        setIsFocusedMemberSheetOpen(true);
+                      }}
+                      type="button"
+                    >
+                      {copy.openDetail}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
+            {focusedMemberDetail ? (
+              <div className="absolute bottom-6 right-6 top-6 z-20 hidden w-[21rem] 2xl:block">
+                <HexFocusedMemberCard
+                  copy={copy}
+                  detail={focusedMemberDetail}
+                  locale={locale}
+                />
+              </div>
+            ) : null}
           </section>
         )}
       </main>
+      <MobileHexFocusedMemberSheet
+        copy={copy}
+        detail={focusedMemberDetail}
+        locale={locale}
+        onClose={() => {
+          setIsFocusedMemberSheetOpen(false);
+        }}
+        open={isFocusedMemberSheetOpen}
+      />
     </div>
   );
 }
