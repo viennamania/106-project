@@ -1083,7 +1083,7 @@ function FanletterShell({
 
             <nav
               className={cn(
-                "hidden min-w-0 items-center gap-5 text-sm font-semibold lg:flex xl:gap-7",
+                "hidden min-w-0 items-center gap-3 text-sm font-semibold lg:flex xl:gap-5",
                 isLightTone ? "text-black/62" : "text-white/74",
               )}
             >
