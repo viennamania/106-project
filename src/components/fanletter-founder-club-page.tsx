@@ -33,7 +33,6 @@ import {
   fanletterV2Mock,
   getFanletterV2Copy,
   type AIStar,
-  type MemberOwnedAIStar,
   type MemberPortfolio as MemberPortfolioData,
   type MemberPortfolioRole,
   type ScoutShareLoopData,
@@ -670,59 +669,6 @@ function MockFounderMembershipSummary({
   );
 }
 
-function MockCreatorLaunchSummary({
-  launches,
-  locale,
-}: {
-  launches: MemberOwnedAIStar[];
-  locale: Locale;
-}) {
-  if (launches.length === 0) {
-    return null;
-  }
-
-  const copy = getCopy(locale);
-
-  return (
-    <section className="mt-4 rounded-lg border border-fuchsia-200 bg-[#faf5ff] p-4 text-[#3b0764] shadow-[0_18px_44px_rgba(168,85,247,0.1)] sm:p-5">
-      <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-[#7c3aed]">
-          <Sparkles className="size-5" />
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold leading-tight">
-            {copy.mockLaunchTitle}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-[#3b0764]/70">
-            {copy.mockLaunchBody}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {launches.map((launch) => (
-          <div
-            className="flex min-h-20 items-center justify-between gap-3 rounded-lg border border-fuchsia-200 bg-white p-3"
-            key={launch.id}
-          >
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">
-                {launch.name}
-              </span>
-              <span className="mt-1 block truncate text-xs font-semibold text-[#7c3aed]">
-                {launch.sourceUniverseName}
-              </span>
-            </span>
-            <span className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#7c3aed] px-3 text-xs font-semibold text-white">
-              {launch.launchCostUsdt ?? 10} USDT
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function FanletterFounderClubPage({
   entryContext = "default",
   initialView = "founder",
@@ -883,7 +829,10 @@ export function FanletterFounderClubPage({
     ? "#referral-manager"
     : `/${locale}/fanletter/discovery`;
   const creatorJourneyHref = `/${locale}/fanletter/creator-unlock`;
-  const creatorViewHref = `/${locale}/fanletter/founder-club?view=creator&context=my-ai#owned-ai-stars`;
+  // Operated AI stars live in my-ai (내 스타). Founder-club (내 클럽) is the
+  // participation/club view, so the "운영 관계" tab links out to my-ai rather
+  // than duplicating the operated-stars list here.
+  const creatorViewHref = `/${locale}/fanletter/my-ai`;
   const founderViewHref = `/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`;
   const viewTabs = [
     {
@@ -1058,7 +1007,6 @@ export function FanletterFounderClubPage({
           memberships={mockMemberships}
           stars={stars}
         />
-        <MockCreatorLaunchSummary launches={mockOwnedStars} locale={locale} />
 
         <section
           className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]"
