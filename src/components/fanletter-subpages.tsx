@@ -5924,7 +5924,6 @@ function FanletterCreatorVlogsPagination({
 export function FanletterFeedPage({
   fanOnlyPreviewItems,
   filters,
-  hiddenNsfwCount,
   items,
   locale,
   nsfwOptInEnabled,
@@ -6151,7 +6150,7 @@ export function FanletterFeedPage({
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f6f8f4] text-black">
       <div className="px-4 pt-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[92rem]">
+        <div className="mx-auto max-w-7xl">
           <FanletterPrimaryHeader
             current="feed"
             locale={locale}
@@ -6173,7 +6172,7 @@ export function FanletterFeedPage({
         </div>
       </div>
       <section className="overflow-hidden bg-[#f6f8f4] px-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-14 lg:px-8">
-        <div className="mx-auto max-w-[92rem]">
+        <div className="mx-auto max-w-7xl">
           <FanletterChannelSectionTabs
             ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
             items={sectionTabs}
@@ -6350,14 +6349,6 @@ export function FanletterFeedPage({
             locale={locale}
             referralCode={referralCode}
             variant="desktop"
-          />
-
-          <FanletterNsfwOptInControl
-            className="mt-6 mb-4 sm:mt-8 sm:mb-6"
-            compact
-            enabled={nsfwOptInEnabled}
-            hiddenCount={hiddenNsfwCount}
-            locale={locale}
           />
 
           <FanletterFeedFanOnlyPreviewStrip
