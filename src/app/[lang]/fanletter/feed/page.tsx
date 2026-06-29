@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { FanletterFeedPage } from "@/components/fanletter-subpages";
@@ -19,10 +18,6 @@ import {
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
-import {
-  FANLETTER_NSFW_OPT_IN_COOKIE,
-  isFanletterNsfwOptedIn,
-} from "@/lib/fanletter-nsfw";
 
 type FanletterFeedSearchParams = {
   page?: string | string[];
@@ -120,10 +115,9 @@ export default async function LocalizedFanletterFeedPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
-  const cookieStore = await cookies();
-  const includeNsfw = isFanletterNsfwOptedIn(
-    cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
-  );
+  // NSFW is hidden on the feed for now (product decision): force it off
+  // server-side regardless of the user's opt-in cookie.
+  const includeNsfw = false;
   const data = await getFanletterFeedPageData(locale, referralCode, {
     includeNsfw,
     page: readFeedPage(query.page),
