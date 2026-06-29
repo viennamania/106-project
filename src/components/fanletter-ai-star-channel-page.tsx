@@ -113,7 +113,7 @@ export function FanletterAIStarChannelPage({
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-zinc-950 sm:pb-0">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <FanletterPrimaryHeader
           current="discovery"
           locale={locale}
@@ -121,7 +121,7 @@ export function FanletterAIStarChannelPage({
         />
       </div>
 
-      <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:px-8">
+      <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-8 pt-3 sm:px-6 sm:pb-10 sm:pt-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-stretch lg:px-8">
         <div className="relative min-h-[25rem] overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-[linear-gradient(150deg,#0c1f14_0%,#0a1510_100%)] shadow-[0_24px_72px_rgba(15,23,42,0.16)]">
           {heroImageUrl ? (
             <Image
