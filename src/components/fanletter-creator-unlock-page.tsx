@@ -3444,7 +3444,7 @@ function CreatorJourneyProductHero({
   ];
 
   return (
-    <section className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+    <section className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start">
       <div className="rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex min-h-8 items-center rounded-full bg-black px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white">
@@ -3625,19 +3625,6 @@ function CreatorJourneyProductHero({
           </div>
         </div>
 
-        <div className="hidden sm:block">
-          <CreatorJourneyStepLinks
-            activeView="hub"
-            conditionsHref={conditionsHref}
-            creatorJourneyNextHref={creatorJourneyNextHref}
-            launchHref={launchHref}
-            locale={locale}
-            primaryActionHref={action.href}
-            sourceHref={sourceHref}
-            tiktokChannelHref={tiktokChannelHref}
-            unlock={unlock}
-          />
-        </div>
       </div>
     </section>
   );
@@ -4210,7 +4197,7 @@ export function FanletterCreatorUnlockPage({
           targetHref={`/${locale}/fanletter/creator-unlock`}
         />
       ) : null}
-      <div className="mx-auto w-full min-w-0 max-w-[92rem]">
+      <div className="mx-auto w-full min-w-0 max-w-7xl">
         <FanletterPrimaryHeader
           current="create"
           locale={locale}
@@ -4257,6 +4244,19 @@ export function FanletterCreatorUnlockPage({
               tiktokChannelHref={tiktokChannelHref}
               unlock={unlock}
             />
+            <div className="mt-3 hidden sm:block">
+              <CreatorJourneyStepLinks
+                activeView="hub"
+                conditionsHref={conditionsHref}
+                creatorJourneyNextHref={creatorJourneyNextHref}
+                launchHref={launchHref}
+                locale={locale}
+                primaryActionHref={creatorJourneyNextHref}
+                sourceHref={sourceHref}
+                tiktokChannelHref={tiktokChannelHref}
+                unlock={unlock}
+              />
+            </div>
             <CreatorJourneyContextGraphCard
               completedConditionCount={completedConditionCount}
               creatorJourneySocialConnected={creatorJourneySocialConnected}
