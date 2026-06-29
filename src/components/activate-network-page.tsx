@@ -419,17 +419,13 @@ export function ActivateNetworkPage({
       return;
     }
 
-    if (!selectedMemberEmail) {
-      setSelectedMemberEmail(paginatedMembers[0].email);
-      return;
-    }
-
     if (
-      !paginatedMembers.some((member) => member.email === selectedMemberEmail)
+      selectedMemberEmail &&
+      !sortedMembers.some((member) => member.email === selectedMemberEmail)
     ) {
-      setSelectedMemberEmail(paginatedMembers[0]?.email ?? null);
+      setSelectedMemberEmail(null);
     }
-  }, [paginatedMembers, selectedMemberEmail, sortedMembers.length]);
+  }, [paginatedMembers.length, selectedMemberEmail, sortedMembers]);
 
   useEffect(() => {
     const normalizedRequestedEmail = requestedMemberEmail?.trim().toLowerCase();
@@ -562,7 +558,7 @@ export function ActivateNetworkPage({
         summary: data.summary,
         totalReferrals: data.totalReferrals,
       });
-      setSelectedMemberEmail(data.members[0]?.email ?? null);
+      setSelectedMemberEmail(null);
     } catch (error) {
       setState({
         error:
@@ -1377,15 +1373,6 @@ export function ActivateNetworkPage({
 
             <section className="grid items-start gap-4 lg:grid-cols-[0.94fr_1.06fr]">
               <div className="space-y-4">
-                <MobileSelectedMemberSummary
-                  dictionary={dictionary}
-                  locale={locale}
-                  member={selectedMember}
-                  onOpen={() => {
-                    setIsSelectedMemberSheetOpen(true);
-                  }}
-                />
-
                 <section className="glass-card rounded-[28px] p-4 sm:p-5">
                   <div className="space-y-1">
                     <div className="space-y-1">
@@ -1491,10 +1478,6 @@ export function ActivateNetworkPage({
                       )}`}
                     />
                     <MemberListOverviewItem
-                      label={memberListOverviewCopy.selectedLabel}
-                      value={selectedMember?.email ?? dictionary.common.notAvailable}
-                    />
-                    <MemberListOverviewItem
                       label={memberListOverviewCopy.aiStarLinked}
                       value={formatTemplate(memberListOverviewCopy.aiStarValue, {
                         count: formatInteger(memberListAIStarCount, locale),
@@ -1512,7 +1495,7 @@ export function ActivateNetworkPage({
                       <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
                     ) : (
                       paginatedMembers.map((member) => {
-                        const isSelected = selectedMember?.email === member.email;
+                        const isSelected = selectedMemberEmail === member.email;
 
                         return (
                           <article
@@ -1695,6 +1678,7 @@ export function ActivateNetworkPage({
         onChangeServiceScope={setServiceScope}
         onClose={() => {
           setIsSelectedMemberSheetOpen(false);
+          setSelectedMemberEmail(null);
         }}
         open={isSelectedMemberSheetOpen}
         serviceCopy={serviceCopy}
@@ -1749,67 +1733,6 @@ export function ActivateNetworkPage({
         />
       </NotificationCenterSheet>
     </div>
-  );
-}
-
-function MobileSelectedMemberSummary({
-  dictionary,
-  locale,
-  member,
-  onOpen,
-}: {
-  dictionary: Dictionary;
-  locale: Locale;
-  member: ManagedReferralTreeNodeRecord | null;
-  onOpen: () => void;
-}) {
-  const copy = getMobileSelectedMemberCopy(locale);
-
-  if (!member) {
-    return null;
-  }
-
-  return (
-    <section className="glass-card rounded-[26px] p-4 lg:hidden">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-            {copy.eyebrow}
-          </p>
-          <h2 className="mt-2 break-all text-lg font-semibold tracking-tight text-slate-950">
-            {member.email}
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
-            {member.ownedAIStar
-              ? `${member.ownedAIStar.name} · ${copy.aiStarReady}`
-              : copy.aiStarPending}
-          </p>
-        </div>
-        <Pill>
-          {dictionary.activateNetworkPage.labels.level} {member.depth}
-        </Pill>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.directChildren}
-          value={formatInteger(member.directReferralCount, locale)}
-        />
-        <InfoCard
-          label={dictionary.activateNetworkPage.labels.descendants}
-          value={formatInteger(member.totalReferralCount, locale)}
-        />
-      </div>
-
-      <button
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(15,23,42,0.16)] transition hover:bg-slate-800"
-        onClick={onOpen}
-        type="button"
-      >
-        {copy.action}
-        <ChevronRight className="size-4" />
-      </button>
-    </section>
   );
 }
 
