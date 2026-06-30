@@ -879,6 +879,9 @@ function AgentRankLedgerContextAssetCard({
   packetReadyEvents: number;
 }) {
   const isKo = locale === "ko";
+  // Members reach this ledger from my-ai ("활동 기록 보기"); the ops engine name
+  // "AgentRank" stays only in the ops view (filters.view === "ops").
+  const isOpsView = filters.view === "ops";
   const contextScore = getLedgerContextScore({ feed, packetReadyEvents });
   const totalEvents = Math.max(0, feed.summary.totalEvents);
   const schemaPercent = formatPercent(feed.summary.schemaReadyEvents, totalEvents, locale);
@@ -950,7 +953,13 @@ function AgentRankLedgerContextAssetCard({
               Context Ledger
             </span>
             <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
-              {isKo ? "AgentRank 원천 자산" : "AgentRank source asset"}
+              {isOpsView
+                ? isKo
+                  ? "AgentRank 원천 자산"
+                  : "AgentRank source asset"
+                : isKo
+                  ? "관계 증거 원천"
+                  : "Relationship evidence source"}
             </span>
           </div>
           <h2 className="mt-3 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl">
@@ -959,9 +968,13 @@ function AgentRankLedgerContextAssetCard({
               : "Action records compound into verifiable context"}
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
-            {isKo
-              ? "이 원장은 AI 스타 발견, 참여, TikTok 연결, CP 보상 같은 행동을 AgentRank가 평가할 수 있는 관계 증거로 정리합니다."
-              : "This ledger converts discovery, joins, TikTok connections, and CP rewards into relationship evidence AgentRank can evaluate."}
+            {isOpsView
+              ? isKo
+                ? "이 원장은 AI 스타 발견, 참여, TikTok 연결, CP 보상 같은 행동을 AgentRank가 평가할 수 있는 관계 증거로 정리합니다."
+                : "This ledger converts discovery, joins, TikTok connections, and CP rewards into relationship evidence AgentRank can evaluate."
+              : isKo
+                ? "이 기록은 AI 스타 발견, 참여, TikTok 연결, 기여 포인트 같은 행동을 검증 가능한 관계 증거로 정리합니다."
+                : "This log organizes discovery, joins, TikTok connections, and contribution points into verifiable relationship evidence."}
           </p>
         </div>
 
