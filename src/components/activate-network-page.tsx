@@ -1530,11 +1530,6 @@ export function ActivateNetworkPage({
                                   </p>
                                 </div>
                                 <div className="flex shrink-0 flex-col items-end gap-2">
-                                  {isSelected ? (
-                                    <span className="inline-flex min-h-7 items-center rounded-full bg-white px-2.5 text-[0.68rem] font-semibold text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-                                      {memberListOverviewCopy.selectedLabel}
-                                    </span>
-                                  ) : null}
                                   {member.membershipCardTier !== "none" ? (
                                     <MembershipCardBadge
                                       active={isSelected}
@@ -3231,7 +3226,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "회원 상세 보기",
       aiStarPending: "AI 스타 준비 중",
       aiStarReady: "AI 스타 연결됨",
-      eyebrow: "보고 있는 회원",
+      eyebrow: "선택 회원",
       sheetTitle: "회원 상세",
     };
   }
@@ -3241,7 +3236,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "メンバー詳細を見る",
       aiStarPending: "AIスター準備中",
       aiStarReady: "AIスター連携済み",
-      eyebrow: "表示中のメンバー",
+      eyebrow: "選択メンバー",
       sheetTitle: "メンバー詳細",
     };
   }
@@ -3251,7 +3246,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "查看会员详情",
       aiStarPending: "AI Star 准备中",
       aiStarReady: "已连接 AI Star",
-      eyebrow: "正在查看的会员",
+      eyebrow: "已选会员",
       sheetTitle: "会员详情",
     };
   }
@@ -3261,7 +3256,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "Xem chi tiết thành viên",
       aiStarPending: "AI Star đang chuẩn bị",
       aiStarReady: "AI Star đã kết nối",
-      eyebrow: "Thành viên đang xem",
+      eyebrow: "Thành viên đã chọn",
       sheetTitle: "Chi tiết thành viên",
     };
   }
@@ -3271,7 +3266,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "Lihat detail member",
       aiStarPending: "AI Star sedang disiapkan",
       aiStarReady: "AI Star terhubung",
-      eyebrow: "Member yang dilihat",
+      eyebrow: "Member dipilih",
       sheetTitle: "Detail member",
     };
   }
@@ -3280,7 +3275,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
     action: "View member details",
     aiStarPending: "AI Star pending",
     aiStarReady: "AI Star connected",
-    eyebrow: "Viewing member",
+    eyebrow: "Selected member",
     sheetTitle: "Member details",
   };
 }
@@ -3484,7 +3479,6 @@ function getMemberListOverviewCopy(locale: Locale) {
       aiStarValue: "{count}/{total}명 연결",
       currentSort: "현재 정렬",
       rangeValue: "{start}-{end} / {total}명",
-      selectedLabel: "상세 보기 중",
       visibleRange: "목록 범위",
     };
   }
@@ -3495,7 +3489,6 @@ function getMemberListOverviewCopy(locale: Locale) {
       aiStarValue: "{count}/{total}名連携",
       currentSort: "現在の並び替え",
       rangeValue: "{start}-{end} / {total}名",
-      selectedLabel: "詳細表示中",
       visibleRange: "表示範囲",
     };
   }
@@ -3506,7 +3499,6 @@ function getMemberListOverviewCopy(locale: Locale) {
       aiStarValue: "{count}/{total}人已连接",
       currentSort: "当前排序",
       rangeValue: "{start}-{end} / {total}人",
-      selectedLabel: "正在查看",
       visibleRange: "列表范围",
     };
   }
@@ -3517,7 +3509,6 @@ function getMemberListOverviewCopy(locale: Locale) {
       aiStarValue: "{count}/{total} đã liên kết",
       currentSort: "Sắp xếp hiện tại",
       rangeValue: "{start}-{end} / {total}",
-      selectedLabel: "Đang xem",
       visibleRange: "Phạm vi danh sách",
     };
   }
@@ -3528,7 +3519,6 @@ function getMemberListOverviewCopy(locale: Locale) {
       aiStarValue: "{count}/{total} tertaut",
       currentSort: "Urutan saat ini",
       rangeValue: "{start}-{end} / {total}",
-      selectedLabel: "Sedang dilihat",
       visibleRange: "Rentang daftar",
     };
   }
@@ -3538,7 +3528,6 @@ function getMemberListOverviewCopy(locale: Locale) {
     aiStarValue: "{count}/{total} linked",
     currentSort: "Current sort",
     rangeValue: "{start}-{end} / {total}",
-    selectedLabel: "Viewing details",
     visibleRange: "List range",
   };
 }
