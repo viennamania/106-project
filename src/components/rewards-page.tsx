@@ -731,6 +731,9 @@ export function RewardsPage({
                       locale={locale}
                       value={formatPoints(state.summary.spendablePoints, locale)}
                     />
+                    <p className="max-w-md break-keep text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
+                      {pointContextCopy.spendableHeroCaption}
+                    </p>
                   </div>
 
                   <p className="mt-4 hidden max-w-2xl text-sm leading-6 text-white/72 sm:block">
@@ -2443,6 +2446,8 @@ function getRewardPointContextCopy(locale: Locale) {
       progressCaption:
         "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적 포인트로 계산합니다.",
       sourceBreakdownLabel: "포인트 출처",
+      spendableHeroCaption:
+        "지금 리워드 교환에 쓸 수 있는 실제 잔액입니다. 등급 기준 누적 포인트와는 별도로 관리됩니다.",
       spendableHint: "리워드 교환에 바로 쓰는 잔액",
       spendableLabel: "리워드 교환 가능 포인트",
     };
@@ -2464,6 +2469,8 @@ function getRewardPointContextCopy(locale: Locale) {
       progressCaption:
         "ランク進捗は交換可能残高ではなく、ランク基準累積ポイントで計算します。",
       sourceBreakdownLabel: "ポイントの内訳",
+      spendableHeroCaption:
+        "今すぐリワード交換に使える実際の残高です。ランク基準の累積ポイントとは別に管理されます。",
       spendableHint: "リワード交換に使える残高",
       spendableLabel: "リワード交換可能ポイント",
     };
@@ -2484,6 +2491,7 @@ function getRewardPointContextCopy(locale: Locale) {
         `距离 ${tier} 还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
       sourceBreakdownLabel: "积分来源",
+      spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级累计积分分开管理。",
       spendableHint: "可直接兑换奖励的余额",
       spendableLabel: "奖励可兑换积分",
     };
@@ -2504,6 +2512,8 @@ function getRewardPointContextCopy(locale: Locale) {
     progressCaption:
       "Tier progress is calculated from lifetime tier points, not redeemable balance.",
     sourceBreakdownLabel: "Point sources",
+    spendableHeroCaption:
+      "This is the actual balance available for rewards. Tier lifetime points are tracked separately.",
     spendableHint: "Balance you can redeem now",
     spendableLabel: "Reward redeemable points",
   };
