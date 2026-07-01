@@ -37,17 +37,17 @@ export function buildServiceMetadata({
 export function getServiceActivateMetaDescription(locale: Locale) {
   switch (locale) {
     case "ko":
-      return "1066FRIEND+에서 가입 완료 상태, 내 추천 코드, 하위 회원 네트워크, 포인트, 지갑 상태를 확인하는 서비스 시작 허브입니다.";
+      return "1066FRIEND+에서 내 추천 코드, 포인트, 지갑, 하위 회원 네트워크를 확인하고 다음 행동을 시작합니다.";
     case "ja":
-      return "1066FRIEND+で会員有効化、紹介コード、下位メンバーネットワーク、ポイント、ウォレット状態を確認するサービス開始ハブです。";
+      return "1066FRIEND+で紹介コード、ポイント、ウォレット、下位メンバーネットワークを確認し、次の行動を始めます。";
     case "zh":
-      return "1066FRIEND+ 服务启动中心，用于确认会员激活、推荐码、下级会员网络、积分和钱包状态。";
+      return "在 1066FRIEND+ 查看推荐码、积分、钱包和下级会员网络，并开始下一步行动。";
     case "vi":
-      return "Trung tâm bắt đầu 1066FRIEND+ để kiểm tra kích hoạt thành viên, mã giới thiệu, mạng tuyến dưới, điểm và ví.";
+      return "Xem mã giới thiệu, điểm, ví và mạng tuyến dưới trong 1066FRIEND+, rồi bắt đầu hành động tiếp theo.";
     case "id":
-      return "Hub mulai 1066FRIEND+ untuk memeriksa aktivasi anggota, kode referral, jaringan downline, poin, dan status wallet.";
+      return "Lihat kode referral, poin, wallet, dan jaringan downline di 1066FRIEND+, lalu mulai langkah berikutnya.";
     default:
-      return "The 1066FRIEND+ service start hub for signup status, referral codes, downline network, points, and wallet status.";
+      return "View your referral code, points, wallet, and downline network in 1066FRIEND+, then start the next action.";
   }
 }
 
@@ -71,16 +71,16 @@ export function getServiceConnectModalTitle(locale: Locale) {
 export function getServiceHubLabel(locale: Locale) {
   switch (locale) {
     case "ko":
-      return "서비스 시작 허브";
+      return "1066FRIEND+ 홈";
     case "ja":
-      return "サービス開始ハブ";
+      return "1066FRIEND+ ホーム";
     case "zh":
-      return "服务启动中心";
+      return "1066FRIEND+ 首页";
     case "vi":
-      return "Trung tâm khởi động dịch vụ";
+      return "Trang chủ 1066FRIEND+";
     case "id":
-      return "Hub mulai layanan";
+      return "Beranda 1066FRIEND+";
     default:
-      return "Service start hub";
+      return "1066FRIEND+ Home";
   }
 }
