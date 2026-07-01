@@ -950,7 +950,11 @@ function AgentRankLedgerContextAssetCard({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-600">
               <Database className="size-3.5" />
-              Context Ledger
+              {isOpsView
+                ? "Context Ledger"
+                : isKo
+                  ? "관계 원장"
+                  : "Relationship ledger"}
             </span>
             <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
               {isOpsView
@@ -963,9 +967,13 @@ function AgentRankLedgerContextAssetCard({
             </span>
           </div>
           <h2 className="mt-3 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl">
-            {isKo
-              ? "행동 기록이 검증 가능한 Context로 쌓입니다"
-              : "Action records compound into verifiable context"}
+            {isOpsView
+              ? isKo
+                ? "행동 기록이 검증 가능한 Context로 쌓입니다"
+                : "Action records compound into verifiable context"
+              : isKo
+                ? "행동 기록이 검증 가능한 관계 증거로 쌓입니다"
+                : "Action records compound into verifiable relationship evidence"}
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
             {isOpsView
@@ -980,7 +988,11 @@ function AgentRankLedgerContextAssetCard({
 
         <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
           <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
-            Context Score
+            {isOpsView
+              ? "Context Score"
+              : isKo
+                ? "관계 점수"
+                : "Relationship score"}
           </p>
           <div className="mt-2 flex items-end gap-1">
             <span className="text-3xl font-semibold">{contextScore}</span>
