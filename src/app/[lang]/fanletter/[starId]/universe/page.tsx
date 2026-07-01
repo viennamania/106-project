@@ -52,7 +52,7 @@ export async function generateMetadata({
 
   if (!universe) {
     return {
-      title: "Creator Network | FanLetter",
+      title: "Creator Network | AIAVpark",
     };
   }
 

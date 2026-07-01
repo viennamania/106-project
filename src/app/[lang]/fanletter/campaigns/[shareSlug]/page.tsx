@@ -25,13 +25,13 @@ export async function generateMetadata({
   const title = campaign
     ? `${campaign.selectedCharacter.name}의 ${campaign.questName}`
     : locale === "ko"
-      ? "FanLetter 캠페인"
-      : "FanLetter Campaign";
+      ? "AIAVpark 캠페인"
+      : "AIAVpark Campaign";
   const description =
     campaign?.brief.shareCopy ??
     (locale === "ko"
-      ? "FanLetter AI 캐릭터 캠페인 공유 페이지입니다."
-      : "FanLetter AI character campaign share page.");
+      ? "AIAVpark AI 캐릭터 캠페인 공유 페이지입니다."
+      : "AIAVpark AI character campaign share page.");
   const url = `/${locale}/fanletter/campaigns/${shareSlug}`;
   const ogImage = {
     alt: getFanletterOgAlt(locale, "creator"),
