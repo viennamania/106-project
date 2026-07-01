@@ -302,6 +302,9 @@ export function ActivateNetworkPage({
     });
   }, [filteredMembers, locale, memberSortDirection, memberSortKey]);
   const memberSortOptions = useMemo(() => getMemberSortOptions(locale), [locale]);
+  const primaryMemberSortOptions = memberSortOptions.slice(0, 4);
+  const advancedMemberSortOptions = memberSortOptions.slice(4);
+  const memberSortCopy = useMemo(() => getMemberSortCopy(locale), [locale]);
 
   const totalMemberPages = Math.max(
     1,
@@ -1408,10 +1411,10 @@ export function ActivateNetworkPage({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                          {getMemberSortCopy(locale).label}
+                          {memberSortCopy.label}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {formatTemplate(getMemberSortCopy(locale).resultCount, {
+                          {formatTemplate(memberSortCopy.resultCount, {
                             count: formatInteger(sortedMembers.length, locale),
                           })}
                         </p>
@@ -1435,7 +1438,7 @@ export function ActivateNetworkPage({
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {memberSortOptions.map((option) => {
+                      {primaryMemberSortOptions.map((option) => {
                         const isActive = memberSortKey === option.key;
 
                         return (
@@ -1458,6 +1461,38 @@ export function ActivateNetworkPage({
                         );
                       })}
                     </div>
+                    {advancedMemberSortOptions.length > 0 ? (
+                      <details className="group mt-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+                          <span>{memberSortCopy.advancedLabel}</span>
+                          <ChevronRight className="size-3.5 transition group-open:rotate-90" />
+                        </summary>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {advancedMemberSortOptions.map((option) => {
+                            const isActive = memberSortKey === option.key;
+
+                            return (
+                              <button
+                                className={cn(
+                                  "inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs font-semibold transition",
+                                  isActive
+                                    ? "border-slate-950 bg-slate-950 text-white"
+                                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                                )}
+                                key={option.key}
+                                onClick={() => {
+                                  setMemberSortKey(option.key);
+                                  setMemberSortDirection(option.defaultDirection);
+                                }}
+                                type="button"
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </details>
+                    ) : null}
                   </div>
 
                   <div className="mt-4 grid gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid-cols-2 xl:grid-cols-4">
@@ -3456,12 +3491,14 @@ function getNetworkSummaryHintCopy(locale: Locale) {
 function getMemberSortCopy(locale: Locale) {
   if (locale === "ko") {
     return {
+      advancedLabel: "추가 정렬",
       label: "정렬 기준",
       resultCount: "조건에 맞는 회원 {count}명",
     };
   }
 
   return {
+    advancedLabel: "More sort options",
     label: "Sort by",
     resultCount: "{count} matching members",
   };
