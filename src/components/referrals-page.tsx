@@ -941,7 +941,7 @@ function getReferralLink(referralCode: string, locale: Locale) {
 function getReferralHubCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      activationTitle: "회원 활성화가 필요합니다",
+      activationTitle: "서비스 시작 준비가 필요합니다",
       bnbDescription: "BNB 입금과 네트워크 수수료 상태를 확인합니다.",
       bnbTitle: "BNB 지갑",
       brandingDescription: "내 추천 링크로 열리는 랜딩 화면을 꾸밉니다.",
@@ -973,7 +973,7 @@ function getReferralHubCopy(locale: Locale) {
 
   if (locale === "ja") {
     return {
-      activationTitle: "メンバー有効化が必要です",
+      activationTitle: "サービス開始準備が必要です",
       bnbDescription: "BNB入金とネットワーク手数料の状態を確認します。",
       bnbTitle: "BNBウォレット",
       brandingDescription: "紹介リンクで開くランディング画面を調整します。",
