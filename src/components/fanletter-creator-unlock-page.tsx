@@ -133,7 +133,7 @@ function getInitials(value: string) {
 function getLaunchPageCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      back: "FanLetter 홈",
+      back: "AIAVpark 홈",
       category: "카테고리",
       cost: "10 USDT 미리보기",
       draft: "준비 중",
@@ -191,7 +191,7 @@ function getLaunchPageCopy(locale: Locale) {
 
   if (locale === "ja") {
     return {
-      back: "FanLetter Home",
+      back: "AIAVpark Home",
       category: "Category",
       cost: "10 USDT preview",
       draft: "Draft",
@@ -248,7 +248,7 @@ function getLaunchPageCopy(locale: Locale) {
   }
 
   return {
-    back: "FanLetter Home",
+    back: "AIAVpark Home",
     category: "Category",
     cost: "10 USDT preview",
     draft: "Draft",

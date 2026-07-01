@@ -287,7 +287,7 @@ const koCopy: FanletterCopy = {
     eyebrow: "FANLETTER",
     title: "AI 스타를 발견하고, 팬으로 참여하고, 크리에이터로 성장하세요",
     description:
-      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 팬 참여, 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
+      "AIAVpark는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 팬 참여, 초대, 크리에이터 성장 플랫폼으로 진화합니다.",
   },
   liveStats: {
     content: "공개 브이로그",
@@ -502,7 +502,7 @@ const enCopy: FanletterCopy = {
     eyebrow: "FANLETTER",
     title: "Discover AI Stars, join as a Fan, and grow into a Creator.",
     description:
-      "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Fan, Invite, and Creator growth platform.",
+      "AIAVpark is evolving from an AI character content platform into an AI Star Discovery, Fan, Invite, and Creator growth platform.",
   },
   liveStats: {
     content: "public vlogs",
