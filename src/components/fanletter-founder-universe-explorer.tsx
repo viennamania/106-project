@@ -679,7 +679,7 @@ function FounderDashboardSidebar({
         className="inline-flex items-center gap-1 text-xl font-semibold tracking-normal text-zinc-950"
         href={`/${locale}/fanletter`}
       >
-        FanLetter
+        AIAVpark
         <Sparkles className="size-4 fill-black text-black" />
       </Link>
 
@@ -2201,7 +2201,7 @@ function FounderUniverseDashboardPanel({
         <div>
           <p className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
             <Sparkles className="size-4" />
-            FanLetter
+            AIAVpark
           </p>
           <h2 className="mt-5 max-w-[13rem] text-3xl font-semibold uppercase leading-none tracking-normal text-white sm:mt-7 sm:max-w-[14rem] sm:text-5xl">
             AI Star
