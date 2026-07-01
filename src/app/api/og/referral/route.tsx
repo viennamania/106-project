@@ -84,7 +84,7 @@ export async function GET(request: Request) {
                 textTransform: "uppercase",
               }}
             >
-              1066friend+
+              AIAVpark
             </div>
             <div
               style={{
