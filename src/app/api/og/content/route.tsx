@@ -234,7 +234,7 @@ export async function GET(request: Request) {
                     width: "100%",
                   }}
                 >
-                  1066friend+
+                  AIAVpark
                 </div>
               )}
 

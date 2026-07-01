@@ -70,7 +70,7 @@ function readLocale(value: string | null) {
 }
 
 function getAuthorName(item: ContentFeedItemRecord | null) {
-  return item?.authorProfile?.displayName?.trim() || "1066friend+ creator";
+  return item?.authorProfile?.displayName?.trim() || "AIAVpark creator";
 }
 
 function getInitials(value: string) {
@@ -457,7 +457,7 @@ export async function GET(request: Request) {
                   fontWeight: 900,
                 }}
               >
-                1066friend+
+                AIAVpark
               </div>
               <div
                 style={{
