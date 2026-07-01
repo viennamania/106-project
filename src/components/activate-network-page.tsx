@@ -2265,9 +2265,10 @@ function MemberListContextGrid({
   member: ManagedReferralTreeNodeRecord;
 }) {
   const copy = getMemberListContextCopy(locale);
-  const starValue = member.ownedAIStar
-    ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
-    : copy.aiStarPending;
+  const networkValue = formatTemplate(copy.networkValue, {
+    direct: formatInteger(member.directReferralCount, locale),
+    total: formatInteger(member.totalReferralCount, locale),
+  });
 
   return (
     <div className="mt-3 grid grid-cols-2 gap-2">
@@ -2278,18 +2279,18 @@ function MemberListContextGrid({
       />
       <MemberListContextItem
         active={active}
-        label={copy.directLabel}
-        value={`${formatInteger(member.directReferralCount, locale)}${copy.memberSuffix}`}
+        label={copy.lastConnectedLabel}
+        value={formatDateOnly(member.lastConnectedAt, locale)}
       />
       <MemberListContextItem
         active={active}
-        label={copy.totalLabel}
-        value={`${formatInteger(member.totalReferralCount, locale)}${copy.memberSuffix}`}
+        label={copy.networkLabel}
+        value={networkValue}
       />
       <MemberListContextItem
         active={active}
-        label={copy.aiStarLabel}
-        value={starValue}
+        label={copy.spendableLabel}
+        value={`${formatInteger(member.spendablePoints, locale)}P`}
       />
     </div>
   );
@@ -3283,66 +3284,60 @@ function getMobileSelectedMemberCopy(locale: Locale) {
 function getMemberListContextCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      aiStarLabel: "AI 스타",
-      aiStarPending: "생성 대기",
-      directLabel: "직접 하위",
       joinedAtLabel: "가입일",
-      memberSuffix: "명",
-      totalLabel: "전체 하위",
+      lastConnectedLabel: "최근 연결",
+      networkLabel: "하위 규모",
+      networkValue: "직접 {direct}명 · 전체 {total}명",
+      spendableLabel: "교환 가능",
     };
   }
 
   if (locale === "ja") {
     return {
-      aiStarLabel: "AIスター",
-      aiStarPending: "生成待ち",
-      directLabel: "直接下位",
       joinedAtLabel: "登録日",
-      memberSuffix: "名",
-      totalLabel: "全体下位",
+      lastConnectedLabel: "最終接続",
+      networkLabel: "下位規模",
+      networkValue: "直接 {direct}名 · 全体 {total}名",
+      spendableLabel: "交換可能",
     };
   }
 
   if (locale === "zh") {
     return {
-      aiStarLabel: "AI明星",
-      aiStarPending: "等待生成",
-      directLabel: "直属下级",
       joinedAtLabel: "注册日期",
-      memberSuffix: "人",
-      totalLabel: "全部下级",
+      lastConnectedLabel: "最近连接",
+      networkLabel: "下级规模",
+      networkValue: "直属 {direct}人 · 全部 {total}人",
+      spendableLabel: "可兑换",
     };
   }
 
   if (locale === "vi") {
     return {
-      aiStarLabel: "AI Star",
-      aiStarPending: "Đang chờ tạo",
-      directLabel: "Trực tiếp",
       joinedAtLabel: "Ngày tham gia",
-      memberSuffix: " người",
-      totalLabel: "Toàn mạng",
+      lastConnectedLabel: "Kết nối gần nhất",
+      networkLabel: "Quy mô tuyến dưới",
+      networkValue: "Trực tiếp {direct} · Toàn mạng {total}",
+      spendableLabel: "Có thể đổi",
     };
   }
 
   if (locale === "id") {
     return {
-      aiStarLabel: "AI Star",
-      aiStarPending: "Menunggu dibuat",
-      directLabel: "Langsung",
       joinedAtLabel: "Tanggal gabung",
-      memberSuffix: " anggota",
-      totalLabel: "Jaringan",
+      lastConnectedLabel: "Terakhir terhubung",
+      networkLabel: "Ukuran jaringan",
+      networkValue: "Langsung {direct} · Total {total}",
+      spendableLabel: "Dapat ditukar",
     };
   }
 
   return {
-    aiStarLabel: "AI Star",
-    aiStarPending: "Pending",
-    directLabel: "Direct",
     joinedAtLabel: "Joined",
-    memberSuffix: "",
-    totalLabel: "Network",
+    lastConnectedLabel: "Last connected",
+    networkLabel: "Downline size",
+    networkValue: "Direct {direct} · Total {total}",
+    spendableLabel: "Redeemable",
   };
 }
 
