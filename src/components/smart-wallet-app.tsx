@@ -269,13 +269,23 @@ function getActivationHubCopy(locale: Locale) {
       assetDescription: "USDT와 BNB 잔고, 받을 주소를 확인합니다.",
       assetLabel: "지갑 보기",
       connected: "지갑 연결됨",
+      contextFlowItems: [
+        "가입 인증",
+        "지갑",
+        "추천 코드",
+        "AI 스타 IP",
+        "리워드 포인트",
+      ],
+      contextFlowLabel: "서비스 Context",
+      contextNote:
+        "가입, 지갑, 추천, AI 스타 IP, 포인트 기록이 회원 Context로 연결됩니다.",
       graphTitle: "진행 흐름",
       description:
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       disconnectedMessage: "이메일로 시작하면 내 추천 코드가 준비됩니다.",
-      feedDescription: "공개된 콘텐츠를 한 화면에서 둘러봅니다.",
-      feedLabel: "공개 콘텐츠 보기",
+      feedDescription: "공개 콘텐츠와 리포트 작성자 정보를 봅니다.",
+      feedLabel: "콘텐츠 피드",
       feedMetric: "공개",
       hubLabel: "1066FRIEND+",
       lockedMenuCaption: "이메일 인증 후 메뉴가 열립니다.",
@@ -288,20 +298,20 @@ function getActivationHubCopy(locale: Locale) {
       membershipDescription: "이메일, 지갑, 10 USDT 확인 상태입니다.",
       membershipLabel: "가입 상태",
       nextStepTitle: "다음으로 할 일",
-      networkDescription: "내 추천 코드로 가입한 회원과 단계를 확인합니다.",
+      networkDescription: "내 코드로 가입한 회원, 가입일, 단계, AI 스타를 확인합니다.",
       networkLabel: "추천 회원 관리",
       notReady: "설정 필요",
       pending: "결제 확인 필요",
       pendingMessage: "10 USDT 확인 후 추천 코드와 포인트 메뉴가 열립니다.",
-      pointsDescription: "지금 쓸 수 있는 포인트와 교환 이력을 확인합니다.",
-      pointsLabel: "포인트 교환",
+      pointsDescription: "교환 가능 포인트와 등급 기준 누적 포인트를 구분해서 봅니다.",
+      pointsLabel: "포인트 리워드",
       pointsMetricPrefix: "교환 가능",
       profileFirstLabel: "프로필 먼저",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      readyMessage: "가입 완료. 추천 회원 관리 또는 포인트 교환을 확인하세요.",
+      readyMessage: "가입 완료. 추천 회원 또는 포인트 리워드부터 확인하세요.",
       recommendedLabel: "먼저 확인",
       secondaryLabel: "다음 행동",
       shareDescription: "내 추천 코드와 공유 링크를 확인합니다.",
@@ -329,13 +339,23 @@ function getActivationHubCopy(locale: Locale) {
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
+    contextFlowItems: [
+      "Signup",
+      "Wallet",
+      "Referral code",
+      "AI Star IP",
+      "Reward points",
+    ],
+    contextFlowLabel: "Service context",
+    contextNote:
+      "Signup, wallet, referral, AI Star IP, and point records become member context.",
     graphTitle: "Progress flow",
     description:
       "Check your status and the next action first.",
     disconnected: "Connection required",
     disconnectedMessage: "Start with email to prepare your referral code.",
-    feedDescription: "Browse public content in one place.",
-    feedLabel: "Public content",
+    feedDescription: "Review public content and reporter identity.",
+    feedLabel: "Content feed",
     feedMetric: "Public",
     hubLabel: "1066FRIEND+",
     lockedMenuCaption: "Menus open after email verification.",
@@ -348,20 +368,20 @@ function getActivationHubCopy(locale: Locale) {
     membershipDescription: "Email, wallet, and 10 USDT check status.",
     membershipLabel: "Signup status",
     nextStepTitle: "Next steps",
-    networkDescription: "Review members and levels created by your referral code.",
+    networkDescription: "Review members, signup time, levels, and AI Stars from your code.",
     networkLabel: "Manage referrals",
     notReady: "Setup required",
     pending: "Payment check needed",
     pendingMessage: "Referral code and points open after the 10 USDT check.",
-    pointsDescription: "Review points you can spend and redemption history.",
-    pointsLabel: "Redeem points",
+    pointsDescription: "Separate redeemable points from lifetime points used for tiering.",
+    pointsLabel: "Point rewards",
     pointsMetricPrefix: "Redeemable",
     profileFirstLabel: "Profile first",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    readyMessage: "Signup is complete. Review referral members or manage points.",
+    readyMessage: "Signup is complete. Start with referrals or point rewards.",
     recommendedLabel: "Start here",
     secondaryLabel: "Next action",
     shareDescription: "Review your referral code and share link.",
@@ -2785,6 +2805,34 @@ function ActivationServiceHub({
                     </div>
                   )
                 ))}
+              </div>
+
+              <div className="mt-3 rounded-[20px] border border-white/10 bg-black/25 px-3 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                    {copy.contextFlowLabel}
+                  </p>
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.62rem] font-semibold text-white/55">
+                    Context
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {copy.contextFlowItems.map((item, index) => (
+                    <span className="inline-flex items-center gap-1.5" key={item}>
+                      <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[0.68rem] font-semibold text-white/72">
+                        {item}
+                      </span>
+                      {index < copy.contextFlowItems.length - 1 ? (
+                        <span className="text-[0.62rem] font-semibold text-white/28">
+                          →
+                        </span>
+                      ) : null}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2 break-keep text-[0.72rem] leading-5 text-white/45 [word-break:keep-all]">
+                  {copy.contextNote}
+                </p>
               </div>
             </div>
 
