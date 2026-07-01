@@ -2329,12 +2329,12 @@ export function FanletterStarDetailPage({
         referralCode={referralCode}
       />
       <section
-        className="overflow-hidden border-b border-zinc-200 bg-white px-4 pb-8 pt-5 text-black sm:px-6 sm:pb-16 sm:pt-6 lg:px-8"
+        className="overflow-hidden border-b border-zinc-200 bg-white pb-8 pt-5 text-black sm:pb-16 sm:pt-6"
         style={{
           background: `radial-gradient(circle at 12% 8%, ${star.accentColor}12, transparent 32%), radial-gradient(circle at 84% 10%, rgba(24,24,27,0.08), transparent 30%), linear-gradient(180deg, #ffffff 0%, #ffffff 58%, #f4f4f5 100%)`,
         }}
       >
-        <div className="mx-auto max-w-[92rem]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FanletterPrimaryHeader
             current="discovery"
             locale={locale}
@@ -2612,8 +2612,8 @@ export function FanletterStarDetailPage({
         </div>
       </section>
 
-      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <div className="mx-auto grid max-w-[92rem] gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="py-10 sm:py-14">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 lg:px-8 xl:grid-cols-[1.05fr_0.95fr]">
           <FanletterStarReferralPanel
             copy={copy}
             inboundReferralCode={effectiveInboundReferralCode}
@@ -2637,7 +2637,7 @@ export function FanletterStarDetailPage({
           </div>
         </div>
 
-        <div className="mx-auto max-w-[92rem]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FounderUniversePreview
             copy={copy}
             locale={locale}
@@ -2645,7 +2645,7 @@ export function FanletterStarDetailPage({
           />
         </div>
 
-        <div className="mx-auto mt-12 max-w-[92rem]">
+        <div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-[#6d28d9]">
