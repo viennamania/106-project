@@ -3226,7 +3226,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "회원 상세 보기",
       aiStarPending: "AI 스타 준비 중",
       aiStarReady: "AI 스타 연결됨",
-      eyebrow: "보고 있는 회원",
+      eyebrow: "선택한 회원",
       sheetTitle: "회원 상세",
     };
   }
