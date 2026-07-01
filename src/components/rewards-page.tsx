@@ -1196,6 +1196,35 @@ function RewardRedeemDialog({
         </div>
 
         <div className="space-y-3 px-5 py-5 sm:px-6">
+          <div className="grid grid-cols-3 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+            <div className="min-w-0 border-r border-slate-200 px-3 py-3">
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                {copy.costLabel}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                -{formatPoints(dialog.reward.costPoints, locale)}
+              </p>
+            </div>
+            <div className="min-w-0 border-r border-slate-200 px-3 py-3">
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                {copy.afterBalanceLabel}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-emerald-700">
+                {formatPoints(afterPoints, locale)}
+              </p>
+            </div>
+            <div className="min-w-0 px-3 py-3">
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                BNB
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                {dialog.silverQuote
+                  ? dialog.silverQuote.bnbAmount
+                  : copy.expectedBnbUnavailable}
+              </p>
+            </div>
+          </div>
+
           <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
             <div className="grid grid-cols-2 gap-3">
               <DialogMetric
