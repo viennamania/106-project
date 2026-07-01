@@ -7,14 +7,14 @@ import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 function getLookbookMeta(locale: Locale) {
   if (locale === "ko") {
     return {
-      title: "AI 스타 룩북 스튜디오 | FanLetter",
+      title: "AI 스타 룩북 스튜디오 | AIAVpark",
       description:
         "옷 사진을 올리면 내 AI 스타가 그 옷을 입은 한국형 쇼핑몰 룩북을 만들어 드립니다.",
     };
   }
 
   return {
-    title: "AI Star Lookbook Studio | FanLetter",
+    title: "AI Star Lookbook Studio | AIAVpark",
     description:
       "Upload a garment photo and your AI star wears it in a Korean fashion e-commerce lookbook.",
   };
