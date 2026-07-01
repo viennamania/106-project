@@ -3124,7 +3124,6 @@ function IncomingReferralHighlightCard({
         color: theme.buttonFrom,
       }
     : undefined;
-  const displayBrandName = dictionary.member.incomingReferralTitle;
   const displayDescription = formatTemplate(
     dictionary.member.incomingReferralDescription,
     {
@@ -3155,10 +3154,7 @@ function IncomingReferralHighlightCard({
             </span>
           </div>
 
-          <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-            {displayBrandName}
-          </p>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600">
             {displayDescription}
           </p>
           {branding ? (
