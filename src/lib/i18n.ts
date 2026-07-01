@@ -983,16 +983,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       celebrationTitle: "회원가입 완료",
       celebrationDescription:
         "10 USDT 입금이 확인되어 회원 코드가 활성화되었습니다.",
-      incomingReferralTitle: "추천인 코드가 감지되었습니다.",
+      incomingReferralTitle: "추천 링크 코드",
       incomingReferralDescription:
-        "이메일 로그인 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",
+        "이메일 인증 후 가입하면 코드 {code} 가 적용됩니다.",
       incomingReferralLimitTitle: "이 추천인 코드는 직접 가입이 마감되었습니다.",
       incomingReferralLimitDescription:
         "추천인 코드 {code} 는 직접 {limit}명이 모두 가입 진행 중이거나 완료되었습니다. 그래도 이 링크로 회원가입을 계속하면 시스템이 {code} 네트워크 하부의 빈 슬롯을 자동으로 찾아 연결합니다.",
       selfReferralNotice:
         "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
-        "이 가입에는 추천 링크 코드 {code} 가 적용되어 있습니다.",
+        "적용 코드: {code}",
       autoPlacementDescription:
         "실제 네트워크 배치는 상위 코드 {code} 아래의 빈 슬롯으로 배정되었습니다.",
       autoPlacementDescriptionWithSlot:
@@ -1890,9 +1890,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       celebrationTitle: "Signup Complete",
       celebrationDescription:
         "The 10 USDT transfer was confirmed and your referral code is now active.",
-      incomingReferralTitle: "A referral code was detected.",
+      incomingReferralTitle: "Referral link code",
       incomingReferralDescription:
-        "If signup completes on this page, referral code {code} will be stored on the member record.",
+        "After email verification, code {code} will be applied.",
       incomingReferralLimitTitle:
         "This referral code has reached its direct signup limit.",
       incomingReferralLimitDescription:
@@ -1900,7 +1900,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       selfReferralNotice:
         "You opened your own referral link. Referral credit does not apply to your own signup.",
       appliedReferralDescription:
-        "Referral link code {code} is applied to this signup.",
+        "Applied code: {code}",
       autoPlacementDescription:
         "The actual network placement was assigned to an open slot under upline code {code}.",
       autoPlacementDescriptionWithSlot:
@@ -2806,9 +2806,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       celebrationTitle: "登録完了",
       celebrationDescription:
         "10 USDT の入金が確認され、レファラルコードが有効になりました。",
-      incomingReferralTitle: "紹介コードを検出しました。",
+      incomingReferralTitle: "紹介リンクコード",
       incomingReferralDescription:
-        "メールログイン後に登録が完了すると、紹介コード {code} が会員情報に保存されます。",
+        "メール認証後に登録すると、コード {code} が適用されます。",
       incomingReferralLimitTitle:
         "この紹介コードの直接登録枠は埋まっています。",
       incomingReferralLimitDescription:
@@ -2816,7 +2816,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       selfReferralNotice:
         "自分のレファラルリンクを開いています。自分自身には紹介特典は適用されません。",
       appliedReferralDescription:
-        "この登録には紹介コード {code} が適用されています。",
+        "適用コード: {code}",
       autoPlacementDescription:
         "現在のネットワーク配置ルールに従って、ネットワークコード {code} の空きスロットへ配置されました。",
       autoPlacementDescriptionWithSlot:
@@ -3726,16 +3726,16 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       celebrationTitle: "注册完成",
       celebrationDescription:
         "10 USDT 入账已确认，你的推荐码现在已经激活。",
-      incomingReferralTitle: "检测到推荐码。",
+      incomingReferralTitle: "推荐链接代码",
       incomingReferralDescription:
-        "邮箱登录后，如果在此页面完成注册，推荐码 {code} 会写入会员信息。",
+        "邮箱验证后注册，将应用代码 {code}。",
       incomingReferralLimitTitle: "这个推荐码的直推名额已满。",
       incomingReferralLimitDescription:
         "推荐码 {code} 的直推 {limit} 个名额都已在进行中或已完成。你仍然可以继续通过这个链接注册，系统会自动在 {code} 网络下方寻找可用空位并完成挂接。",
       selfReferralNotice:
         "你打开的是自己的推荐链接。自己的注册不会获得推荐奖励。",
       appliedReferralDescription:
-        "此注册已应用推荐码 {code}。",
+        "已应用代码：{code}",
       autoPlacementDescription:
         "系统已按当前网络分配规则将其放入网络代码 {code} 下的空槽位。",
       autoPlacementDescriptionWithSlot:
@@ -4634,9 +4634,9 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       celebrationTitle: "Đăng ký hoàn tất",
       celebrationDescription:
         "Chuyển khoản 10 USDT đã được xác nhận và mã referral của bạn đã hoạt động.",
-      incomingReferralTitle: "Đã phát hiện mã giới thiệu.",
+      incomingReferralTitle: "Mã liên kết giới thiệu",
       incomingReferralDescription:
-        "Nếu đăng ký hoàn tất trên trang này, mã giới thiệu {code} sẽ được lưu vào hồ sơ thành viên.",
+        "Sau khi xác minh email, mã {code} sẽ được áp dụng.",
       incomingReferralLimitTitle:
         "Mã giới thiệu này đã kín suất đăng ký trực tiếp.",
       incomingReferralLimitDescription:
@@ -4644,7 +4644,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       selfReferralNotice:
         "Bạn đang mở liên kết referral của chính mình. Tài khoản của bạn sẽ không nhận credit giới thiệu cho đăng ký này.",
       appliedReferralDescription:
-        "Mã giới thiệu {code} đang được áp dụng cho lần đăng ký này.",
+        "Mã đã áp dụng: {code}",
       autoPlacementDescription:
         "Hệ thống đã tự gán vào một ô trống dưới mã mạng {code} theo quy tắc phân bổ mạng hiện tại.",
       autoPlacementDescriptionWithSlot:
@@ -4963,9 +4963,9 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       celebrationTitle: "Pendaftaran selesai",
       celebrationDescription:
         "Transfer 10 USDT telah dikonfirmasi dan kode referral Anda sekarang aktif.",
-      incomingReferralTitle: "Kode referral terdeteksi.",
+      incomingReferralTitle: "Kode tautan referral",
       incomingReferralDescription:
-        "Jika pendaftaran selesai di halaman ini, kode referral {code} akan disimpan pada data anggota.",
+        "Setelah verifikasi email, kode {code} akan diterapkan.",
       incomingReferralLimitTitle:
         "Kode referral ini sudah penuh untuk pendaftaran langsung.",
       incomingReferralLimitDescription:
@@ -4973,7 +4973,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       selfReferralNotice:
         "Anda membuka tautan referral sendiri. Kredit referral tidak berlaku untuk pendaftaran Anda sendiri.",
       appliedReferralDescription:
-        "Kode referral {code} diterapkan pada pendaftaran ini.",
+        "Kode diterapkan: {code}",
       autoPlacementDescription:
         "Sistem menempatkannya ke slot kosong di bawah kode jaringan {code} sesuai aturan penempatan jaringan saat ini.",
       autoPlacementDescriptionWithSlot:

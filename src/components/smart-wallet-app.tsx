@@ -3124,7 +3124,8 @@ function IncomingReferralHighlightCard({
         color: theme.buttonFrom,
       }
     : undefined;
-  const description = branding?.description ?? formatTemplate(
+  const displayBrandName = dictionary.member.incomingReferralTitle;
+  const displayDescription = formatTemplate(
     dictionary.member.incomingReferralDescription,
     {
       code: referralCode,
@@ -3154,16 +3155,11 @@ function IncomingReferralHighlightCard({
             </span>
           </div>
 
-          {branding ? (
-            <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-              {branding.sharedByLabel}
-            </p>
-          ) : null}
-          <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-            {branding?.brandName ?? dictionary.member.incomingReferralTitle}
+          <p className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+            {displayBrandName}
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            {description}
+            {displayDescription}
           </p>
           {branding ? (
             <p className="mt-3 text-xs font-medium text-slate-500">
