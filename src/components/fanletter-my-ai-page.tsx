@@ -418,7 +418,7 @@ export function FanletterMyAIPage({
   if (!isSignedIn) {
     return (
       <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
           <FanletterPrimaryHeader
             current="my-ai"
             locale={locale}
@@ -451,7 +451,7 @@ export function FanletterMyAIPage({
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white pb-10 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <FanletterPrimaryHeader
           current="my-ai"
           locale={locale}
