@@ -1019,7 +1019,7 @@ function FanletterShell({
     referralCode,
   );
   const reportsHref = buildPathWithReferral(
-    `/${locale}/fanletter/reports`,
+    `/${locale}/fanletter/news/reports`,
     referralCode,
   );
   const startHref = buildPathWithReferral(`/${locale}/fanletter/start`, referralCode);

@@ -509,8 +509,6 @@ export async function PATCH(request: Request) {
       revalidatePath(`/${locale}/fanletter/news`);
       revalidatePath(`/${locale}/fanletter/news/reports`);
       revalidatePath(`/${locale}/fanletter/news/reports/new`);
-      revalidatePath(`/${locale}/fanletter/reports`);
-      revalidatePath(`/${locale}/fanletter/reports/${report.reportId}`);
 
       return Response.json({
         report: serializeEditableNewsReport(report),
@@ -533,7 +531,6 @@ export async function PATCH(request: Request) {
     revalidatePath(`/${locale}/fanletter/news/${report.reportId}`);
     revalidatePath(`/${locale}/fanletter/news`);
     revalidatePath(`/${locale}/fanletter/news/reports`);
-    revalidatePath(`/${locale}/fanletter/reports`);
 
     return Response.json({
       report: {
