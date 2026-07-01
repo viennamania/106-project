@@ -1519,7 +1519,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "사용 가능한 리워드는 여기서 바로 교환됩니다. Silver 멤버 카드는 포인트가 있으면 반복 교환할 수 있고, 다른 리워드는 계정 기준 1회로 관리됩니다.",
         previewBadge: "live",
         eligible: "도달 가능",
-        needMorePoints: "교환까지 {points}P 부족",
+        needMorePoints: "교환까지 {points}P 더 필요",
         empty: "표시할 리워드 항목이 없습니다.",
         silverCard: {
           title: "Silver 멤버 카드",
