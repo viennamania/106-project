@@ -60,14 +60,14 @@ function isKorean(locale: Locale) {
 function getBaseCopy(locale: Locale) {
   if (isKorean(locale)) {
     return {
-      back: "FanLetter 홈",
+      back: "AIAVpark 홈",
       creatorUnlock: "크리에이터 권한 활성화",
       emptyShare:
         "이 AI 스타의 추천 링크는 참여 상태 확인 후 생성됩니다.",
       heroBody:
         "내가 운영하는 AI 스타와 참여 중인 크리에이터 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
       heroEyebrow: "크리에이터 클럽",
-      heroTitle: "내 FanLetter 포트폴리오",
+      heroTitle: "내 AIAVpark 포트폴리오",
       liveLabel: "라이브 데이터",
       mockLabel: "예시 데이터",
       mockLaunchBody:
@@ -138,14 +138,14 @@ function getBaseCopy(locale: Locale) {
   }
 
   return {
-    back: "FanLetter Home",
+    back: "AIAVpark Home",
     creatorUnlock: "Creator Permission",
     emptyShare:
       "This AI Star referral link is created after participation status is confirmed.",
     heroBody:
       "Separate the AI Stars you operate from the Creator Networks you participate in, then choose the next action.",
     heroEyebrow: "Creator Club",
-    heroTitle: "My FanLetter Portfolio",
+    heroTitle: "My AIAVpark Portfolio",
     liveLabel: "Live data",
     mockLabel: "Mock data",
     mockLaunchBody:
@@ -232,12 +232,12 @@ function getCopy(locale: Locale) {
       id: "Klub Kreator",
     }),
     heroTitle: pickFanletterCopy(locale, {
-      en: "My FanLetter Portfolio",
-      ko: "내 FanLetter 포트폴리오",
-      ja: "マイFanLetterポートフォリオ",
-      zh: "我的 FanLetter 作品集",
-      vi: "Danh mục FanLetter của tôi",
-      id: "Portofolio FanLetter Saya",
+      en: "My AIAVpark Portfolio",
+      ko: "내 AIAVpark 포트폴리오",
+      ja: "マイAIAVparkポートフォリオ",
+      zh: "我的 AIAVpark 作品集",
+      vi: "Danh mục AIAVpark của tôi",
+      id: "Portofolio AIAVpark Saya",
     }),
     heroBody: pickFanletterCopy(locale, {
       en: "Separate the AI Stars you operate from the Creator Networks you participate in, then choose the next action.",
