@@ -11,15 +11,15 @@ function getAIStarGenealogyMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "FanLetter AI 스타 계보와 CP 보상 백필 현황을 라이브 데이터로 보여주는 인포그래픽입니다.",
-      title: "AI 스타 계보 맵 | FanLetter",
+        "AIAVpark AI 스타 계보와 CP 보상 백필 현황을 라이브 데이터로 보여주는 인포그래픽입니다.",
+      title: "AI 스타 계보 맵 | AIAVpark",
     };
   }
 
   return {
     description:
-      "A live-data infographic for FanLetter AI Star genealogy and CP reward backfill.",
-    title: "AI Star Genealogy Map | FanLetter",
+      "A live-data infographic for AIAVpark AI Star genealogy and CP reward backfill.",
+    title: "AI Star Genealogy Map | AIAVpark",
   };
 }
 

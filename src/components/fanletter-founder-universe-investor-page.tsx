@@ -89,7 +89,7 @@ function getInvestorCopy(locale: Locale) {
       memberCreates: "회원이 새로운 AI 스타를 창업",
       more: "더보기",
       footer:
-        "FanLetter는 AI 스타와 크리에이터가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
+        "AIAVpark는 AI 스타와 크리에이터가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
       explore: "크리에이터 네트워크 탐색",
       directChildren: "직접 초대",
       memberId: "회원 ID",
@@ -155,7 +155,7 @@ function getInvestorCopy(locale: Locale) {
     memberCreates: "Member launches a new AI Star",
     more: "More",
     footer:
-      "FanLetter is building a new economy where AI Stars and Creators grow together.",
+      "AIAVpark is building a new economy where AI Stars and Creators grow together.",
     explore: "Explorer",
     directChildren: "Direct invites",
     memberId: "Member ID",
