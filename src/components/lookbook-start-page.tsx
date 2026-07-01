@@ -137,7 +137,7 @@ export function LookbookStartPage({
       <div className="mb-1.5 flex items-center gap-2 text-[#16702e]">
         <Sparkles className="h-4 w-4" />
         <span className="text-[11px] font-extrabold uppercase tracking-wider">
-          FanLetter Studio
+          AIAVpark Studio
         </span>
       </div>
       <h1 className="text-2xl font-black leading-snug tracking-tight text-neutral-900">
