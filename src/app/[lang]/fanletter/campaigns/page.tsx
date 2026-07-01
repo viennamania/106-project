@@ -15,12 +15,12 @@ export async function generateMetadata({
   return {
     description:
       locale === "ko"
-        ? "상품 URL을 FanLetter AI 캐릭터 성장 캠페인으로 바꾸는 광고주 스튜디오입니다."
-        : "Advertiser studio for turning product URLs into FanLetter AI character growth campaigns.",
+        ? "상품 URL을 AIAVpark AI 캐릭터 성장 캠페인으로 바꾸는 광고주 스튜디오입니다."
+        : "Advertiser studio for turning product URLs into AIAVpark AI character growth campaigns.",
     title:
       locale === "ko"
-        ? "FanLetter 캠페인 스튜디오"
-        : "FanLetter Campaign Studio",
+        ? "AIAVpark 캠페인 스튜디오"
+        : "AIAVpark Campaign Studio",
   };
 }
 
