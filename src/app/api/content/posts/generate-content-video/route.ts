@@ -266,12 +266,22 @@ function createStreamResponse(
 }
 
 export async function POST(request: Request) {
+  // These are server-config preconditions (missing env). Surface a friendly,
+  // creator-facing message (503 = not available yet) and keep the technical
+  // cause in the server log for ops — don't leak "FAL_KEY is not configured."
+  // to the creator's screen.
+  const generationUnavailableMessage =
+    "AI 영상 생성을 아직 사용할 수 없어요. 잠시 후 다시 시도해 주세요. (Video generation isn't available yet.)";
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
-    return jsonError("BLOB_READ_WRITE_TOKEN is not configured.", 500);
+    console.error(
+      "[generate-content-video] BLOB_READ_WRITE_TOKEN is not configured.",
+    );
+    return jsonError(generationUnavailableMessage, 503);
   }
 
   if (!process.env.FAL_KEY?.trim()) {
-    return jsonError("FAL_KEY is not configured.", 500);
+    console.error("[generate-content-video] FAL_KEY is not configured.");
+    return jsonError(generationUnavailableMessage, 503);
   }
 
   let body: GenerateContentVideoRequest | null = null;
