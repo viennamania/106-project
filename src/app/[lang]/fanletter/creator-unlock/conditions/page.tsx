@@ -26,15 +26,15 @@ function getMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "크리에이터 권한 활성화 조건과 다음 행동을 확인하는 FanLetter 크리에이터 여정 전용 화면입니다.",
-      title: "크리에이터 권한 조건 | FanLetter 크리에이터 여정",
+        "크리에이터 권한 활성화 조건과 다음 행동을 확인하는 AIAVpark 크리에이터 여정 전용 화면입니다.",
+      title: "크리에이터 권한 조건 | AIAVpark 크리에이터 여정",
     };
   }
 
   return {
     description:
-      "Review Creator permission activation conditions and the next action in FanLetter Creator Journey.",
-    title: "Creator Conditions | FanLetter Creator Journey",
+      "Review Creator permission activation conditions and the next action in AIAVpark Creator Journey.",
+    title: "Creator Conditions | AIAVpark Creator Journey",
   };
 }
 

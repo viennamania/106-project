@@ -24,7 +24,7 @@ function getCreatorTikTokMeta(locale: Locale) {
     return {
       description:
         "AI 스타별 TikTok 채널을 연결하고 활동 기록을 생성하는 전용 화면입니다.",
-      title: "AI 스타 TikTok 채널 | FanLetter 크리에이터 여정",
+      title: "AI 스타 TikTok 채널 | AIAVpark 크리에이터 여정",
     };
   }
 
@@ -32,14 +32,14 @@ function getCreatorTikTokMeta(locale: Locale) {
     return {
       description:
         "Connect a Creator TikTok channel per AI Star and generate an AgentRank Reputation Record.",
-      title: "AI Star TikTok Channel | FanLetter Creator Journey",
+      title: "AI Star TikTok Channel | AIAVpark Creator Journey",
     };
   }
 
   return {
     description:
       "Connect a Creator TikTok channel per AI Star and generate an AgentRank Reputation Record.",
-    title: "AI Star TikTok Channel | FanLetter Creator Journey",
+    title: "AI Star TikTok Channel | AIAVpark Creator Journey",
   };
 }
 
