@@ -55,7 +55,7 @@ export function FanletterTabTopBar({
   const resolvedHomeHref =
     homeHref ?? buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const resolvedReportsHref = reportsHref ?? buildPathWithReferral(
-    `/${locale}/fanletter/news/reports`,
+    `/${locale}/fanletter/reports`,
     referralCode,
   );
 
