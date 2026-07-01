@@ -7120,13 +7120,13 @@ export function CreatorContentStudioPage({
 
     return (
       <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-3 lg:flex-1">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-center">
+          <div className="flex min-w-0 items-start gap-3">
             <CreatorProfileAvatar
               avatarImageUrl={state.profile.avatarImageUrl}
               displayName={state.profile.displayName}
               fallbackLabel={cardCopy.title}
-              sizeClassName="size-16 rounded-full"
+              sizeClassName="size-14 rounded-full sm:size-16"
             />
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -7155,16 +7155,16 @@ export function CreatorContentStudioPage({
               </div>
             </div>
           </div>
-          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[12rem] lg:shrink-0 lg:grid-cols-1">
+          <div className="grid w-full grid-cols-1 gap-2 lg:w-auto">
             <Link
-              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 lg:w-auto whitespace-nowrap"
+              className="inline-flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 whitespace-nowrap"
               href={newPostHref}
             >
               <PenSquare className="size-4" />
               {cardCopy.create}
             </Link>
             <Link
-              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 lg:w-auto whitespace-nowrap"
+              className="inline-flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 whitespace-nowrap"
               href={characterHref}
             >
               {cardCopy.change}
