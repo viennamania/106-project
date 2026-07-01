@@ -27,14 +27,14 @@ function getMeta(locale: Locale) {
     return {
       description:
         "실제 결제 없이 10 USDT 생성 의도와 새 AI 스타 생성 미리보기를 확인하는 화면입니다.",
-      title: "AI 스타 생성 미리보기 | FanLetter 크리에이터 여정",
+      title: "AI 스타 생성 미리보기 | AIAVpark 크리에이터 여정",
     };
   }
 
   return {
     description:
       "Preview the 10 USDT mock intent and new AI Star launch without real payment.",
-    title: "AI Star Launch Preview | FanLetter Creator Journey",
+    title: "AI Star Launch Preview | AIAVpark Creator Journey",
   };
 }
 

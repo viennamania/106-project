@@ -27,14 +27,14 @@ function getMeta(locale: Locale) {
     return {
       description:
         "새 AI 스타가 어느 AI 스타 유니버스 성과로 탄생하는지 선택하는 크리에이터 여정 화면입니다.",
-      title: "출처 AI 스타 선택 | FanLetter 크리에이터 여정",
+      title: "출처 AI 스타 선택 | AIAVpark 크리에이터 여정",
     };
   }
 
   return {
     description:
       "Choose which AI Star Universe powers the new AI Star launch in Creator Journey.",
-    title: "Source AI Star | FanLetter Creator Journey",
+    title: "Source AI Star | AIAVpark Creator Journey",
   };
 }
 

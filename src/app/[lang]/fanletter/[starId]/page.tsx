@@ -174,7 +174,7 @@ export async function generateMetadata({
 
   if (!star) {
     return {
-      title: "AIAVpark | FanLetter",
+      title: "AIAVpark",
     };
   }
 
@@ -273,7 +273,7 @@ export default async function FanletterStarLandingPage({
           limit: 80,
           starId: star.id,
         }).catch((error) => {
-          console.error("Failed to load FanLetter star AgentRank snapshot", error);
+          console.error("Failed to load AIAVpark star AgentRank snapshot", error);
 
           return null;
         }),
