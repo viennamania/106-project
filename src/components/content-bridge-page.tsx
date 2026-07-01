@@ -80,7 +80,7 @@ export function ContentBridgePage({
                     "Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하면 다음부터 앱처럼 바로 실행할 수 있습니다.",
                   ],
             opening: "브라우저를 여는 중...",
-            shareProtected: "레퍼럴이 유지된 공유 링크입니다.",
+            shareProtected: "추천 코드가 유지된 공유 링크입니다.",
             title: "더 시원한 브라우저 화면이나 홈 화면 앱에서 열어보세요",
           }
         : {

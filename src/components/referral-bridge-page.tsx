@@ -122,7 +122,7 @@ export function ReferralBridgePage({
         : locale === "ko"
         ? {
             autoDescription:
-              "일반 브라우저에서는 레퍼럴이 포함된 랜딩으로 바로 이동합니다. 잠시만 기다려주세요.",
+              "일반 브라우저에서는 추천 코드가 포함된 랜딩으로 바로 이동합니다. 잠시만 기다려주세요.",
             autoTitle: "추천 링크로 이동 중",
             browserCta: "브라우저에서 계속 보기",
             browserHint:
@@ -151,7 +151,7 @@ export function ReferralBridgePage({
                   ],
             opening: "브라우저를 여는 중...",
             protectedHint: "이 링크에는 추천 코드가 그대로 유지됩니다.",
-            title: "레퍼럴 링크를 외부 브라우저나 홈 화면 앱에서 열어보세요",
+            title: "추천 링크를 외부 브라우저나 홈 화면 앱에서 열어보세요",
           }
         : {
             autoDescription:

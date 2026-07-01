@@ -812,7 +812,7 @@ export function ContentDetailPage({
   const lockedPreviewDescription =
     state.gateReason === "network" && !shouldEncourageSignup
       ? locale === "ko"
-        ? "이 콘텐츠는 작성자의 레퍼럴 네트워크 안에서만 전체 열람할 수 있습니다."
+        ? "이 콘텐츠는 작성자의 추천 네트워크 안에서만 전체 열람할 수 있습니다."
         : "Full access is available within the author's referral network."
       : contentCopy.messages.previewLocked;
   const membershipGatePrimaryMessage =
@@ -826,7 +826,7 @@ export function ContentDetailPage({
   const membershipGateSecondaryMessage =
     state.gateReason === "network"
       ? locale === "ko"
-        ? "이 콘텐츠는 작성자의 레퍼럴 네트워크 안에서만 전체 열람할 수 있습니다."
+        ? "이 콘텐츠는 작성자의 추천 네트워크 안에서만 전체 열람할 수 있습니다."
         : "Full access is available within the author's referral network."
       : contentCopy.messages.connectRequired;
   const detailShareActionLabel =

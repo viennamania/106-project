@@ -2162,7 +2162,7 @@ export function CreatorContentStudioPage({
           action: "내 피드 공유",
           copied: "링크 복사됨",
           description:
-            "내 레퍼럴이 포함된 공개 피드 미리보기 링크를 공유합니다.",
+            "내 추천 코드가 포함된 공개 피드 미리보기 링크를 공유합니다.",
           disabled: "활성화 후 공유 가능",
           error: "복사 실패",
           recentDescription:

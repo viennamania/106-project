@@ -990,7 +990,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       incomingReferralLimitDescription:
         "추천인 코드 {code} 는 직접 {limit}명이 모두 가입 진행 중이거나 완료되었습니다. 그래도 이 링크로 회원가입을 계속하면 시스템이 {code} 네트워크 하부의 빈 슬롯을 자동으로 찾아 연결합니다.",
       selfReferralNotice:
-        "내 레퍼럴 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
+        "내 추천 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
         "적용 코드: {code}",
       autoPlacementDescription:
@@ -1015,9 +1015,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         paymentTransaction: "거래 기록",
         placementReferralCode: "실제 배치 상위 코드",
         placementSlotIndex: "실제 배치 슬롯",
-        referralCode: "내 레퍼럴 코드",
+        referralCode: "내 추천 코드",
         referredByCode: "추천 링크 코드",
-        referralLink: "레퍼럴 가입 링크",
+        referralLink: "추천 가입 링크",
         requiredDeposit: "가입 금액",
         signupStatus: "가입 상태",
         updatedAt: "최근 갱신",
@@ -1033,26 +1033,26 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "연결된 지갑에 {amount} USDT 이상이 있어야 회원가입을 진행할 수 있습니다.",
         projectWalletMissing: "PROJECT_WALLET 이 설정되지 않았습니다.",
         referralLimitReached:
-          "추천인 코드 {code} 는 이미 {count}명의 가입이 진행 중이거나 완료되어 마감되었습니다. 다른 레퍼럴 코드로 다시 가입하세요.",
+          "추천인 코드 {code} 는 이미 {count}명의 가입이 진행 중이거나 완료되어 마감되었습니다. 다른 추천 코드로 다시 가입하세요.",
         syncFailed: "회원 상태를 확인하지 못했습니다. 잠시 후 다시 시도하세요.",
       },
     },
     referralsPage: {
-      title: "레퍼럴 대시보드",
-      eyebrow: "referral tracking",
+      title: "추천 회원 관리",
+      eyebrow: "invite network",
       description:
-        "회원가입이 완료된 뒤 내 레퍼럴 코드와 해당 코드로 가입한 회원을 확인합니다.",
-      shareTitle: "내 레퍼럴 코드",
+        "회원가입이 완료된 뒤 내 추천 코드와 해당 코드로 가입한 회원을 확인합니다.",
+      shareTitle: "내 추천 코드",
       listTitle: "내 코드로 가입한 회원",
       rootLabel: "전체 추천 트리",
       branchEmpty: "이 회원 아래에는 아직 더 가입한 회원이 없습니다.",
       depthHint: "한 화면에서 최대 {depth}단계까지 탐색할 수 있습니다.",
       firstLevelLimitHint: "1단계는 최대 {limit}명까지 등록할 수 있습니다.",
       disconnected:
-        "이메일 로그인하고 회원가입을 완료하면 레퍼럴 대시보드를 볼 수 있습니다.",
-      loading: "레퍼럴 데이터를 확인하는 중입니다.",
-      empty: "아직 내 레퍼럴 코드로 가입한 회원이 없습니다.",
-      memberReady: "이 이메일 회원의 레퍼럴 코드가 활성화되어 있습니다.",
+        "이메일 로그인하고 회원가입을 완료하면 추천 회원 관리를 볼 수 있습니다.",
+      loading: "추천 회원 데이터를 확인하는 중입니다.",
+      empty: "아직 내 추천 코드로 가입한 회원이 없습니다.",
+      memberReady: "이 이메일 회원의 추천 코드가 발급되어 있습니다.",
       memberMissing: "회원 상태를 다시 동기화한 뒤 시도하세요.",
       paymentRequired:
         "아직 회원가입이 완료되지 않았습니다. 서비스 시작 허브에서 10 USDT 결제를 완료하세요.",
@@ -1063,7 +1063,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         directReferrals: "직접 추천 가입 수",
         level: "단계",
         members: "명",
-        referralCode: "레퍼럴 코드",
+        referralCode: "추천 코드",
         referralLink: "공유 링크",
         totalReferrals: "추천 가입 수",
         totalNetwork: "전체 네트워크 가입 수",
@@ -1097,7 +1097,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       errors: {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
-        loadFailed: "레퍼럴 데이터를 불러오지 못했습니다.",
+        loadFailed: "추천 회원 데이터를 불러오지 못했습니다.",
       },
     },
     activateNetworkPage: {
@@ -1112,7 +1112,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       memberMissing: "회원 조직도 데이터를 찾을 수 없습니다.",
       paymentRequired:
         "회원가입 완료 후에만 내 코드 가입 회원 관리 페이지를 확인할 수 있습니다.",
-      searchPlaceholder: "이메일, 레퍼럴 코드, 지갑 주소로 검색",
+      searchPlaceholder: "이메일, 추천 코드, 지갑 주소로 검색",
       selectionHint:
         "좌측 목록이나 하단 조직도에서 회원을 선택하면 등급 기준 포인트, 포인트 등급, 카드 상태를 바로 확인할 수 있습니다.",
       leaderboardDescription:
@@ -1134,7 +1134,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pointTier: "포인트 등급",
         placementEmail: "실제 배치 상위 회원 이메일",
         placementReferralCode: "실제 배치 상위 코드",
-        referralCode: "레퍼럴 코드",
+        referralCode: "추천 코드",
         referredByCode: "추천 링크 코드",
         searchResults: "회원 목록",
         spendablePoints: "교환 가능 포인트",
@@ -1220,7 +1220,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       emptyHistory: "보낸 공지 이력이 아직 없습니다.",
       labels: {
         body: "공지 내용",
-        completedRecipients: "활성화 완료",
+        completedRecipients: "가입 완료",
         deliveryTarget: "network scope",
         history: "발송 이력",
         latestMessages: "최근 공지",
@@ -1238,7 +1238,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       filters: {
         all: "전체",
-        completed: "활성화 완료만",
+        completed: "가입 완료만",
         push_ready: "푸시 가능 회원만",
       },
       scopes: {
@@ -1292,7 +1292,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         network: "네트워크",
         asset: "자산",
         memberStatus: "회원 상태",
-        referralCode: "레퍼럴 코드",
+        referralCode: "추천 코드",
         updatedAt: "최근 갱신",
         receive: "받기",
         send: "보내기",
@@ -1311,7 +1311,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         send: "USDT 보내기",
       },
       placeholders: {
-        searchMember: "이메일, 레퍼럴 코드, 지갑 주소로 회원 검색",
+        searchMember: "이메일, 추천 코드, 지갑 주소로 회원 검색",
         externalWalletAddress: "0x로 시작하는 외부 지갑 주소",
         amount: "0.0",
       },
@@ -1435,7 +1435,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         backHome: "홈으로 돌아가기",
         completeSignup: "서비스 시작 허브로 이동",
-        openReferrals: "레퍼럴 보기",
+        openReferrals: "추천 회원 보기",
         refresh: "새로고침",
         redeem: "리워드 교환",
         redeeming: "처리 중...",
