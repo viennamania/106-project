@@ -3289,7 +3289,7 @@ function CompletedHomeDashboard({
           current: "현재 상태",
           manageNetwork: "추천 회원 보기",
           manageRewards: "포인트 리워드",
-          points: "누적 보상 포인트",
+          points: "추천 보상 합계",
           referralCode: "내 추천 코드",
           referralLink: "공유 링크",
           referralLinkDescription:
@@ -3304,7 +3304,7 @@ function CompletedHomeDashboard({
           current: "Current status",
           manageNetwork: "Manage referrals",
           manageRewards: "View points",
-          points: "Reward points total",
+          points: "Referral reward total",
           referralCode: "Referral code",
           referralLink: "Referral link",
           referralLinkDescription:
