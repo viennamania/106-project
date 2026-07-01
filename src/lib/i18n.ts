@@ -983,14 +983,14 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       celebrationTitle: "회원가입 완료",
       celebrationDescription:
         "10 USDT 입금이 확인되어 회원 코드가 활성화되었습니다.",
-      incomingReferralTitle: "추천 링크 코드",
+      incomingReferralTitle: "유입 추천 코드",
       incomingReferralDescription:
         "이메일 인증 후 가입하면 코드 {code} 가 적용됩니다.",
       incomingReferralLimitTitle: "이 추천인 코드는 직접 가입이 마감되었습니다.",
       incomingReferralLimitDescription:
         "추천인 코드 {code} 는 직접 {limit}명이 모두 가입 진행 중이거나 완료되었습니다. 그래도 이 링크로 회원가입을 계속하면 시스템이 {code} 네트워크 하부의 빈 슬롯을 자동으로 찾아 연결합니다.",
       selfReferralNotice:
-        "내 추천 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
+        "내 공유 링크로 접속했습니다. 본인에게는 추천 혜택이 적용되지 않습니다.",
       appliedReferralDescription:
         "적용 코드: {code}",
       autoPlacementDescription:
@@ -1016,7 +1016,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         placementReferralCode: "실제 배치 상위 코드",
         placementSlotIndex: "실제 배치 슬롯",
         referralCode: "내 추천 코드",
-        referredByCode: "추천 링크 코드",
+        referredByCode: "유입 추천 코드",
         referralLink: "추천 가입 링크",
         requiredDeposit: "가입 금액",
         signupStatus: "가입 상태",
@@ -1135,7 +1135,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         placementEmail: "실제 배치 상위 회원 이메일",
         placementReferralCode: "실제 배치 상위 코드",
         referralCode: "추천 코드",
-        referredByCode: "추천 링크 코드",
+        referredByCode: "유입 추천 코드",
         searchResults: "회원 목록",
         spendablePoints: "교환 가능 포인트",
         tier: "회원 등급",
