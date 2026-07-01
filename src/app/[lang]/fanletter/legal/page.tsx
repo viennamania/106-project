@@ -15,7 +15,7 @@ export async function generateMetadata({
   const copy = getDisclaimerCopy(locale);
 
   return {
-    title: `FanLetter ${copy.termsTitle}`,
+    title: `AIAVpark ${copy.termsTitle}`,
     description: copy.meta.description,
   };
 }

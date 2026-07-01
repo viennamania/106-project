@@ -156,7 +156,7 @@ function getLedgerCopy(locale: Locale) {
       applyFilters: "필터 적용",
       actionCoverage: "제품 행동 커버리지",
       actionCoverageBody:
-        "FanLetter 핵심 행동이 AgentRank Reputation Event로 누락 없이 들어오는지 점검합니다.",
+        "AIAVpark 핵심 행동이 AgentRank Reputation Event로 누락 없이 들어오는지 점검합니다.",
       actionMissing: "수집 대기",
       actionReady: "수집됨",
       clearFilters: "필터 초기화",
@@ -170,7 +170,7 @@ function getLedgerCopy(locale: Locale) {
       heroBody:
         "AI 스타 발견, 참여, 추천 공유, Creator Journey 행동이 어떤 활동 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
       heroEyebrow: "활동 기록",
-      heroTitle: "FanLetter 활동 기록",
+      heroTitle: "AIAVpark 활동 기록",
       impact: "활동 영향",
       impactReady: "영향 준비",
       investorDemo: "Investor Demo Mode",
@@ -255,7 +255,7 @@ function getLedgerCopy(locale: Locale) {
     applyFilters: "Apply filters",
     actionCoverage: "Product Action Coverage",
     actionCoverageBody:
-      "Checks whether core FanLetter actions are entering AgentRank as Reputation Events.",
+      "Checks whether core AIAVpark actions are entering AgentRank as Reputation Events.",
     actionMissing: "Pending",
     actionReady: "Covered",
     clearFilters: "Reset filters",
@@ -269,7 +269,7 @@ function getLedgerCopy(locale: Locale) {
     heroBody:
       "Review which AI Star discovery, participation, referral, and Creator Journey actions became activity records. Operator verification is separated below.",
     heroEyebrow: "Activity log",
-    heroTitle: "FanLetter Activity Records",
+    heroTitle: "AIAVpark Activity Records",
     impact: "Activity impact",
     impactReady: "Impact-ready",
     investorDemo: "Investor Demo Mode",
@@ -1239,8 +1239,8 @@ function LedgerOperationStatusCard({
           </h2>
           <p className="mt-2 hidden max-w-2xl text-sm font-medium leading-6 text-slate-500 sm:block">
             {isKo
-              ? "이 장부는 FanLetter 행동을 AgentRank가 검증할 수 있는 Reputation Event로 정리합니다."
-              : "This ledger turns FanLetter actions into AgentRank-verifiable Reputation Events."}
+              ? "이 장부는 AIAVpark 행동을 AgentRank가 검증할 수 있는 Reputation Event로 정리합니다."
+              : "This ledger turns AIAVpark actions into AgentRank-verifiable Reputation Events."}
           </p>
         </div>
         <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -1615,7 +1615,7 @@ function InvestorDemoPanel({
   const steps = [
     {
       Icon: Bot,
-      label: "FanLetter",
+      label: "AIAVpark",
       value: formatNumber(feed.summary.totalEvents, locale),
     },
     {
