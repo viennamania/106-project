@@ -226,7 +226,34 @@ function createProgressCopy(locale: Locale) {
       };
 }
 
+function resolveGenerationFailureMessage(
+  diagnostic: ContentGenerationFailureDiagnostic | null | undefined,
+  locale: Locale,
+): string {
+  const ko = locale === "ko";
+
+  switch (diagnostic?.kind) {
+    case "safety":
+      return ko
+        ? "이 장면이 생성 안전 정책에 걸렸어요. 문구나 표현을 조금 바꿔 다시 시도해 주세요."
+        : "This scene was blocked by the generator's safety policy. Adjust the wording and try again.";
+    case "timeout":
+      return ko
+        ? "영상 생성이 제한 시간 안에 끝나지 않았어요. 잠시 후 다시 시도해 주세요."
+        : "Video generation timed out. Please try again in a moment.";
+    case "validation":
+      return ko
+        ? "입력한 프롬프트를 처리할 수 없었어요. 문구를 조금 바꿔 다시 시도해 주세요."
+        : "We couldn't process that prompt. Adjust the wording and try again.";
+    default:
+      return ko
+        ? "AI 영상 생성에 실패했어요. 잠시 후 다시 시도해 주세요."
+        : "AI video generation failed. Please try again in a moment.";
+  }
+}
+
 function createStreamResponse(
+  locale: Locale,
   run: (
     emit: (event: ContentPostGenerateCoverStreamEvent) => void,
   ) => Promise<void>,
@@ -247,7 +274,7 @@ function createStreamResponse(
 
           emit({
             ...(payload.diagnostic ? { diagnostic: payload.diagnostic } : {}),
-            error: payload.error,
+            error: resolveGenerationFailureMessage(payload.diagnostic, locale),
             type: "error",
           });
         } finally {
@@ -332,7 +359,7 @@ export async function POST(request: Request) {
   const stream = wantsStream(request);
 
   if (stream) {
-    return createStreamResponse(async (emit) => {
+    return createStreamResponse(locale, async (emit) => {
       emit({
         progress: {
           message: progressCopy.authorizingRunning,
@@ -518,11 +545,21 @@ export async function POST(request: Request) {
     return Response.json(response);
   } catch (error) {
     const payload = createGenerationErrorPayload(error);
-    const status =
-      payload.error === "Selected avatar reference is not available."
-        ? 400
-        : 500;
 
-    return jsonError(payload.error, status, payload.diagnostic);
+    // A missing selected-avatar reference is a specific, client-fixable 400.
+    if (payload.error === "Selected avatar reference is not available.") {
+      return jsonError(payload.error, 400, payload.diagnostic);
+    }
+
+    // Everything else (fal failures, blob upload, world-context) becomes a
+    // friendly, localized creator message; the technical cause stays in the
+    // diagnostic + server logs (fal failures are already logged in the service).
+    console.error("[generate-content-video] generation failed", payload.error);
+
+    return jsonError(
+      resolveGenerationFailureMessage(payload.diagnostic, locale),
+      500,
+      payload.diagnostic,
+    );
   }
 }
