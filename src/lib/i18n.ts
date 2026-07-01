@@ -1055,7 +1055,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       memberReady: "이 이메일 회원의 추천 코드가 발급되어 있습니다.",
       memberMissing: "회원 상태를 다시 동기화한 뒤 시도하세요.",
       paymentRequired:
-        "아직 회원가입이 완료되지 않았습니다. 서비스 시작 허브에서 10 USDT 결제를 완료하세요.",
+        "아직 회원가입이 완료되지 않았습니다. 1066FRIEND+ 홈에서 10 USDT 확인을 완료하세요.",
       labels: {
         currentLevel: "현재 단계",
         descendants: "전체 하위 추천 수",
@@ -1075,7 +1075,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         backToRoot: "처음으로",
         backHome: "홈으로 돌아가기",
-        completeSignup: "서비스 시작 허브에서 가입 완료하기",
+        completeSignup: "1066FRIEND+ 홈에서 가입 완료하기",
         refresh: "새로고침",
         viewChildren: "하위 보기",
       },
@@ -1148,7 +1148,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         walletAddress: "지갑 주소",
       },
       actions: {
-        backToActivate: "시작 허브로",
+        backToActivate: "1066FRIEND+ 홈으로",
         openManagement: "상세 관리",
         refresh: "새로고침",
       },
@@ -1410,7 +1410,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       disconnected: "이메일 로그인 후 포인트 리워드 페이지를 확인할 수 있습니다.",
       loading: "포인트 데이터를 불러오는 중입니다.",
       paymentRequired:
-        "아직 회원가입이 완료되지 않았습니다. 서비스 시작 허브에서 가입을 먼저 완료하세요.",
+        "아직 회원가입이 완료되지 않았습니다. 1066FRIEND+ 홈에서 가입을 먼저 완료하세요.",
       emptyHistory: "아직 적립된 포인트 이력이 없습니다.",
       emptyRedemptions: "아직 사용 또는 교환 이력이 없습니다.",
       previewNote:
@@ -1434,7 +1434,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       actions: {
         backHome: "홈으로 돌아가기",
-        completeSignup: "서비스 시작 허브로 이동",
+        completeSignup: "1066FRIEND+ 홈으로 이동",
         openReferrals: "추천 회원 보기",
         refresh: "새로고침",
         redeem: "리워드 교환",
@@ -1639,7 +1639,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       actions: {
         backHome: "홈으로 돌아가기",
-        completeSignup: "서비스 시작 허브로 이동",
+        completeSignup: "1066FRIEND+ 홈으로 이동",
         checkIn: "오늘 출석하기",
         checkingIn: "출석 처리 중...",
         checkedIn: "오늘 출석 완료",
