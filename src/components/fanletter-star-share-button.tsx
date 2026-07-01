@@ -63,7 +63,7 @@ export function FanletterStarShareButton({
       <button
         aria-expanded={open}
         aria-label={isKo ? "초대" : "Invite"}
-        className="inline-flex size-9 items-center justify-center rounded-full border border-zinc-200 bg-white/90 text-zinc-700 shadow-[0_8px_20px_rgba(15,23,42,0.1)] backdrop-blur transition hover:border-zinc-300 hover:text-black"
+        className="inline-flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white/90 text-zinc-700 shadow-[0_8px_20px_rgba(15,23,42,0.1)] backdrop-blur transition hover:border-zinc-300 hover:text-black sm:size-10"
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
