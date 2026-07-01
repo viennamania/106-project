@@ -2044,8 +2044,8 @@ export function SmartWalletApp({
                             : isConnectionResolving
                               ? dictionary.member.syncing
                               : locale === "ko"
-                                ? "추천 코드와 가입 순서를 확인했습니다. 위 버튼으로 이메일 인증을 시작하세요."
-                                : "Referral code and signup path are ready. Use the button above to start email verification."}
+                                ? "위 버튼으로 이메일 인증을 시작하세요."
+                                : "Use the button above to start email verification."}
                     </p>
                   </div>
 
@@ -2084,13 +2084,13 @@ export function SmartWalletApp({
                           </p>
                           <h3 className="mt-2 break-keep text-xl font-semibold tracking-tight text-slate-950 [word-break:keep-all]">
                             {locale === "ko"
-                              ? "이메일로 시작하면 됩니다"
-                              : "Start with email first"}
+                              ? "이메일 인증"
+                              : "Email verification"}
                           </h3>
                           <p className="mt-2 max-w-xl break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
                             {locale === "ko"
-                              ? "가입 상태, 10 USDT 확인, 추천 코드 발급은 순서대로 자동 연결됩니다."
-                              : "Signup status, the 10 USDT check, and referral code creation are connected in order."}
+                              ? "10 USDT 확인과 추천 코드 발급은 다음 단계에서 이어집니다."
+                              : "The 10 USDT check and referral code creation continue next."}
                           </p>
                         </div>
                         <span className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">
