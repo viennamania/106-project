@@ -6150,8 +6150,8 @@ export function FanletterFeedPage({
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f6f8f4] text-black">
-      <div className="px-4 pt-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <div className="pt-5">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FanletterPrimaryHeader
             current="feed"
             locale={locale}
@@ -6172,8 +6172,8 @@ export function FanletterFeedPage({
           </div>
         </div>
       </div>
-      <section className="overflow-hidden bg-[#f6f8f4] px-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-14 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section className="overflow-hidden bg-[#f6f8f4] pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FanletterChannelSectionTabs
             ariaLabel={locale === "ko" ? "피드 섹션" : "Feed sections"}
             items={sectionTabs}

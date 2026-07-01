@@ -4066,7 +4066,7 @@ export function FanletterCreatorUnlockPage({
   );
 
   return (
-    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-5 text-black sm:px-6 sm:pb-8 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-28 pt-5 text-black sm:pb-8">
       <FanletterReputationTracker
         agentRank={{
           eventType: "creator_unlock_evaluated",
@@ -4199,7 +4199,7 @@ export function FanletterCreatorUnlockPage({
           targetHref={`/${locale}/fanletter/creator-unlock`}
         />
       ) : null}
-      <div className="mx-auto w-full min-w-0 max-w-7xl">
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8">
         <FanletterPrimaryHeader
           current="create"
           locale={locale}

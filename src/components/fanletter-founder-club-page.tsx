@@ -852,8 +852,8 @@ export function FanletterFounderClubPage({
   ];
 
   return (
-    <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 text-black sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] py-5 text-black">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FanletterPrimaryHeader
           current="founder-club"
           locale={locale}
