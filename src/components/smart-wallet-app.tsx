@@ -3414,7 +3414,7 @@ function CompletedHomeDashboard({
               <p className="break-all text-sm font-medium leading-6 text-zinc-700">
                 {referralShareUrl}
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mt-3 space-y-2">
                 <button
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                   onClick={() => {
@@ -3430,7 +3430,7 @@ function CompletedHomeDashboard({
                   </span>
                 </button>
                 <CopyTextButton
-                  className="h-11 w-full rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 hover:bg-zinc-50"
+                  className="h-10 w-full rounded-full border border-transparent bg-transparent px-4 text-sm font-semibold text-zinc-500 hover:bg-white hover:text-zinc-950"
                   copiedLabel={
                     shareState === "copied"
                       ? quickLabels.copied
