@@ -194,17 +194,17 @@ function getActivationSeparationCopy(locale: Locale) {
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "가입과 10 USDT 확인이 완료되었습니다. 다음 행동에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
+        "필요한 메뉴에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
       growthDirectLabel: "성장 참여",
       growthEyebrow: "growth rewards",
-      growthLinkCodeLabel: "성장 코드",
+      growthLinkCodeLabel: "내 추천 코드",
       growthLinkDescription:
         "내 추천 코드가 포함된 공유 링크입니다.",
-      growthLinkLabel: "성장 리워드 링크",
-      growthLinkTitle: "성장 리워드 링크",
+      growthLinkLabel: "공유 링크",
+      growthLinkTitle: "추천 공유 링크",
       growthMembersTitle: "성장 참여 회원",
       growthNetworkLabel: "성장 네트워크",
       growthTitle: "성장 리워드 프로그램",
@@ -216,7 +216,7 @@ function getActivationSeparationCopy(locale: Locale) {
       separationLabel: "운영 원칙",
       separationPoints: [
         "상태 확인",
-        "메뉴 이동",
+        "메뉴 선택",
         "보상 관리",
       ],
       separationTitle: "지금 할 일만 먼저 보여줍니다",
@@ -230,17 +230,17 @@ function getActivationSeparationCopy(locale: Locale) {
     activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "Signup and the 10 USDT check are complete. Use next actions to manage referrals, points, wallet, and your AI Star.",
+      "Use the menu to manage referrals, points, wallet, and your AI Star.",
     coreStatusTitle: "Signup complete",
     growthDescription:
       "Review referral points and reward history in Points.",
     growthDirectLabel: "Growth signups",
     growthEyebrow: "growth rewards",
-    growthLinkCodeLabel: "Growth code",
+    growthLinkCodeLabel: "Referral code",
     growthLinkDescription:
       "This is your share link with your referral code attached.",
-    growthLinkLabel: "Growth reward link",
-    growthLinkTitle: "Growth reward link",
+    growthLinkLabel: "Share link",
+    growthLinkTitle: "Referral share link",
     growthMembersTitle: "Growth members",
     growthNetworkLabel: "Growth network",
     growthTitle: "Growth Rewards Program",
@@ -252,7 +252,7 @@ function getActivationSeparationCopy(locale: Locale) {
     separationLabel: "Operating rule",
     separationPoints: [
       "Check status",
-      "Open menu",
+      "Choose menu",
       "Manage rewards",
     ],
     separationTitle: "Only the next useful actions are shown",
