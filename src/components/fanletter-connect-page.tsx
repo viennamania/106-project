@@ -232,7 +232,7 @@ function getContextCopy(
           "계정 연결은 저장되었습니다. 보던 팬 전용 콘텐츠로 돌아갈 수 있고, 유료 열람이나 리워드 기능에서 10 USDT 활성화가 필요하면 그때 이어서 진행합니다.",
         primary: returnTarget.backLabel,
         readinessBody:
-          "먼저 이메일 계정을 연결해 구매 계정을 만들고, 결제가 필요한 순간에 활성화 화면으로 이어갑니다.",
+          "먼저 이메일 계정을 연결해 구매 계정을 만들고, 결제가 필요한 단계에서 가입 완료 흐름으로 이어갑니다.",
         returnBody: returnTarget.body,
         returnCta: returnTarget.cta,
         returnTitle: "보던 콘텐츠",
@@ -282,7 +282,7 @@ function getContextCopy(
           ? "온보딩 계속하기"
           : returnTarget.backLabel,
       readinessBody:
-        "먼저 계정을 연결해 AIAVpark를 이어서 둘러보고, 결제가 필요한 기능에서 활성화 화면으로 이동합니다.",
+        "먼저 계정을 연결해 AIAVpark를 이어서 둘러보고, 결제가 필요한 기능에서 가입 완료 흐름으로 이동합니다.",
       returnBody: returnTarget.body,
       returnCta: returnTarget.cta,
       returnTitle: "연결 전 위치",

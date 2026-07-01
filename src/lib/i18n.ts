@@ -1055,7 +1055,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       memberReady: "이 이메일 회원의 레퍼럴 코드가 활성화되어 있습니다.",
       memberMissing: "회원 상태를 다시 동기화한 뒤 시도하세요.",
       paymentRequired:
-        "아직 회원가입이 완료되지 않았습니다. 활성화 화면으로 이동해 10 USDT 결제를 완료하세요.",
+        "아직 회원가입이 완료되지 않았습니다. 서비스 시작 허브에서 10 USDT 결제를 완료하세요.",
       labels: {
         currentLevel: "현재 단계",
         descendants: "전체 하위 추천 수",
@@ -1075,7 +1075,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       actions: {
         backToRoot: "처음으로",
         backHome: "홈으로 돌아가기",
-        completeSignup: "활성화 화면에서 가입 완료하기",
+        completeSignup: "서비스 시작 허브에서 가입 완료하기",
         refresh: "새로고침",
         viewChildren: "하위 보기",
       },
@@ -1148,7 +1148,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         walletAddress: "지갑 주소",
       },
       actions: {
-        backToActivate: "활성화 화면으로",
+        backToActivate: "시작 허브로",
         openManagement: "상세 관리",
         refresh: "새로고침",
       },
@@ -1157,7 +1157,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         pageDescription: "읽지 않은 알림을 먼저 확인하고 바로 처리하세요.",
         dismiss: "나중에 보기",
         availableAfterSignup:
-          "알림 목록은 회원 활성화 완료 후 자동으로 채워집니다.",
+          "알림 목록은 가입 완료 후 자동으로 채워집니다.",
         announcementBadge: "회원 공지",
         contentBadge: "새 콘텐츠",
         empty: "아직 확인할 알림이 없습니다.",
@@ -1168,7 +1168,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         push: {
           title: "모바일 푸시 알림",
           description:
-            "새 회원 활성화와 네트워크 변화를 앱이 닫혀 있어도 바로 받아보세요.",
+            "새 가입 완료와 네트워크 변화를 앱이 닫혀 있어도 바로 받아보세요.",
           enable: "푸시 알림 켜기",
           disable: "푸시 알림 끄기",
           enabling: "설정 중...",
@@ -1181,20 +1181,20 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
             "iPhone과 iPad에서는 홈 화면에 추가한 앱에서만 푸시 알림을 받을 수 있습니다.",
           notConfigured: "서버의 웹 푸시 설정이 아직 완료되지 않았습니다.",
         },
-        preferenceDirect: "새 회원 활성화 알림",
+        preferenceDirect: "새 가입 완료 알림",
         preferenceContentPublished: "피드 콘텐츠 게시 알림",
-        preferenceNetworkMembers: "하위 네트워크 활성화 알림",
+        preferenceNetworkMembers: "하위 네트워크 가입 완료 알림",
         preferenceLevel: "단계 달성 알림",
         messages: {
-          directMemberCompletedTitle: "새 회원 활성화 완료",
+          directMemberCompletedTitle: "새 회원 가입 완료",
           directMemberCompletedBody:
-            "{email} 님이 회원 활성화를 완료했습니다.",
+            "{email} 님이 가입을 완료했습니다.",
           networkContentPublishedTitle: "새 콘텐츠 게시",
           networkContentPublishedBody:
             "{author} 님이 단계 {level} 피드에 새 콘텐츠를 게시했습니다: {title}",
-          networkMemberCompletedTitle: "하위 네트워크 활성화 완료",
+          networkMemberCompletedTitle: "하위 네트워크 가입 완료",
           networkMemberCompletedBody:
-            "{email} 님이 내 네트워크 단계 {level}에서 회원 활성화를 완료했습니다.",
+            "{email} 님이 내 네트워크 단계 {level}에서 가입을 완료했습니다.",
           networkLevelCompletedTitle: "단계 달성",
           networkLevelCompletedBody:
             "단계 {level}이 {count}/{target}명으로 가득 찼습니다.",
@@ -1406,11 +1406,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title: "포인트 리워드",
       eyebrow: "points utility",
       description:
-        "추천으로 쌓인 포인트를 확인하고, 다음 등급까지의 진행도를 보고, 교환 예정 리워드를 한눈에 확인합니다.",
+        "추천으로 쌓인 포인트와 교환 가능한 리워드를 한눈에 확인합니다.",
       disconnected: "이메일 로그인 후 포인트 리워드 페이지를 확인할 수 있습니다.",
       loading: "포인트 데이터를 불러오는 중입니다.",
       paymentRequired:
-        "아직 회원가입이 완료되지 않았습니다. 활성화 화면에서 가입을 먼저 완료하세요.",
+        "아직 회원가입이 완료되지 않았습니다. 서비스 시작 허브에서 가입을 먼저 완료하세요.",
       emptyHistory: "아직 적립된 포인트 이력이 없습니다.",
       emptyRedemptions: "아직 사용 또는 교환 이력이 없습니다.",
       previewNote:
@@ -1424,7 +1424,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         membershipCard: "보유 멤버 카드",
         nextTier: "다음 등급",
         pointTier: "현재 포인트 등급",
-        pointsToNextTier: "다음 등급까지 {points}P 필요",
+        pointsToNextTier: "다음 등급 목표까지 {points}P 필요",
         progress: "등급 진행도",
         rewardCatalog: "리워드 카탈로그",
         rewardCost: "필요 포인트",
@@ -1434,7 +1434,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       actions: {
         backHome: "홈으로 돌아가기",
-        completeSignup: "활성화 화면으로 이동",
+        completeSignup: "서비스 시작 허브로 이동",
         openReferrals: "레퍼럴 보기",
         refresh: "새로고침",
         redeem: "리워드 교환",
@@ -1639,7 +1639,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       actions: {
         backHome: "홈으로 돌아가기",
-        completeSignup: "활성화 화면으로 이동",
+        completeSignup: "서비스 시작 허브로 이동",
         checkIn: "오늘 출석하기",
         checkingIn: "출석 처리 중...",
         checkedIn: "오늘 출석 완료",
