@@ -119,12 +119,12 @@ function getServiceManagementCopy(locale: Locale) {
       description:
         "운영자 권한으로 회원의 서비스 이용 상태를 조정합니다. 일반 회원 화면에는 노출되지 않으며, 변경 전 대상과 범위를 확인해야 합니다.",
       releaseAction: "서비스 재개",
-      releaseNoticeMember: "선택 회원의 서비스가 재개되었습니다.",
+      releaseNoticeMember: "현재 회원의 서비스가 재개되었습니다.",
       releaseNoticeSubtree:
-        "선택 회원과 하위 완료 회원 전체의 서비스가 재개되었습니다.",
+        "현재 회원과 하위 완료 회원 전체의 서비스가 재개되었습니다.",
       scopeLabel: "적용 범위",
-      scopeMember: "선택 회원만",
-      scopeSubtree: "선택 회원 + 하위 회원",
+      scopeMember: "현재 회원만",
+      scopeSubtree: "현재 회원 + 하위 회원",
       statusLabel: "서비스 상태",
       submitPending: "적용 중...",
       suspendAction: "서비스 일시 정지",
@@ -132,9 +132,9 @@ function getServiceManagementCopy(locale: Locale) {
       suspendedByLabel: "중단 처리 관리자",
       suspendedScopeLabel: "중단 적용 범위",
       suspendedValue: "중단됨",
-      suspendNoticeMember: "선택 회원 서비스가 중단되었습니다.",
+      suspendNoticeMember: "현재 회원 서비스가 중단되었습니다.",
       suspendNoticeSubtree:
-        "선택 회원과 하위 완료 회원 전체의 서비스가 중단되었습니다.",
+        "현재 회원과 하위 완료 회원 전체의 서비스가 중단되었습니다.",
       title: "운영자 전용 서비스 상태",
     };
   }
@@ -3226,7 +3226,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "회원 상세 보기",
       aiStarPending: "AI 스타 준비 중",
       aiStarReady: "AI 스타 연결됨",
-      eyebrow: "선택 회원",
+      eyebrow: "보고 있는 회원",
       sheetTitle: "회원 상세",
     };
   }

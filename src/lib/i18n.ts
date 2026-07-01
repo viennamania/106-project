@@ -1120,7 +1120,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       treeDescription:
         "조직도를 단계별로 탐색하면서 각 회원의 포인트, 포인트 등급, 카드 상태를 함께 확인합니다.",
       labels: {
-        currentMember: "선택 회원",
+        currentMember: "보고 있는 회원",
         descendants: "전체 하위",
         directChildren: "직접 하위",
         directMembers: "직접 가입 회원",
