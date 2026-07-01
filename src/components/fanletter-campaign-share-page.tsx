@@ -24,7 +24,7 @@ import type { Locale } from "@/lib/i18n";
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        back: "FanLetter",
+        back: "AIAVpark",
         click: "상품 보기",
         cut: "컷",
         cutViews: "컷 조회",
@@ -42,7 +42,7 @@ function getCopy(locale: Locale) {
         updated: "참여가 기록되었습니다.",
       }
     : {
-        back: "FanLetter",
+        back: "AIAVpark",
         click: "View Product",
         cut: "Cut",
         cutViews: "Cut Views",

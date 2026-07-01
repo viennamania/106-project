@@ -40,7 +40,7 @@ function getBaseCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       aiStar: "AI STAR",
-      back: "FanLetter 홈",
+      back: "AIAVpark 홈",
       connect: "TikTok 연결하기",
       connected: "TikTok 연결됨",
       contextAssetBody:
@@ -104,7 +104,7 @@ function getBaseCopy(locale: Locale) {
       open: "AI 스타 보기",
       overviewBody: "운영 AI, TikTok 연결, 기여 포인트를 한 줄로 확인합니다.",
       overviewTitle: "운영 요약",
-      routeLabel: "FanLetter / 내 AI",
+      routeLabel: "AIAVpark / 내 AI",
       source: "원천 AI 스타 유니버스",
       status: "상태",
       steps: ["운영 AI", "TikTok", "콘텐츠", "활동 기록"],
@@ -122,7 +122,7 @@ function getBaseCopy(locale: Locale) {
 
   return {
     aiStar: "AI STAR",
-    back: "FanLetter Home",
+    back: "AIAVpark Home",
     connect: "Connect TikTok",
     connected: "TikTok connected",
     contextAssetBody:
@@ -187,7 +187,7 @@ function getBaseCopy(locale: Locale) {
     open: "View AI Star",
     overviewBody: "A compact readout of operated AI Stars, TikTok connection, and Contribution Points.",
     overviewTitle: "Operating Summary",
-    routeLabel: "FanLetter / My AI",
+    routeLabel: "AIAVpark / My AI",
     source: "Source AI Star Universe",
     status: "Status",
     steps: ["Operate", "TikTok", "Content", "Activity record"],
