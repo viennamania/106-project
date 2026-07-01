@@ -1310,7 +1310,7 @@ function FounderContributionPanel({
                 {formatNumber(contribution.summary.sourceUniverseCount, locale)}
               </p>
               <p className="text-[0.62rem] font-semibold text-white/56">
-                Universe
+                {locale === "ko" ? "유니버스" : "Universe"}
               </p>
             </div>
             <div className="rounded-lg bg-white/10 p-2">
@@ -1356,10 +1356,12 @@ function FounderContributionPanel({
                   CP {formatNumber(universe.cpTotal, locale)}
                 </span>
                 <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
-                  Invite {formatNumber(universe.referralConversions, locale)}
+                  {locale === "ko" ? "초대" : "Invite"}{" "}
+                  {formatNumber(universe.referralConversions, locale)}
                 </span>
                 <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
-                  Oracle {universe.readiness.oracleReadyPercent}%
+                  {locale === "ko" ? "오라클" : "Oracle"}{" "}
+                  {universe.readiness.oracleReadyPercent}%
                 </span>
                 <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
                   {copy.contributionAudit} {universe.readiness.auditReadyPercent}%
