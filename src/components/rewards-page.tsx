@@ -749,6 +749,11 @@ export function RewardsPage({
                     </p>
                   </div>
 
+                  <PointContextFlow
+                    items={pointContextCopy.flowItems}
+                    title={pointContextCopy.flowTitle}
+                  />
+
                   <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
                     <PointContextCard
                       hint={pointContextCopy.spendableHint}
@@ -1068,6 +1073,45 @@ function PointContextCard({
         {value}
       </p>
       <p className="mt-1 text-[0.68rem] leading-4 text-white/55">{hint}</p>
+    </div>
+  );
+}
+
+function PointContextFlow({
+  items,
+  title,
+}: {
+  items: Array<{
+    label: string;
+    value: string;
+  }>;
+  title: string;
+}) {
+  return (
+    <div className="mt-4 rounded-[20px] border border-white/12 bg-black/18 px-3 py-3 sm:mt-5 sm:px-4">
+      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/48 sm:text-xs">
+        {title}
+      </p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {items.map((item, index) => (
+          <div
+            className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2.5"
+            key={item.label}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[0.62rem] font-semibold text-zinc-950">
+                {index + 1}
+              </span>
+              <span className="truncate text-xs font-semibold text-white">
+                {item.label}
+              </span>
+            </div>
+            <p className="mt-1.5 break-keep text-[0.7rem] leading-4 text-white/55 [word-break:keep-all]">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2465,6 +2509,21 @@ function getRewardPointContextCopy(locale: Locale) {
       definitionBody:
         "리워드 교환은 사용 가능 포인트에서 차감되고, 등급은 누적 적립 포인트로 계산합니다.",
       definitionTitle: "포인트는 두 가지로 구분합니다",
+      flowItems: [
+        {
+          label: "활동 적립",
+          value: "추천, 콘텐츠, 운영 보상 기록이 쌓입니다.",
+        },
+        {
+          label: "교환 가능",
+          value: "리워드 버튼은 이 잔액에서만 차감됩니다.",
+        },
+        {
+          label: "등급 기준",
+          value: "누적 적립은 멤버 등급 계산에만 사용됩니다.",
+        },
+      ],
+      flowTitle: "포인트 흐름",
       lifetimeHint: "등급 계산에만 쓰는 전체 적립 기록",
       lifetimeLabel: "등급 기준 누적 포인트",
       maxTierHint: "현재 최고 등급입니다",
@@ -2488,6 +2547,21 @@ function getRewardPointContextCopy(locale: Locale) {
       definitionBody:
         "リワード交換は交換可能ポイントから差し引かれ、ランクは累積獲得ポイントで計算されます。",
       definitionTitle: "ポイントは2種類に分けて表示します",
+      flowItems: [
+        {
+          label: "獲得記録",
+          value: "紹介、コンテンツ、運営リワードの記録が蓄積されます。",
+        },
+        {
+          label: "交換可能",
+          value: "リワード交換はこの残高からのみ差し引かれます。",
+        },
+        {
+          label: "ランク基準",
+          value: "累積獲得はメンバーランク計算にだけ使われます。",
+        },
+      ],
+      flowTitle: "ポイントの流れ",
       lifetimeHint: "ランク計算だけに使う累積記録",
       lifetimeLabel: "ランク基準累積ポイント",
       maxTierHint: "現在の最高ランクです",
@@ -2511,6 +2585,21 @@ function getRewardPointContextCopy(locale: Locale) {
       definitionBody:
         "奖励兑换会从可用积分中扣减，会员等级按累计获得积分计算。",
       definitionTitle: "积分分为两类显示",
+      flowItems: [
+        {
+          label: "活动获得",
+          value: "推荐、内容和运营奖励记录会持续累积。",
+        },
+        {
+          label: "可兑换",
+          value: "奖励兑换只会从这部分余额中扣减。",
+        },
+        {
+          label: "等级基准",
+          value: "累计获得积分仅用于会员等级计算。",
+        },
+      ],
+      flowTitle: "积分流向",
       lifetimeHint: "仅用于等级计算的累计记录",
       lifetimeLabel: "等级基准累计积分",
       maxTierHint: "当前已是最高等级",
@@ -2531,6 +2620,21 @@ function getRewardPointContextCopy(locale: Locale) {
     definitionBody:
       "Reward exchanges spend your redeemable points. Member tier is calculated from lifetime earned points.",
     definitionTitle: "Points are split into two meanings",
+    flowItems: [
+      {
+        label: "Earned events",
+        value: "Referral, content, and operator reward records accumulate.",
+      },
+      {
+        label: "Redeemable",
+        value: "Reward exchanges spend only this balance.",
+      },
+      {
+        label: "Tier basis",
+        value: "Lifetime earned points only calculate member tier.",
+      },
+    ],
+    flowTitle: "Point flow",
     lifetimeHint: "Lifetime earning record for tier only",
     lifetimeLabel: "Tier lifetime points",
     maxTierHint: "You are at the top tier",
