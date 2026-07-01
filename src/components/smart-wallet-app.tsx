@@ -278,8 +278,10 @@ function getActivationHubCopy(locale: Locale) {
       feedLabel: "공개 콘텐츠",
       feedMetric: "보기",
       hubLabel: "1066FRIEND+",
+      lockedMenuCaption: "추천 회원, 포인트, 지갑 메뉴는 이메일 인증 후 순서대로 열립니다.",
       menuLockedDescription: "이메일로 시작하면 추천 코드, 포인트, 지갑 메뉴를 이어서 사용할 수 있습니다.",
       menuLockedTitle: "먼저 이메일로 시작하세요",
+      menuOpenAfterLogin: "이메일 인증 후 메뉴 열림",
       menuPendingDescription: "10 USDT 확인이 끝나면 추천 회원, 포인트, 지갑 관리가 열립니다.",
       menuPendingTitle: "서비스 이용료 확인이 필요합니다",
       menuReadyTitle: "다음 행동 선택",
@@ -336,8 +338,10 @@ function getActivationHubCopy(locale: Locale) {
     feedLabel: "Public content",
     feedMetric: "View",
     hubLabel: "1066FRIEND+",
+    lockedMenuCaption: "Referral members, points, and wallet menus open after email verification.",
     menuLockedDescription: "Start with email to open referral code, points, and wallet menus.",
     menuLockedTitle: "Start with email first",
+    menuOpenAfterLogin: "Menus open after email",
     menuPendingDescription: "Referral members, points, and wallet management open after the 10 USDT check.",
     menuPendingTitle: "Service fee check needed",
     menuReadyTitle: "Choose next action",
@@ -2840,27 +2844,22 @@ function ActivationServiceHub({
                 <p className="break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
                   {copy.menuPendingDescription}
                 </p>
-                <a
-                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
-                  href="#signup-payment"
-                >
+                <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-semibold text-zinc-700">
                   {copy.primaryPending}
-                </a>
+                </div>
               </div>
             ) : (
               <div className="mt-4 rounded-[22px] border border-zinc-200 bg-white p-4">
                 <p className="break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
                   {copy.menuLockedDescription}
                 </p>
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {[copy.networkLabel, copy.pointsLabel, copy.assetLabel].map((label) => (
-                    <span
-                      className="rounded-2xl border border-zinc-200 bg-zinc-50 px-2 py-3 text-center text-[0.72rem] font-semibold text-zinc-500"
-                      key={label}
-                    >
-                      {label}
-                    </span>
-                  ))}
+                <div className="mt-4 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-3 py-3">
+                  <p className="text-sm font-semibold text-zinc-950">
+                    {copy.menuOpenAfterLogin}
+                  </p>
+                  <p className="mt-1 break-keep text-xs leading-5 text-zinc-500 [word-break:keep-all]">
+                    {copy.lockedMenuCaption}
+                  </p>
                 </div>
               </div>
             )}
