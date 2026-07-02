@@ -1313,7 +1313,7 @@ export function FanletterCreatePage({
   const composeSectionRef = useRef<HTMLElement | null>(null);
   const resultSectionRef = useRef<HTMLElement | null>(null);
   const saveInFlightRef = useRef(false);
-  const generateInFlightRef = useRef(false);
+  const mediaInFlightRef = useRef(false);
   const scrolledResultMediaUrlRef = useRef<string | null>(null);
   const scrolledUploadComposeRef = useRef(false);
   const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -2021,10 +2021,10 @@ export function FanletterCreatePage({
     // Guard against a double-tap / concurrent click firing a second BILLED fal
     // render before setGenerationStatus("loading") has re-rendered the disabled
     // button (React state is async; two buttons can also be visible at once).
-    if (generateInFlightRef.current) {
+    if (mediaInFlightRef.current) {
       return;
     }
-    generateInFlightRef.current = true;
+    mediaInFlightRef.current = true;
 
     const endpoint = "/api/content/posts/generate-content-video";
 
@@ -2127,7 +2127,7 @@ export function FanletterCreatePage({
       setGenerationMessage(message);
       setGenerationStatus("error");
     } finally {
-      generateInFlightRef.current = false;
+      mediaInFlightRef.current = false;
     }
   }
 
@@ -2153,6 +2153,13 @@ export function FanletterCreatePage({
       setError(copy.upload.missingReferral);
       return;
     }
+
+    // Shares the in-flight guard with generateMedia so an upload and an AI
+    // generation can't run concurrently and overwrite each other's (paid) media.
+    if (mediaInFlightRef.current) {
+      return;
+    }
+    mediaInFlightRef.current = true;
 
     try {
       setCreatedContent(null);
@@ -2263,6 +2270,7 @@ export function FanletterCreatePage({
       setGenerationStatus("error");
     } finally {
       setIsUploadingVideo(false);
+      mediaInFlightRef.current = false;
     }
   }
 
