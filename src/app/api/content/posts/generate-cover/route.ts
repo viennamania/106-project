@@ -6,6 +6,7 @@ import { generateAndUploadContentCover } from "@/lib/content-cover-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { enforceContentGenerationRateLimit } from "@/lib/content-generation-rate-limit";
 
 export const runtime = "nodejs";
 // Matches the sibling image routes: the safety-retry chain can run up to three
@@ -190,6 +191,19 @@ export async function POST(request: Request) {
         return;
       }
 
+      const coverRateLimit = await enforceContentGenerationRateLimit(
+        `cover:${member.referralCode}`,
+        { maxEnvVar: "CONTENT_COVER_RATE_LIMIT_MAX" },
+      );
+      if (!coverRateLimit.allowed) {
+        emit({
+          error:
+            "이미지 생성 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+          type: "error",
+        });
+        return;
+      }
+
       emit({
         progress: {
           message: progressCopy.authorizingCompleted,
@@ -260,6 +274,17 @@ export async function POST(request: Request) {
 
   if (!member?.referralCode) {
     return jsonError("Creator Studio is only available to completed members.", 403);
+  }
+
+  const coverRateLimit = await enforceContentGenerationRateLimit(
+    `cover:${member.referralCode}`,
+    { maxEnvVar: "CONTENT_COVER_RATE_LIMIT_MAX" },
+  );
+  if (!coverRateLimit.allowed) {
+    return jsonError(
+      "이미지 생성 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+      429,
+    );
   }
 
   try {

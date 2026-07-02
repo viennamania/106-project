@@ -209,7 +209,7 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
 };
 
-function getMongoConfig() {
+export function getMongoConfig() {
   const uri = process.env.MONGODB_URI;
   const dbName = process.env.MONGODB_DB_NAME;
   const collectionName = process.env.MONGODB_MEMBERS_COLLECTION ?? "members";

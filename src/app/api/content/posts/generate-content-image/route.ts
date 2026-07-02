@@ -8,6 +8,7 @@ import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-servi
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { enforceContentGenerationRateLimit } from "@/lib/content-generation-rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
@@ -210,6 +211,19 @@ export async function POST(request: Request) {
         return;
       }
 
+      const imageRateLimit = await enforceContentGenerationRateLimit(
+        `content-image:${member.referralCode}`,
+        { maxEnvVar: "CONTENT_IMAGE_RATE_LIMIT_MAX" },
+      );
+      if (!imageRateLimit.allowed) {
+        emit({
+          error:
+            "이미지 생성 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+          type: "error",
+        });
+        return;
+      }
+
       const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
         member,
       );
@@ -287,6 +301,17 @@ export async function POST(request: Request) {
 
   if (!member?.referralCode) {
     return jsonError("Creator Studio is only available to completed members.", 403);
+  }
+
+  const imageRateLimit = await enforceContentGenerationRateLimit(
+    `content-image:${member.referralCode}`,
+    { maxEnvVar: "CONTENT_IMAGE_RATE_LIMIT_MAX" },
+  );
+  if (!imageRateLimit.allowed) {
+    return jsonError(
+      "이미지 생성 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+      429,
+    );
   }
 
   try {

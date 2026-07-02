@@ -5,6 +5,7 @@ import type {
 import { generateCreatorAvatarCandidates } from "@/lib/creator-avatar-service";
 import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-service";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { enforceContentGenerationRateLimit } from "@/lib/content-generation-rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -55,6 +56,19 @@ export async function POST(request: Request) {
 
     if (!authorization.member?.referralCode) {
       return jsonError("Creator Studio is only available to completed members.", 403);
+    }
+
+    // Each avatar-candidate request fans out to many OpenAI image calls, so cap
+    // it per member (generous default; env-tunable; fails open on store error).
+    const rateLimit = await enforceContentGenerationRateLimit(
+      `avatar-candidates:${authorization.member.referralCode}`,
+      { max: 6, maxEnvVar: "AVATAR_CANDIDATES_RATE_LIMIT_MAX" },
+    );
+    if (!rateLimit.allowed) {
+      return jsonError(
+        "아바타 생성 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+        429,
+      );
     }
 
     const profileSnapshot = await getCreatorProfileSnapshotForCompletedMember(
