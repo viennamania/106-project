@@ -51,6 +51,32 @@ function createProgressCopy(locale: Locale) {
       };
 }
 
+function isImageSafetyErrorMessage(message: string) {
+  return /safety|rejected by the safety system|safety_violations|moderation|content[_ ]policy|flagged/i.test(
+    message,
+  );
+}
+
+// Never return the raw provider error to the client: it leaks internal model
+// IDs and prompt-shape diagnostics (e.g. "q_descale must have shape ..."). Log
+// the raw cause for ops and return a friendly, localized message.
+function getImageGenerationErrorMessage(error: unknown, locale: Locale) {
+  const raw =
+    error instanceof Error ? error.message : "Failed to generate content image.";
+
+  console.error("[generate-content-image] generation failed", raw);
+
+  if (isImageSafetyErrorMessage(raw)) {
+    return locale === "ko"
+      ? "AI 이미지 안전 필터가 이 요청을 차단했습니다. 민감하게 해석될 수 있는 문구를 줄이고 다시 시도해 주세요."
+      : "The AI image safety filter blocked this request. Try again with a more neutral prompt.";
+  }
+
+  return locale === "ko"
+    ? "AI 이미지 생성에 실패했어요. 잠시 후 다시 시도해 주세요."
+    : "AI image generation failed. Please try again in a moment.";
+}
+
 function createStreamResponse(
   run: (
     emit: (event: ContentPostGenerateCoverStreamEvent) => void,
@@ -68,11 +94,15 @@ function createStreamResponse(
         try {
           await run(emit);
         } catch (error) {
+          // Log the raw cause; emit a generic message so the provider error
+          // (internal model IDs / prompt-shape diagnostics) never reaches the
+          // client. (This stream branch has no locale in scope.)
+          console.error(
+            "[generate-content-image] stream generation failed",
+            error instanceof Error ? error.message : error,
+          );
           emit({
-            error:
-              error instanceof Error
-                ? error.message
-                : "Failed to generate the AI content image.",
+            error: "AI image generation failed. Please try again in a moment.",
             type: "error",
           });
         } finally {
@@ -284,11 +314,6 @@ export async function POST(request: Request) {
 
     return Response.json(response);
   } catch (error) {
-    return jsonError(
-      error instanceof Error
-        ? error.message
-        : "Failed to generate the AI content image.",
-      500,
-    );
+    return jsonError(getImageGenerationErrorMessage(error, locale), 500);
   }
 }
