@@ -276,9 +276,11 @@ function getActivationHubCopy(locale: Locale) {
         "리워드 포인트",
       ],
       contextFlowBadge: "기록",
+      contextFlowDone: "완료",
       contextFlowLabel: "서비스 기록",
       contextNote:
         "가입, 지갑, 추천, AI 스타 프로필, 포인트 기록이 한 회원 기록으로 연결됩니다.",
+      contextFlowTodo: "대기",
       graphTitle: "진행 흐름",
       description:
         "가입 상태와 다음 행동만 먼저 확인하세요.",
@@ -358,9 +360,11 @@ function getActivationHubCopy(locale: Locale) {
       "Reward points",
     ],
     contextFlowBadge: "Record",
+    contextFlowDone: "Done",
     contextFlowLabel: "Service record",
     contextNote:
       "Signup, wallet, referral, AI Star profile, and point records become one member record.",
+    contextFlowTodo: "Pending",
     graphTitle: "Progress flow",
     description:
       "Check your status and the next action first.",
@@ -2720,6 +2724,23 @@ function ActivationServiceHub({
         ]
       : []),
   ];
+  const contextFlowSteps = copy.contextFlowItems.map((label, index) => {
+    const isDone =
+      index === 0
+        ? isConnected
+        : index === 1
+          ? isConnected
+          : index === 2
+            ? Boolean(member?.referralCode)
+            : index === 3
+              ? hasStarterAIStar
+              : totalPoints > 0;
+
+    return {
+      isDone,
+      label,
+    };
+  });
   const actionItems = [
     {
       description: copy.networkDescription,
@@ -2898,17 +2919,33 @@ function ActivationServiceHub({
                     {copy.contextFlowBadge}
                   </span>
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  {copy.contextFlowItems.map((item, index) => (
-                    <span className="inline-flex items-center gap-1.5" key={item}>
-                      <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[0.68rem] font-semibold text-white/72">
-                        {item}
+                <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                  {contextFlowSteps.map((step, index) => (
+                    <span
+                      className={cn(
+                        "flex min-w-0 items-center gap-2 rounded-2xl border px-2.5 py-2",
+                        step.isDone
+                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+                          : "border-white/10 bg-white/[0.06] text-white/62",
+                      )}
+                      key={step.label}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full text-[0.58rem] font-semibold",
+                          step.isDone
+                            ? "bg-emerald-300 text-zinc-950"
+                            : "bg-white/10 text-white/55",
+                        )}
+                      >
+                        {step.isDone ? <Check className="size-3" /> : index + 1}
                       </span>
-                      {index < copy.contextFlowItems.length - 1 ? (
-                        <span className="text-[0.62rem] font-semibold text-white/28">
-                          →
-                        </span>
-                      ) : null}
+                      <span className="min-w-0 flex-1 truncate text-[0.68rem] font-semibold">
+                        {step.label}
+                      </span>
+                      <span className="shrink-0 text-[0.58rem] font-semibold opacity-70">
+                        {step.isDone ? copy.contextFlowDone : copy.contextFlowTodo}
+                      </span>
                     </span>
                   ))}
                 </div>
