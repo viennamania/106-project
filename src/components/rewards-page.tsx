@@ -1470,10 +1470,8 @@ function RewardCatalogCard({
   const repeatableRewardStatusLabel =
     isRepeatableReward && hasRedemption
       ? isEligible
-        ? dictionary.rewardsPage.catalog.eligible
-        : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-            points: formatNumber(reward.costPoints - spendablePoints, locale),
-          })
+        ? getRewardReadyLabel(locale, dictionary)
+        : getRewardGapLabel(reward.costPoints - spendablePoints, locale)
       : null;
   const StateIcon = repeatableRewardStatusLabel
     ? isEligible
@@ -1493,10 +1491,8 @@ function RewardCatalogCard({
     : redemption
       ? getRedemptionStatusLabel(redemption.status, dictionary)
       : isEligible
-        ? dictionary.rewardsPage.catalog.eligible
-        : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-            points: formatNumber(reward.costPoints - spendablePoints, locale),
-          }));
+        ? getRewardReadyLabel(locale, dictionary)
+        : getRewardGapLabel(reward.costPoints - spendablePoints, locale));
   const repeatableRewardCanRedeem =
     isRepeatableReward &&
     canRedeem &&
@@ -1586,10 +1582,8 @@ function RewardCatalogCard({
       : null;
   const highlightCopy = isRepeatableReward && hasRedemption
     ? isEligible
-      ? dictionary.rewardsPage.catalog.eligible
-      : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-          points: formatNumber(reward.costPoints - spendablePoints, locale),
-        })
+      ? getRewardReadyLabel(locale, dictionary)
+      : getRewardGapLabel(reward.costPoints - spendablePoints, locale)
     : isCompletedReward
       ? isSilverReward && silverClaim?.status !== "completed"
       ? dictionary.rewardsPage.silverClaim.actions.open
@@ -1597,10 +1591,8 @@ function RewardCatalogCard({
     : hasRedemption
       ? getRedemptionStatusLabel(redemption?.status ?? "pending", dictionary)
       : isLocked
-        ? formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
-            points: formatNumber(reward.costPoints - spendablePoints, locale),
-          })
-        : dictionary.rewardsPage.catalog.eligible;
+        ? getRewardGapLabel(reward.costPoints - spendablePoints, locale)
+        : getRewardReadyLabel(locale, dictionary);
 
   return (
     <article
@@ -2301,6 +2293,40 @@ function getRewardDescription(rewardId: RewardCatalogId, dictionary: Dictionary)
   return dictionary.rewardsPage.catalog.serviceCredit.description;
 }
 
+function getRewardGapLabel(points: number, locale: Locale) {
+  const formattedPoints = formatNumber(Math.max(0, points), locale);
+
+  if (locale === "ko") {
+    return `교환 가능 포인트 ${formattedPoints}P 부족`;
+  }
+
+  if (locale === "ja") {
+    return `交換可能ポイントが${formattedPoints}P不足`;
+  }
+
+  if (locale === "zh") {
+    return `可兑换积分还差 ${formattedPoints}P`;
+  }
+
+  return `${formattedPoints}P redeemable points short`;
+}
+
+function getRewardReadyLabel(locale: Locale, dictionary: Dictionary) {
+  if (locale === "ko") {
+    return "교환 가능 포인트 충분";
+  }
+
+  if (locale === "ja") {
+    return "交換可能ポイント十分";
+  }
+
+  if (locale === "zh") {
+    return "可兑换积分充足";
+  }
+
+  return dictionary.rewardsPage.catalog.eligible;
+}
+
 function getRewardTypeLabel(
   rewardType: RewardCatalogItemRecord["rewardType"],
   dictionary: Dictionary,
@@ -2530,7 +2556,7 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "등급 기준 누적 포인트로 계산",
       nextTierLabel: "등급 기준",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}까지 ${points}P 더 필요`,
+        `누적 기준 ${tier}까지 ${points}P`,
       progressCaption:
         "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적 포인트로 계산합니다.",
       sourceBreakdownLabel: "포인트 출처",
@@ -2568,7 +2594,7 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "ランク基準累積ポイントで計算",
       nextTierLabel: "ランク基準",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}まであと${points}P必要`,
+        `累積基準で${tier}まであと${points}P`,
       progressCaption:
         "ランク進捗は交換可能残高ではなく、ランク基準累積ポイントで計算します。",
       sourceBreakdownLabel: "ポイントの内訳",
@@ -2606,7 +2632,7 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "按等级基准累计积分计算",
       nextTierLabel: "等级基准",
       nextTierNeeded: (tier: string, points: string) =>
-        `距离 ${tier} 还需 ${points}P`,
+        `按累计基准距离 ${tier} 还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
       sourceBreakdownLabel: "积分来源",
       spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级累计积分分开管理。",
@@ -2641,7 +2667,7 @@ function getRewardPointContextCopy(locale: Locale) {
     nextTierHint: "Calculated from lifetime tier points",
     nextTierLabel: "Tier basis",
     nextTierNeeded: (tier: string, points: string) =>
-      `${points}P more to ${tier}`,
+      `${points}P lifetime points to ${tier}`,
     progressCaption:
       "Tier progress is calculated from lifetime tier points, not redeemable balance.",
     sourceBreakdownLabel: "Point sources",
