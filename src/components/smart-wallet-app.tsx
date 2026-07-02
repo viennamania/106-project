@@ -2700,10 +2700,10 @@ function ActivationServiceHub({
   ];
   const actionItems = [
     {
-      badge: copy.recommendedLabel,
       description: copy.networkDescription,
       href: activateNetworkHref,
       icon: "network" as const,
+      key: "network",
       metric:
         locale === "ko"
           ? `${numberFormatter.format(totalReferrals)}명`
@@ -2714,6 +2714,7 @@ function ActivationServiceHub({
       description: copy.pointsDescription,
       href: rewardsHref,
       icon: "points" as const,
+      key: "points",
       metric: `${copy.pointsMetricPrefix} ${numberFormatter.format(totalPoints)}P`,
       title: copy.pointsLabel,
     },
@@ -2721,6 +2722,7 @@ function ActivationServiceHub({
       description: assetManagementLocked ? copy.walletDescription : copy.assetDescription,
       href: assetManagementHref,
       icon: "wallet" as const,
+      key: "wallet",
       metric: assetManagementLocked ? copy.disconnected : copy.connected,
       title: copy.assetLabel,
     },
@@ -2729,6 +2731,7 @@ function ActivationServiceHub({
       description: copy.studioDescription,
       href: studioHref,
       icon: "studio" as const,
+      key: "studio",
       metric: studioMetric,
       title: copy.studioLabel,
     },
@@ -2736,11 +2739,26 @@ function ActivationServiceHub({
       description: copy.feedDescription,
       href: networkFeedHref,
       icon: "feed" as const,
+      key: "feed",
       metric: copy.feedMetric,
       title: copy.feedLabel,
     },
   ];
-  const [primaryMenuItem, ...secondaryMenuItems] = actionItems;
+  const recommendedActionKey = !hasStarterAIStar
+    ? "studio"
+    : totalReferrals > 0
+      ? "network"
+      : totalPoints > 0
+        ? "points"
+        : "network";
+  const orderedActionItems = [
+    ...actionItems.filter((item) => item.key === recommendedActionKey),
+    ...actionItems.filter((item) => item.key !== recommendedActionKey),
+  ].map((item, index) => ({
+    ...item,
+    badge: index === 0 ? (item.badge ?? copy.recommendedLabel) : item.badge,
+  }));
+  const [primaryMenuItem, ...secondaryMenuItems] = orderedActionItems;
 
   const primaryAction = isSignupCompleted ? null : isConnected ? (
     <a

@@ -1792,6 +1792,7 @@ function SelectedMemberBottomSheet({
   serviceStatusUpdate: ServiceStatusUpdateState;
 }) {
   const copy = getMobileSelectedMemberCopy(locale);
+  const aiStarStatus = member?.ownedAIStar ? copy.aiStarReady : copy.aiStarPending;
 
   if (!open || !member) {
     return null;
@@ -1819,11 +1820,21 @@ function SelectedMemberBottomSheet({
                 {copy.eyebrow}
               </p>
               <h2 className="mt-1 break-all text-lg font-semibold tracking-tight text-slate-950">
-                {copy.sheetTitle}
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
                 {member.email}
-              </p>
+              </h2>
+              <div className="mt-2 flex max-w-[calc(100vw-6.5rem)] gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <span className="inline-flex shrink-0 items-center rounded-full bg-slate-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+                  {dictionary.activateNetworkPage.labels.level}{" "}
+                  {formatInteger(member.depth, locale)}
+                </span>
+                <span className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.68rem] font-semibold text-slate-700">
+                  {dictionary.activateNetworkPage.labels.directChildren}{" "}
+                  {formatInteger(member.directReferralCount, locale)}
+                </span>
+                <span className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.68rem] font-semibold text-slate-700">
+                  {aiStarStatus}
+                </span>
+              </div>
             </div>
             <button
               aria-label={dictionary.common.loginDialog.close}
@@ -3484,7 +3495,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "회원 상세 보기",
       aiStarPending: "AI 스타 준비 중",
       aiStarReady: "AI 스타 연결됨",
-      eyebrow: "선택한 회원",
+      eyebrow: "보고 있는 회원",
       sheetTitle: "회원 상세",
     };
   }
@@ -3494,7 +3505,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "メンバー詳細を見る",
       aiStarPending: "AIスター準備中",
       aiStarReady: "AIスター連携済み",
-      eyebrow: "選択メンバー",
+      eyebrow: "表示中のメンバー",
       sheetTitle: "メンバー詳細",
     };
   }
@@ -3504,7 +3515,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "查看会员详情",
       aiStarPending: "AI Star 准备中",
       aiStarReady: "已连接 AI Star",
-      eyebrow: "已选会员",
+      eyebrow: "正在查看的会员",
       sheetTitle: "会员详情",
     };
   }
@@ -3514,7 +3525,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "Xem chi tiết thành viên",
       aiStarPending: "AI Star đang chuẩn bị",
       aiStarReady: "AI Star đã kết nối",
-      eyebrow: "Thành viên đã chọn",
+      eyebrow: "Thành viên đang xem",
       sheetTitle: "Chi tiết thành viên",
     };
   }
@@ -3524,7 +3535,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       action: "Lihat detail member",
       aiStarPending: "AI Star sedang disiapkan",
       aiStarReady: "AI Star terhubung",
-      eyebrow: "Member dipilih",
+      eyebrow: "Member yang dilihat",
       sheetTitle: "Detail member",
     };
   }
@@ -3533,7 +3544,7 @@ function getMobileSelectedMemberCopy(locale: Locale) {
     action: "View member details",
     aiStarPending: "AI Star pending",
     aiStarReady: "AI Star connected",
-    eyebrow: "Selected member",
+    eyebrow: "Viewing member",
     sheetTitle: "Member details",
   };
 }
