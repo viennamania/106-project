@@ -2002,6 +2002,12 @@ function SelectedMemberCard({
         </div>
       </div>
 
+      <SelectedMemberJourneyCard
+        copy={getSelectedMemberJourneyCopy(locale)}
+        locale={locale}
+        member={member}
+      />
+
       <SelectedMemberAIStarCard
         locale={locale}
         member={member}
@@ -3068,6 +3074,87 @@ function RelationshipPill({
   );
 }
 
+function SelectedMemberJourneyCard({
+  copy,
+  locale,
+  member,
+}: {
+  copy: ReturnType<typeof getSelectedMemberJourneyCopy>;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const aiStarValue = member.ownedAIStar
+    ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
+    : copy.aiStarPending;
+  const steps = [
+    {
+      detail: formatDateTime(member.registrationCompletedAt, locale),
+      state: copy.doneState,
+      title: copy.signupTitle,
+    },
+    {
+      detail: formatAddressLabel(member.lastWalletAddress),
+      state: member.lastWalletAddress ? copy.readyState : copy.pendingState,
+      title: copy.walletTitle,
+    },
+    {
+      detail: aiStarValue,
+      state: member.ownedAIStar ? copy.readyState : copy.pendingState,
+      title: copy.aiStarTitle,
+    },
+    {
+      detail:
+        locale === "ko"
+          ? `사용 가능 ${formatInteger(member.spendablePoints, locale)}P · 누적 ${formatInteger(member.lifetimePoints, locale)}P`
+          : `${formatInteger(member.spendablePoints, locale)}P available · ${formatInteger(member.lifetimePoints, locale)}P lifetime`,
+      state: copy.readyState,
+      title: copy.pointsTitle,
+    },
+  ];
+
+  return (
+    <section className="rounded-[24px] border border-slate-200 bg-white/92 p-4 shadow-[0_16px_42px_rgba(15,23,42,0.05)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            {copy.eyebrow}
+          </p>
+          <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+            {copy.title}
+          </h3>
+        </div>
+        <p className="max-w-md text-sm leading-6 text-slate-600">
+          {copy.description}
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+        {steps.map((step, index) => (
+          <div
+            className="min-w-0 rounded-[20px] border border-slate-200 bg-slate-50/80 p-3"
+            key={step.title}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex size-8 items-center justify-center rounded-full bg-slate-950 text-xs font-semibold text-white">
+                {index + 1}
+              </span>
+              <span className="truncate rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700">
+                {step.state}
+              </span>
+            </div>
+            <p className="mt-3 text-sm font-semibold text-slate-950">
+              {step.title}
+            </p>
+            <p className="mt-1 line-clamp-2 break-all text-xs leading-5 text-slate-600">
+              {step.detail}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function InfoCard({
   className,
   label,
@@ -3301,6 +3388,40 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
     positionLabel: "Network position",
     relationshipBadge: "Relationship",
     relationshipEyebrow: "Relationship summary",
+  };
+}
+
+function getSelectedMemberJourneyCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStarPending: "AI 스타 IP 생성 대기",
+      aiStarTitle: "AI 스타 IP",
+      description:
+        "가입, 지갑, AI 스타, 포인트가 어떤 순서로 연결됐는지 확인합니다.",
+      doneState: "완료",
+      eyebrow: "서비스 기록",
+      pendingState: "대기",
+      pointsTitle: "포인트",
+      readyState: "준비",
+      signupTitle: "가입 완료",
+      title: "이 회원의 진행 흐름",
+      walletTitle: "지갑 연결",
+    };
+  }
+
+  return {
+    aiStarPending: "AI Star IP pending",
+    aiStarTitle: "AI Star IP",
+    description:
+      "Review how signup, wallet, AI Star, and points are connected.",
+    doneState: "Done",
+    eyebrow: "Service record",
+    pendingState: "Pending",
+    pointsTitle: "Points",
+    readyState: "Ready",
+    signupTitle: "Signup complete",
+    title: "Member progress flow",
+    walletTitle: "Wallet",
   };
 }
 
