@@ -8,6 +8,9 @@ import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 export const runtime = "nodejs";
+// Matches the sibling image routes: the safety-retry chain can run up to three
+// sequential high-quality generations, which needs headroom over the default.
+export const maxDuration = 240;
 
 const TITLE_LIMIT = 120;
 const SUMMARY_LIMIT = 240;

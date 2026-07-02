@@ -295,21 +295,32 @@ async function generateOpenAiAvatarCandidate({
   }
 
   const prompt = createAvatarPrompt({ displayName, expression, persona });
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
-    body: JSON.stringify({
-      background: "opaque",
-      model: getOpenAiAvatarModel(),
-      output_format: "png",
-      prompt,
-      quality: getOpenAiAvatarQuality(),
-      size: getOpenAiAvatarSize(),
-    }),
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  // Bound each OpenAI call so one stalled expression can't hold the whole
+  // Promise.allSettled batch open until the route's maxDuration (the caller
+  // then fails just that expression instead of timing out the entire request).
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+  let response: Response;
+  try {
+    response = await fetch("https://api.openai.com/v1/images/generations", {
+      body: JSON.stringify({
+        background: "opaque",
+        model: getOpenAiAvatarModel(),
+        output_format: "png",
+        prompt,
+        quality: getOpenAiAvatarQuality(),
+        size: getOpenAiAvatarSize(),
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
   const payload =
     ((await response.json().catch(() => null)) as OpenAiImageGenerationResponse | null) ??
     null;
