@@ -1,136 +1,45 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { FanletterNewsActivatePage } from "@/components/fanletter-news-activate-page";
-import {
-  buildFanletterOgImagePath,
-  FANLETTER_OG_IMAGE_SIZE,
-  getFanletterOgAlt,
-} from "@/lib/fanletter-og";
-import {
-  getSafeFanletterReturnTo,
-  readFanletterReferralCode,
-} from "@/lib/fanletter-routing";
-import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
-import {
-  buildPathWithReferral,
-  setPathSearchParams,
-} from "@/lib/landing-branding";
+import { hasLocale, type Locale } from "@/lib/i18n";
 
-type FanletterNewsCutJoinSearchParams = {
-  ref?: string | string[];
-  returnTo?: string | string[];
-};
+export const dynamic = "force-dynamic";
 
-function getMetadataCopy(locale: Locale) {
-  return locale === "ko"
-    ? {
-        description:
-          "AIAVpark News 4컷 피드에서 보고싶어요 참여를 이어가기 위해 뉴스 계정 가입 완료를 진행하세요.",
-        title: "4컷 피드 참여 가입 완료",
-      }
-    : {
-        description:
-          "Complete AIAVpark News signup to continue source-open participation from the 4-cut feed.",
-        title: "Complete Signup for 4-Cut Feed",
-      };
-}
-
-export async function generateMetadata({
+// The 4-cut-feed join view was consolidated into /news/activate with a
+// `surface=cutFeed` query param (identical render — same FanletterNewsActivatePage,
+// same surface prop + returnTo logic). Redirect any remaining /news/cuts/join
+// traffic (bookmarks; the cut-feed's own link is already updated) there,
+// preserving ref/returnTo and forcing surface=cutFeed.
+export default async function LocalizedFanletterNewsCutJoinRedirect({
   params,
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<FanletterNewsCutJoinSearchParams>;
-}): Promise<Metadata> {
-  const { lang } = await params;
-  const query = await searchParams;
-  const locale = hasLocale(lang) ? lang : defaultLocale;
-  const referralCode = readFanletterReferralCode(query.ref);
-  const returnToHref = getSafeFanletterReturnTo({
-    fallbackPath: `/${locale}/fanletter/news/cuts`,
-    locale,
-    referralCode,
-    returnTo: query.returnTo,
-  });
-  const { description, title } = getMetadataCopy(locale);
-  const url = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/cuts/join`, referralCode),
-    { returnTo: returnToHref },
-  );
-  const ogImagePath = buildFanletterOgImagePath({
-    description,
-    locale,
-    referralCode,
-    title,
-    variant: "start",
-    version: "fanletter-news-cuts-join-v1",
-  });
-  const ogImage = {
-    alt: getFanletterOgAlt(locale, "start"),
-    height: FANLETTER_OG_IMAGE_SIZE.height,
-    type: "image/png",
-    url: ogImagePath,
-    width: FANLETTER_OG_IMAGE_SIZE.width,
-  };
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      description,
-      images: [ogImage],
-      siteName: "AIAVpark News",
-      title,
-      type: "website",
-      url,
-    },
-    robots: {
-      follow: false,
-      index: false,
-    },
-    twitter: {
-      card: "summary_large_image",
-      description,
-      images: [ogImage],
-      title,
-    },
-  };
-}
-
-export default async function LocalizedFanletterNewsCutJoinPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ lang: string }>;
-  searchParams: Promise<FanletterNewsCutJoinSearchParams>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { lang } = await params;
-  const query = await searchParams;
 
   if (!hasLocale(lang)) {
     notFound();
   }
 
   const locale = lang as Locale;
-  const referralCode = readFanletterReferralCode(query.ref);
+  const query = await searchParams;
+  const forwarded = new URLSearchParams();
 
-  return (
-    <FanletterNewsActivatePage
-      dictionary={getDictionary(locale)}
-      locale={locale}
-      projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
-      referralCode={referralCode}
-      returnToHref={getSafeFanletterReturnTo({
-        fallbackPath: `/${locale}/fanletter/news/cuts`,
-        locale,
-        referralCode,
-        returnTo: query.returnTo,
-      })}
-      surface="cutFeed"
-    />
-  );
+  for (const [key, value] of Object.entries(query)) {
+    if (key === "surface") {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        forwarded.append(key, entry);
+      }
+    } else if (value != null) {
+      forwarded.set(key, value);
+    }
+  }
+
+  forwarded.set("surface", "cutFeed");
+
+  redirect(`/${locale}/fanletter/news/activate?${forwarded.toString()}`);
 }
