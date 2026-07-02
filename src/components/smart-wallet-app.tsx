@@ -3510,6 +3510,26 @@ function CompletedHomeDashboard({
           snapshot: "Service snapshot",
           updated: "Last checked",
         };
+  const shouldPrioritizeNetwork =
+    totalReferralCount > 0 || referralDashboard.rewards.totalPoints === 0;
+  const primaryDashboardAction = shouldPrioritizeNetwork
+    ? {
+        href: activateNetworkHref,
+        label: quickLabels.manageNetwork,
+      }
+    : {
+        href: rewardsHref,
+        label: quickLabels.manageRewards,
+      };
+  const secondaryDashboardAction = shouldPrioritizeNetwork
+    ? {
+        href: rewardsHref,
+        label: quickLabels.manageRewards,
+      }
+    : {
+        href: activateNetworkHref,
+        label: quickLabels.manageNetwork,
+      };
 
   useEffect(() => {
     if (shareState !== "copied" && shareState !== "error") {
@@ -3702,19 +3722,19 @@ function CompletedHomeDashboard({
             referralDashboard={referralDashboard}
           />
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
-              href={activateNetworkHref}
+              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+              href={primaryDashboardAction.href}
             >
-              {quickLabels.manageNetwork}
+              {primaryDashboardAction.label}
               <ArrowUpRight className="size-4" />
             </Link>
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-50"
-              href={rewardsHref}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-50 sm:w-auto"
+              href={secondaryDashboardAction.href}
             >
-              {quickLabels.manageRewards}
+              {secondaryDashboardAction.label}
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
