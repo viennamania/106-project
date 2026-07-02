@@ -276,9 +276,10 @@ function getActivationHubCopy(locale: Locale) {
         "AI 스타 IP",
         "리워드 포인트",
       ],
-      contextFlowLabel: "서비스 Context",
+      contextFlowBadge: "기록",
+      contextFlowLabel: "서비스 기록",
       contextNote:
-        "가입, 지갑, 추천, AI 스타 IP, 포인트 기록이 회원 Context로 연결됩니다.",
+        "가입, 지갑, 추천, AI 스타 IP, 포인트 기록이 한 회원 기록으로 연결됩니다.",
       graphTitle: "진행 흐름",
       description:
         "가입 상태와 다음 행동만 먼저 확인하세요.",
@@ -346,9 +347,10 @@ function getActivationHubCopy(locale: Locale) {
       "AI Star IP",
       "Reward points",
     ],
-    contextFlowLabel: "Service context",
+    contextFlowBadge: "Record",
+    contextFlowLabel: "Service record",
     contextNote:
-      "Signup, wallet, referral, AI Star IP, and point records become member context.",
+      "Signup, wallet, referral, AI Star IP, and point records become one member record.",
     graphTitle: "Progress flow",
     description:
       "Check your status and the next action first.",
@@ -398,6 +400,40 @@ function getActivationHubCopy(locale: Locale) {
     title: "Start 1066FRIEND+",
     walletDescription: "Check USDT and BNB wallet status.",
     walletLabel: "My wallet",
+  };
+}
+
+function getActivationTimelineCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStarPending: "AI 스타 준비 중",
+      aiStarReady: "AI 스타 생성",
+      completed: "완료",
+      description:
+        "가입, 지갑, 추천, AI 스타, 포인트가 한 회원 기록으로 이어집니다.",
+      issued: "발급됨",
+      pending: "대기",
+      pointRecord: "포인트 기록",
+      referralCode: "추천 코드",
+      serviceFee: "10 USDT 확인",
+      title: "서비스 기록",
+      walletConnected: "지갑 연결",
+    };
+  }
+
+  return {
+    aiStarPending: "AI Star pending",
+    aiStarReady: "AI Star created",
+    completed: "Complete",
+    description:
+      "Signup, wallet, referral, AI Star, and points become one member record.",
+    issued: "Issued",
+    pending: "Pending",
+    pointRecord: "Point record",
+    referralCode: "Referral code",
+    serviceFee: "10 USDT check",
+    title: "Service record",
+    walletConnected: "Wallet connected",
   };
 }
 
@@ -2813,7 +2849,7 @@ function ActivationServiceHub({
                     {copy.contextFlowLabel}
                   </p>
                   <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.62rem] font-semibold text-white/55">
-                    Context
+                    {copy.contextFlowBadge}
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -3314,6 +3350,7 @@ function CompletedHomeDashboard({
 }) {
   const totalReferralCount = referralDashboard.totalReferrals;
   const activationCopy = getActivationSeparationCopy(locale);
+  const timelineCopy = getActivationTimelineCopy(locale);
   const contentCopy = getContentCopy(locale);
   const numberFormatter = new Intl.NumberFormat(locale);
   const referralSharePath = buildPathWithReferral(
@@ -3548,6 +3585,13 @@ function CompletedHomeDashboard({
             </div>
           </div>
 
+          <ActivationMemberTimeline
+            copy={timelineCopy}
+            locale={locale}
+            member={member}
+            referralDashboard={referralDashboard}
+          />
+
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Link
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
@@ -3586,6 +3630,136 @@ function CompletedHomeDashboard({
         </div>
       </LandingReveal>
     </section>
+  );
+}
+
+function ActivationMemberTimeline({
+  copy,
+  locale,
+  member,
+  referralDashboard,
+}: {
+  copy: ReturnType<typeof getActivationTimelineCopy>;
+  locale: Locale;
+  member: MemberRecord;
+  referralDashboard: ReferralDashboardState;
+}) {
+  const timelineItems = [
+    {
+      Icon: Check,
+      detail: member.registrationCompletedAt
+        ? formatDateTime(member.registrationCompletedAt, locale)
+        : copy.completed,
+      label: copy.completed,
+      state: "done" as const,
+    },
+    {
+      Icon: WalletMinimal,
+      detail: member.paymentReceivedAt
+        ? formatDateTime(member.paymentReceivedAt, locale)
+        : copy.pending,
+      label: copy.serviceFee,
+      state: member.paymentReceivedAt ? ("done" as const) : ("pending" as const),
+    },
+    {
+      Icon: Share2,
+      detail: member.referralCode ?? copy.pending,
+      label: copy.referralCode,
+      state: member.referralCode ? ("done" as const) : ("pending" as const),
+    },
+    {
+      Icon: Sparkles,
+      detail: member.fanletterStarterUniverseEnsuredAt
+        ? formatDateTime(member.fanletterStarterUniverseEnsuredAt, locale)
+        : member.fanletterStarterStarId
+          ? copy.aiStarReady
+          : copy.pending,
+      label: member.fanletterStarterStarId ? copy.aiStarReady : copy.aiStarPending,
+      state: member.fanletterStarterStarId
+        ? ("done" as const)
+        : ("pending" as const),
+    },
+    {
+      Icon: Gift,
+      detail: referralDashboard.lastUpdatedAt
+        ? formatDateTime(referralDashboard.lastUpdatedAt, locale)
+        : copy.pending,
+      label: copy.pointRecord,
+      state:
+        referralDashboard.rewards.totalPoints > 0 ||
+        referralDashboard.rewards.history.length > 0
+          ? ("done" as const)
+          : ("pending" as const),
+    },
+  ];
+
+  return (
+    <div className="mt-4 rounded-[22px] border border-zinc-200 bg-white px-3.5 py-4 shadow-[0_14px_34px_rgba(24,24,27,0.05)] sm:px-4">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            1066FRIEND+
+          </p>
+          <h4 className="mt-1 text-base font-semibold tracking-tight text-zinc-950">
+            {copy.title}
+          </h4>
+        </div>
+        <p className="break-keep text-xs leading-5 text-zinc-500 [word-break:keep-all] sm:max-w-sm sm:text-right">
+          {copy.description}
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-5">
+        {timelineItems.map((item, index) => {
+          const Icon = item.Icon;
+          const isDone = item.state === "done";
+
+          return (
+            <div
+              className={cn(
+                "relative min-w-0 rounded-[18px] border px-3 py-3",
+                isDone
+                  ? "border-zinc-200 bg-zinc-50 text-zinc-950"
+                  : "border-dashed border-zinc-200 bg-white text-zinc-500",
+              )}
+              key={`${item.label}-${index}`}
+            >
+              {index > 0 ? (
+                <span className="absolute -left-2 top-1/2 hidden h-px w-4 bg-zinc-200 sm:block" />
+              ) : null}
+              <div className="flex items-start gap-2.5">
+                <span
+                  className={cn(
+                    "inline-flex size-8 shrink-0 items-center justify-center rounded-full border",
+                    isDone
+                      ? "border-zinc-950 bg-zinc-950 text-white"
+                      : "border-zinc-200 bg-white text-zinc-400",
+                  )}
+                >
+                  <Icon className="size-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{item.label}</p>
+                  <p className="mt-1 line-clamp-2 text-[0.72rem] leading-4 text-zinc-500">
+                    {item.detail}
+                  </p>
+                  <span
+                    className={cn(
+                      "mt-2 inline-flex rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                      isDone
+                        ? "bg-emerald-50 text-emerald-800"
+                        : "bg-zinc-100 text-zinc-500",
+                    )}
+                  >
+                    {isDone ? copy.completed : copy.pending}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

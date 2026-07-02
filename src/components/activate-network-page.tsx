@@ -1980,6 +1980,12 @@ function SelectedMemberCard({
           />
         </div>
 
+        <SelectedMemberRelationshipStrip
+          copy={summaryCopy}
+          locale={locale}
+          member={member}
+        />
+
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <MemberSignalCard
             label={summaryCopy.positionLabel}
@@ -2979,6 +2985,89 @@ function MemberSignalCard({
   );
 }
 
+function SelectedMemberRelationshipStrip({
+  copy,
+  locale,
+  member,
+}: {
+  copy: ReturnType<typeof getSelectedMemberSummaryCopy>;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const relationship =
+    locale === "ko"
+      ? `나의 추천 네트워크 ${formatInteger(member.depth, locale)}단계`
+      : `Level ${formatInteger(member.depth, locale)} in my network`;
+  const aiStarValue = member.ownedAIStar
+    ? member.ownedAIStar.name
+    : copy.aiStarShortPending;
+
+  return (
+    <div className="mt-4 rounded-[22px] border border-white/10 bg-white/8 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/42">
+            {copy.relationshipEyebrow}
+          </p>
+          <p className="mt-1 break-keep text-sm font-semibold leading-5 text-white [word-break:keep-all]">
+            {relationship}
+          </p>
+        </div>
+        <span className="inline-flex h-9 w-fit items-center gap-2 rounded-full border border-white/12 bg-black/18 px-3 text-xs font-semibold text-white/78">
+          <GitBranch className="size-3.5" />
+          {copy.relationshipBadge}
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <RelationshipPill
+          icon={<Users className="size-3.5" />}
+          label={copy.directLabel}
+          value={formatTemplate(copy.memberCountValue, {
+            count: formatInteger(member.directReferralCount, locale),
+          })}
+        />
+        <RelationshipPill
+          icon={<GitBranch className="size-3.5" />}
+          label={copy.networkLabel}
+          value={formatTemplate(copy.memberCountValue, {
+            count: formatInteger(member.totalReferralCount, locale),
+          })}
+        />
+        <RelationshipPill
+          icon={<Hexagon className="size-3.5" />}
+          label={copy.aiStarLabel}
+          value={aiStarValue}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RelationshipPill({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-black/14 px-3 py-2.5">
+      <div className="flex items-center gap-1.5 text-white/42">
+        {icon}
+        <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.16em]">
+          {label}
+        </p>
+      </div>
+      <p className="mt-1 truncate text-xs font-semibold text-white/84" title={value}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function InfoCard({
   className,
   label,
@@ -3185,21 +3274,33 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       aiStarLabel: "AI 스타",
+      aiStarShortPending: "생성 대기",
+      directLabel: "직접 하위",
       aiStarPending: "가입 후 생성 정보 대기",
+      memberCountValue: "{count}명",
+      networkLabel: "전체 하위",
       nextCheckContent: "콘텐츠와 포인트 이력 확인",
       nextCheckLabel: "다음 확인",
       nextCheckProfile: "AI 스타 프로필 연결 확인",
       positionLabel: "네트워크 위치",
+      relationshipBadge: "관계 확인",
+      relationshipEyebrow: "관계 요약",
     };
   }
 
   return {
     aiStarLabel: "AI Star",
+    aiStarShortPending: "Pending",
+    directLabel: "Direct",
     aiStarPending: "Generated profile pending",
+    memberCountValue: "{count}",
+    networkLabel: "Network",
     nextCheckContent: "Review content and points history",
     nextCheckLabel: "Next check",
     nextCheckProfile: "Confirm AI Star profile link",
     positionLabel: "Network position",
+    relationshipBadge: "Relationship",
+    relationshipEyebrow: "Relationship summary",
   };
 }
 
