@@ -725,20 +725,6 @@ export function FanletterCharacterDirectoryPage({
   const formattedHiddenCount = formatNumber(data.hiddenNsfwCount, locale);
   const shouldShowNsfwControl =
     data.hiddenNsfwCount > 0 || data.nsfwOptInEnabled;
-  const heroSignals = [
-    {
-      label: copy.signpost.currentLabel,
-      value: copy.signpost.currentValue,
-    },
-    {
-      label: copy.signpost.nextLabel,
-      value: copy.signpost.nextValue,
-    },
-    {
-      label: copy.signpost.eventLabel,
-      value: copy.signpost.eventValue,
-    },
-  ];
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-black sm:pb-0">
@@ -763,28 +749,15 @@ export function FanletterCharacterDirectoryPage({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_18px_52px_rgba(8,18,12,0.06)] sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-2xl bg-[#44f26e] px-4 py-3 text-black sm:col-span-3 lg:col-span-1">
+          <div className="rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_18px_52px_rgba(8,18,12,0.06)]">
+            <div className="rounded-2xl bg-[#44f26e] px-5 py-4 text-black">
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] opacity-70">
                 {copy.stats.totalCharacters}
               </p>
-              <p className="mt-1 text-2xl font-semibold leading-none">
+              <p className="mt-1 text-3xl font-semibold leading-none">
                 {formatNumber(data.stats.activeCharacterCount, locale)}
               </p>
             </div>
-            {heroSignals.map((signal) => (
-              <div
-                className="min-w-0 rounded-2xl border border-black/10 bg-[#f6f8f4] px-4 py-3"
-                key={signal.label}
-              >
-                <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-black/45">
-                  {signal.label}
-                </p>
-                <p className="mt-1 truncate text-sm font-semibold text-black">
-                  {signal.value}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
