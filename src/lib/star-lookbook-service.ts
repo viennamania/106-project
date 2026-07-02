@@ -189,14 +189,22 @@ function createFittingPrompt({
     .join("\n");
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string) {
+async function withTimeout<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number,
+  label: string,
+) {
+  const controller = new AbortController();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
     return await Promise.race([
-      promise,
+      run(controller.signal),
       new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => {
+          // Abort the underlying request so a timed-out fetch doesn't keep the
+          // socket open / keep buffering the body in the background.
+          controller.abort();
           reject(
             new Error(
               `${label} timed out after ${Math.round(timeoutMs / 1000)} seconds.`,
@@ -217,7 +225,7 @@ async function fetchInputImage(
   index: number,
 ): Promise<{ blob: Blob; filename: string }> {
   const response = await withTimeout(
-    fetch(url, { method: "GET" }),
+    (signal) => fetch(url, { method: "GET", signal }),
     DEFAULT_DOWNLOAD_TIMEOUT_MS,
     "input image download",
   );
@@ -367,11 +375,13 @@ export async function generateStarLookbook(
     }
 
     const response = await withTimeout(
-      fetch(OPENAI_EDITS_ENDPOINT, {
-        body: form,
-        headers: { Authorization: `Bearer ${apiKey}` },
-        method: "POST",
-      }),
+      (signal) =>
+        fetch(OPENAI_EDITS_ENDPOINT, {
+          body: form,
+          headers: { Authorization: `Bearer ${apiKey}` },
+          method: "POST",
+          signal,
+        }),
       DEFAULT_TIMEOUT_MS,
       "OpenAI lookbook generation",
     );
