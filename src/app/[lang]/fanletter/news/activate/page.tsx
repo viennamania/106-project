@@ -20,6 +20,7 @@ import {
 type FanletterNewsActivateSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
+  surface?: string | string[];
 };
 
 function getMetadataCopy(locale: Locale) {
@@ -117,6 +118,10 @@ export default async function LocalizedFanletterNewsActivatePage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const surfaceParam = Array.isArray(query.surface)
+    ? query.surface[0]
+    : query.surface;
+  const surface = surfaceParam === "cutFeed" ? "cutFeed" : "default";
 
   return (
     <FanletterNewsActivatePage
@@ -130,6 +135,7 @@ export default async function LocalizedFanletterNewsActivatePage({
         referralCode,
         returnTo: query.returnTo,
       })}
+      surface={surface}
     />
   );
 }

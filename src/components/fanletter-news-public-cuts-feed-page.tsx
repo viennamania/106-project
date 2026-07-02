@@ -1496,9 +1496,10 @@ function getCutFeedJoinHref({
   returnToHref: string;
 }) {
   return setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/cuts/join`, referralCode),
+    buildPathWithReferral(`/${locale}/fanletter/news/activate`, referralCode),
     {
       returnTo: returnToHref,
+      surface: "cutFeed",
     },
   );
 }
