@@ -17,6 +17,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 export async function generateMetadata({
@@ -38,8 +39,8 @@ export async function generateMetadata({
   const copy = getContentCopy(locale);
   const content = await getPublishedContentShareMetadata(contentId);
   const title = content
-    ? `${content.title} | ${copy.meta.detailTitle} | 1066friend+`
-    : `${copy.meta.detailTitle} | 1066friend+`;
+    ? `${content.title} | ${copy.meta.detailTitle} | ${SERVICE_BRAND_NAME}`
+    : `${copy.meta.detailTitle} | ${SERVICE_BRAND_NAME}`;
   const description = content?.summary ?? copy.meta.detailDescription;
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const url = setPathSearchParams(

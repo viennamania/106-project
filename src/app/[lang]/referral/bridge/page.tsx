@@ -20,6 +20,7 @@ import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { getLandingCopy } from "@/lib/marketing-copy";
 import { normalizeReferralCode } from "@/lib/member";
+import { SERVICE_BRAND_NAME } from "@/lib/service-branding";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 function readReferralCode(rawValue?: string | string[]) {
@@ -48,12 +49,12 @@ function getFeedShareTitle({
   if (locale === "ko") {
     return brandName
       ? `${brandName} 네트워크 피드 미리보기`
-      : "1066friend+ 네트워크 피드 미리보기";
+      : `${SERVICE_BRAND_NAME} 네트워크 피드 미리보기`;
   }
 
   return brandName
     ? `${brandName} network feed preview`
-    : "1066friend+ network feed preview";
+    : `${SERVICE_BRAND_NAME} network feed preview`;
 }
 
 function getFeedShareDescription({
@@ -65,13 +66,13 @@ function getFeedShareDescription({
 }) {
   if (locale === "ko") {
     return brandName
-      ? `${brandName}이 공유한 최신 콘텐츠를 확인하고 1066friend+ 네트워크를 시작하세요.`
-      : "SNS로 공유된 최신 네트워크 콘텐츠를 먼저 확인하고 1066friend+를 시작하세요.";
+      ? `${brandName}이 공유한 최신 콘텐츠를 확인하고 ${SERVICE_BRAND_NAME} 네트워크를 시작하세요.`
+      : `SNS로 공유된 최신 네트워크 콘텐츠를 먼저 확인하고 ${SERVICE_BRAND_NAME}를 시작하세요.`;
   }
 
   return brandName
-    ? `Explore the latest content shared by ${brandName} and start your 1066friend+ network.`
-    : "Preview the latest shared network content and start your 1066friend+ network.";
+    ? `Explore the latest content shared by ${brandName} and start your ${SERVICE_BRAND_NAME} network.`
+    : `Preview the latest shared network content and start your ${SERVICE_BRAND_NAME} network.`;
 }
 
 export async function generateMetadata({
