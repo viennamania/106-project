@@ -2275,6 +2275,14 @@ export function FanletterCreatePage({
   }
 
   async function savePost(status: "draft" | "published") {
+    // Don't persist while a generation/upload is still running: generatedMedia
+    // isn't set yet, so it would save an empty/incomplete post AND clear the
+    // local autosave (losing the in-progress prompt). The media UI already
+    // shows its own in-progress state; the save can be retried once it settles.
+    if (mediaInFlightRef.current) {
+      return;
+    }
+
     if (saveInFlightRef.current) {
       return;
     }
