@@ -1313,6 +1313,7 @@ export function FanletterCreatePage({
   const composeSectionRef = useRef<HTMLElement | null>(null);
   const resultSectionRef = useRef<HTMLElement | null>(null);
   const saveInFlightRef = useRef(false);
+  const generateInFlightRef = useRef(false);
   const scrolledResultMediaUrlRef = useRef<string | null>(null);
   const scrolledUploadComposeRef = useRef(false);
   const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -2017,6 +2018,14 @@ export function FanletterCreatePage({
       return;
     }
 
+    // Guard against a double-tap / concurrent click firing a second BILLED fal
+    // render before setGenerationStatus("loading") has re-rendered the disabled
+    // button (React state is async; two buttons can also be visible at once).
+    if (generateInFlightRef.current) {
+      return;
+    }
+    generateInFlightRef.current = true;
+
     const endpoint = "/api/content/posts/generate-content-video";
 
     try {
@@ -2117,6 +2126,8 @@ export function FanletterCreatePage({
       setError(message);
       setGenerationMessage(message);
       setGenerationStatus("error");
+    } finally {
+      generateInFlightRef.current = false;
     }
   }
 
