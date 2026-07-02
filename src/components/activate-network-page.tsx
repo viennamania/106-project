@@ -2005,6 +2005,17 @@ function SelectedMemberCard({
           />
         </div>
 
+        <div className="mt-3 inline-flex items-start gap-2 rounded-[18px] border border-white/10 bg-white/8 px-3 py-2.5 text-xs leading-5 text-white/70">
+          <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-emerald-200" />
+          <span>
+            <strong className="font-semibold text-white">
+              {summaryCopy.pointScopeBadge}
+            </strong>
+            <span className="mx-1 text-white/35">·</span>
+            {summaryCopy.pointScopeDescription}
+          </span>
+        </div>
+
         <SelectedMemberRelationshipStrip
           copy={summaryCopy}
           locale={locale}
@@ -2831,7 +2842,8 @@ function ManagedReferralNetworkExplorer({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-600">
-                    {dictionary.activateNetworkPage.labels.level} {member.depth}
+                    {dictionary.activateNetworkPage.labels.level}{" "}
+                    {formatInteger(member.depth, locale)}
                   </div>
                   <p className="mt-2.5 break-all text-base font-semibold tracking-tight text-slate-950">
                     {member.email}
@@ -3425,6 +3437,9 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
       nextCheckContent: "콘텐츠와 포인트 이력 확인",
       nextCheckLabel: "다음 확인",
       nextCheckProfile: "AI 스타 프로필 연결 확인",
+      pointScopeBadge: "이 회원 기준",
+      pointScopeDescription:
+        "아래 포인트는 선택한 회원 한 명의 값이며, 상단 네트워크 합산과 별도로 봅니다.",
       positionLabel: "네트워크 위치",
       relationshipBadge: "관계 확인",
       relationshipEyebrow: "관계 요약",
@@ -3441,6 +3456,9 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
     nextCheckContent: "Review content and points history",
     nextCheckLabel: "Next check",
     nextCheckProfile: "Confirm AI Star profile link",
+    pointScopeBadge: "Member scope",
+    pointScopeDescription:
+      "These points belong to the selected member and are separate from the network totals above.",
     positionLabel: "Network position",
     relationshipBadge: "Relationship",
     relationshipEyebrow: "Relationship summary",
