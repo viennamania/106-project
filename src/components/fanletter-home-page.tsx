@@ -1009,7 +1009,7 @@ function FanletterProductHomeDashboard({
                   <h1 className="mt-3 max-w-2xl text-[2.05rem] font-semibold leading-[1.03] tracking-normal text-zinc-950 [word-break:keep-all] sm:text-[3rem]">
                     {productCopy.headline}
                   </h1>
-                  <p className="mt-3 hidden max-w-2xl break-words text-sm font-medium leading-6 text-zinc-600 [overflow-wrap:anywhere] sm:block sm:text-base sm:[word-break:keep-all]">
+                  <p className="mt-3 block max-w-2xl break-words text-sm font-medium leading-6 text-zinc-600 [overflow-wrap:anywhere] sm:text-base sm:[word-break:keep-all]">
                     {productCopy.subhead}
                   </p>
                   {starList.length > 0 ? (
