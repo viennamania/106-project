@@ -258,6 +258,7 @@ export function ActivateNetworkPage({
     zh: "六角视图",
   } satisfies Record<Locale, string>;
   const summaryHints = getNetworkSummaryHintCopy(locale);
+  const summaryContext = getNetworkSummaryContextCopy(locale);
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -1316,6 +1317,16 @@ export function ActivateNetworkPage({
                     <p className="max-w-2xl text-[0.98rem] leading-7 text-white/76 sm:text-lg">
                       {dictionary.activateNetworkPage.description}
                     </p>
+                    <div className="inline-flex max-w-2xl items-start gap-2 rounded-[20px] border border-white/12 bg-white/10 px-3 py-2.5 text-left text-xs leading-5 text-white/72 sm:text-sm sm:leading-6">
+                      <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-200" />
+                      <span>
+                        <strong className="font-semibold text-white">
+                          {summaryContext.badge}
+                        </strong>
+                        <span className="mx-1 text-white/35">·</span>
+                        {summaryContext.description}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -3717,6 +3728,43 @@ function getNetworkSummaryHintCopy(locale: Locale) {
       string
     >
   >;
+
+  return copy[locale] ?? copy.en;
+}
+
+function getNetworkSummaryContextCopy(locale: Locale) {
+  const copy = {
+    en: {
+      badge: "Downline aggregate",
+      description:
+        "Summary points are not your wallet balance. They are totals from completed members in this referral network.",
+    },
+    id: {
+      badge: "Total downline",
+      description:
+        "Poin ringkasan bukan saldo dompet Anda, tetapi total member selesai dalam jaringan referral ini.",
+    },
+    ja: {
+      badge: "下位会員の合計",
+      description:
+        "ここに表示されるポイントは自分の残高ではなく、この紹介ネットワークに含まれる完了会員の合計です。",
+    },
+    ko: {
+      badge: "하위 회원 합산",
+      description:
+        "요약 포인트는 내 지갑 잔액이 아니라 이 추천 네트워크에 포함된 완료 회원들의 합계입니다.",
+    },
+    vi: {
+      badge: "Tổng tuyến dưới",
+      description:
+        "Điểm tóm tắt không phải số dư ví của bạn mà là tổng của các thành viên hoàn tất trong mạng giới thiệu này.",
+    },
+    zh: {
+      badge: "下级会员合计",
+      description:
+        "这里的积分不是我的钱包余额，而是该推荐网络内已完成会员的合计。",
+    },
+  } satisfies Record<Locale, { badge: string; description: string }>;
 
   return copy[locale] ?? copy.en;
 }
