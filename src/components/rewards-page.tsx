@@ -2527,8 +2527,8 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "등급 계산에만 쓰는 전체 적립 기록",
       lifetimeLabel: "등급 기준 누적 포인트",
       maxTierHint: "현재 최고 등급입니다",
-      nextTierHint: "다음 멤버 등급 기준",
-      nextTierLabel: "다음 등급 목표",
+      nextTierHint: "등급 기준 누적 포인트로 계산",
+      nextTierLabel: "등급 기준",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier}까지 ${points}P 더 필요`,
       progressCaption:
@@ -2565,8 +2565,8 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "ランク計算だけに使う累積記録",
       lifetimeLabel: "ランク基準累積ポイント",
       maxTierHint: "現在の最高ランクです",
-      nextTierHint: "次のメンバーランク基準",
-      nextTierLabel: "次のランク目標",
+      nextTierHint: "ランク基準累積ポイントで計算",
+      nextTierLabel: "ランク基準",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier}まであと${points}P必要`,
       progressCaption:
@@ -2603,8 +2603,8 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "仅用于等级计算的累计记录",
       lifetimeLabel: "等级基准累计积分",
       maxTierHint: "当前已是最高等级",
-      nextTierHint: "下一会员等级目标",
-      nextTierLabel: "下一等级目标",
+      nextTierHint: "按等级基准累计积分计算",
+      nextTierLabel: "等级基准",
       nextTierNeeded: (tier: string, points: string) =>
         `距离 ${tier} 还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
@@ -2638,8 +2638,8 @@ function getRewardPointContextCopy(locale: Locale) {
     lifetimeHint: "Lifetime earning record for tier only",
     lifetimeLabel: "Tier lifetime points",
     maxTierHint: "You are at the top tier",
-    nextTierHint: "Target for the next member tier",
-    nextTierLabel: "Next tier target",
+    nextTierHint: "Calculated from lifetime tier points",
+    nextTierLabel: "Tier basis",
     nextTierNeeded: (tier: string, points: string) =>
       `${points}P more to ${tier}`,
     progressCaption:
