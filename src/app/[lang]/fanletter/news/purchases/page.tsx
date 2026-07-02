@@ -22,6 +22,7 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
 type FanletterNewsPurchasesSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
+  surface?: string | string[];
 };
 
 function getMetadataCopy(locale: Locale) {
@@ -116,6 +117,10 @@ export default async function LocalizedFanletterNewsPurchasesPage({
   const nsfwOptInEnabled = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
+  const surfaceParam = Array.isArray(query.surface)
+    ? query.surface[0]
+    : query.surface;
+  const surface = surfaceParam === "cutFeed" ? "cutFeed" : "default";
 
   return (
     <FanletterPurchasesPage
@@ -124,6 +129,7 @@ export default async function LocalizedFanletterNewsPurchasesPage({
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
       service="news"
+      surface={surface}
     />
   );
 }

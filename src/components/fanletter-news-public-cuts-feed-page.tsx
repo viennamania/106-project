@@ -7962,11 +7962,12 @@ export function FanletterNewsPublicCutsFeedPage({
     returnTo: cutFeedHomeHref,
   });
   const purchasesHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/cuts/purchases`,
+    `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
   const returnablePurchasesHref = setPathSearchParams(purchasesHref, {
     returnTo: cutFeedHomeHref,
+    surface: "cutFeed",
   });
   const shareLinksHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts/shares`,
