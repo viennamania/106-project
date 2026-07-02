@@ -66,7 +66,11 @@ type FalVeoReferenceVideoInput = FalVeoVideoInput & {
 type FalWanVideoInput = {
   aspect_ratio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
   audio_url?: string;
-  duration: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+  // fal wan/v2.7 `duration` is a DurationEnum of second-strings ("2".."15"),
+  // NOT a number — sending a numeric duration fails fal validation (422).
+  duration:
+    | "2" | "3" | "4" | "5" | "6" | "7" | "8"
+    | "9" | "10" | "11" | "12" | "13" | "14" | "15";
   enable_prompt_expansion: boolean;
   enable_safety_checker: boolean;
   negative_prompt?: string;
@@ -76,7 +80,8 @@ type FalWanVideoInput = {
 
 type FalWanReferenceVideoInput = {
   aspect_ratio: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
-  duration: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+  // fal wan/v2.7/reference-to-video `duration` DurationEnum = "2".."10" strings.
+  duration: "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10";
   enable_safety_checker: boolean;
   multi_shots: boolean;
   negative_prompt?: string;
@@ -224,7 +229,8 @@ function parseWanDuration(value: string | undefined, maximum = 15, fallback = 8)
   const duration = Number.isFinite(parsed) ? Math.round(parsed) : fallback;
   const clamped = Math.max(2, Math.min(maximum, duration));
 
-  return clamped as FalWanVideoInput["duration"];
+  // fal expects the duration as a second-string ("8"), not the number 8.
+  return String(clamped) as FalWanVideoInput["duration"];
 }
 
 function getMaxAvatarReferenceImages() {
