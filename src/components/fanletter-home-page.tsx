@@ -1199,39 +1199,25 @@ function FanletterProductHomeDashboard({
                       value: `${formatMetric(primaryStar?.openSlots.open ?? 0, locale)}`,
                     },
                   ]}
-                  primaryAction={{
-                    agentRank: {
-                      eventType: "ai_star_discovered",
-                      intent: "home_primary_discovery",
-                      source: "fanletter_home",
-                      starId: primaryStar?.id ?? null,
-                    },
-                    href: topGrowingStarsHref,
-                    label: productCopy.primaryCta,
-                    metadata: {
-                      placement: "fanletter_product_home_primary_discovery",
-                    },
-                    referralCode,
-                  }}
                   reputationEventLabel={
                     isKo ? "활동 기록 생성" : "Activity record"
                   }
                   secondaryActions={[]}
                   steps={[
-                    { label: productCopy.discovery, status: "active" },
-                    { label: productCopy.join, status: "next" },
-                    { label: productCopy.scout, status: "next" },
+                    { label: productCopy.discovery, status: "done" },
+                    { label: productCopy.join, status: "done" },
+                    { label: productCopy.scout, status: "active" },
                     { label: productCopy.creator, status: "next" },
                   ]}
                   subtitle={
                     isKo
-                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 활동 기록으로 쌓입니다."
-                      : "Start by choosing a growing AI Star. Discovery and joins become activity records."
+                      ? "참여가 활동 기록으로 쌓이고 있어요. 다음 단계로 이어가세요."
+                      : "Your participation is building activity records. Keep going to the next step."
                   }
                   title={
                     isKo
-                      ? "다음 행동: AI 스타 발견"
-                      : "Next action: discover an AI Star"
+                      ? "내 활동 현황"
+                      : "Your activity"
                   }
                 />
           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
