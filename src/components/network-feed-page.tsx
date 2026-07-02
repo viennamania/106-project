@@ -1147,6 +1147,7 @@ export function NetworkFeedPage({
                   active={effectiveSelectedCreatorKey === creator.key}
                   creator={creator}
                   key={creator.key}
+                  locale={locale}
                   onSelect={() => {
                     setSelectedCreatorKey((current) =>
                       current === creator.key ? null : creator.key,
@@ -1476,15 +1477,26 @@ function PublicFeedStickySignupCta({
 function CreatorStoryButton({
   active,
   creator,
+  locale,
   onSelect,
 }: {
   active: boolean;
   creator: FeedActorSummary;
+  locale: Locale;
   onSelect: () => void;
 }) {
+  const kindLabel =
+    creator.kind === "reporter"
+      ? locale === "ko"
+        ? "리포터"
+        : "Reporter"
+      : locale === "ko"
+        ? "AI 스타"
+        : "AI Star";
+
   return (
     <button
-      className="flex w-[74px] shrink-0 flex-col items-center gap-1.5 text-center"
+      className="flex w-[76px] shrink-0 flex-col items-center gap-1.5 text-center"
       onClick={onSelect}
       type="button"
     >
@@ -1512,6 +1524,15 @@ function CreatorStoryButton({
       </span>
       <span className="line-clamp-1 w-full text-[0.7rem] text-slate-700">
         {creator.displayName}
+      </span>
+      <span
+        className={`max-w-full rounded-full px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-[0.08em] ${
+          creator.kind === "reporter"
+            ? "bg-slate-100 text-slate-500"
+            : "bg-violet-50 text-violet-700"
+        }`}
+      >
+        {kindLabel}
       </span>
     </button>
   );
@@ -1551,6 +1572,73 @@ function AIStarMediaBadge({
         </span>
       </span>
     </span>
+  );
+}
+
+function FeedProvenanceStrip({
+  aiStarAvatarImageUrl,
+  aiStarLabel,
+  aiStarName,
+  actorAvatarImageUrl,
+  actorKindLabel,
+  actorName,
+  contentContextLabel,
+}: {
+  aiStarAvatarImageUrl: string | null;
+  aiStarLabel: string;
+  aiStarName: string;
+  actorAvatarImageUrl: string | null;
+  actorKindLabel: string;
+  actorName: string;
+  contentContextLabel: string;
+}) {
+  return (
+    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="shrink-0 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-slate-400">
+          {contentContextLabel}
+        </span>
+        <div className="min-w-0 flex flex-1 items-center gap-1.5 overflow-hidden">
+          <span className="inline-flex min-w-0 max-w-[46%] items-center gap-1.5 rounded-full bg-white px-1.5 py-1 text-[0.68rem] font-semibold text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.04)]">
+            <span className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-[0.6rem] font-bold text-slate-700">
+              {actorAvatarImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={actorName}
+                  className="h-full w-full object-cover"
+                  src={actorAvatarImageUrl}
+                />
+              ) : (
+                getAvatarFallback(actorName)
+              )}
+            </span>
+            <span className="min-w-0 truncate">
+              {actorKindLabel} {actorName}
+            </span>
+          </span>
+          <span className="text-slate-300">→</span>
+          <span className="inline-flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-1.5 py-1 text-[0.68rem] font-semibold text-slate-800 shadow-[0_6px_14px_rgba(15,23,42,0.04)]">
+            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#a855f7,#ec4899,#38bdf8)] p-[1.5px]">
+              <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-slate-100 text-[0.6rem] font-bold text-slate-700">
+                {aiStarAvatarImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt={aiStarName}
+                    className="h-full w-full object-cover"
+                    src={aiStarAvatarImageUrl}
+                  />
+                ) : (
+                  getAvatarFallback(aiStarName)
+                )}
+              </span>
+            </span>
+            <span className="min-w-0 truncate">
+              {aiStarLabel} {aiStarName}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1687,6 +1775,9 @@ function SocialFeedPost({
       ? {
           copied: "링크를 복사했습니다.",
           copyLink: "링크 복사",
+          aiStar: "AI 스타",
+          contentContext: "콘텐츠 출처",
+          creator: "크리에이터",
           detail: "게시물 보기",
           hidden: "게시물을 숨겼습니다.",
           hide: "피드에서 숨기기",
@@ -1705,6 +1796,7 @@ function SocialFeedPost({
           paidProofProven: "결제 검증된 유료 콘텐츠",
           postComment: "게시",
           readMore: "더 보기",
+          reporter: "리포터",
           saved: "저장했습니다.",
           savePost: "저장",
           share: "공유",
@@ -1723,6 +1815,9 @@ function SocialFeedPost({
       : {
           copied: "Link copied.",
           copyLink: "Copy link",
+          aiStar: "AI Star",
+          contentContext: "Content source",
+          creator: "Creator",
           detail: "View post",
           hidden: "Post hidden.",
           hide: "Hide from feed",
@@ -1741,6 +1836,7 @@ function SocialFeedPost({
           paidProofProven: "Payment-proven content",
           postComment: "Post",
           readMore: "more",
+          reporter: "Reporter",
           saved: "Saved.",
           savePost: "Save",
           share: "Share",
@@ -2634,6 +2730,18 @@ function SocialFeedPost({
             </button>
           ) : null}
         </div>
+
+        <FeedProvenanceStrip
+          actorAvatarImageUrl={avatarImageUrl}
+          actorKindLabel={
+            item.reporterProfile ? actionCopy.reporter : actionCopy.creator
+          }
+          actorName={displayName}
+          aiStarAvatarImageUrl={aiStarAvatarImageUrl}
+          aiStarLabel={actionCopy.aiStar}
+          aiStarName={aiStarDisplayName}
+          contentContextLabel={actionCopy.contentContext}
+        />
 
         {isPaidContent ? (
           <Link
