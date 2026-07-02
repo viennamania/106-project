@@ -1056,6 +1056,15 @@ async function readFalOutputFile(
     throw new Error(`fal returned an unreadable output URL (${response.status}).`);
   }
 
+  // Reject an oversized render from the Content-Length header BEFORE buffering
+  // the whole file into memory (a 200MB+ blob per concurrent generation is an
+  // OOM vector). If the header is absent we still fall back to the post-buffer
+  // size check below.
+  const declaredBytes = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declaredBytes) && declaredBytes > CONTENT_VIDEO_MAX_BYTES) {
+    throw new Error("Generated video is larger than the 200MB limit.");
+  }
+
   return {
     blob: await response.blob(),
     sourceUrl: video.url,
