@@ -27,7 +27,7 @@ import {
 } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import type { FanletterStarDocument } from "@/lib/fanletter-founder-club";
-import type { PointBalanceDocument } from "@/lib/points";
+import { getPointTier, type PointBalanceDocument } from "@/lib/points";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -95,18 +95,20 @@ function createManagedReferralNode(
   placementSlotIndex: number | null = null,
   ownedAIStar: ManagedMemberAIStarRecord | null = null,
 ): ManagedReferralTreeNodeRecord {
+  const lifetimePoints = balance?.lifetimePoints ?? 0;
+
   return {
     ...serializeReferralMember(member),
     children: [],
     depth,
     directReferralCount: 0,
-    lifetimePoints: balance?.lifetimePoints ?? 0,
+    lifetimePoints,
     membershipCardTier,
     ownedAIStar,
     placementSlotIndex,
     spendablePoints: balance?.spendablePoints ?? 0,
     status: member.status,
-    tier: balance?.tier ?? "basic",
+    tier: getPointTier(lifetimePoints),
     totalReferralCount: 0,
   };
 }
