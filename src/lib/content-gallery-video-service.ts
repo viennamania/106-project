@@ -1185,7 +1185,6 @@ export async function generateAndUploadContentGalleryVideo(
   const { prompt: safetyPrompt } =
     rewritePromptForSaferVideoGeneration(personCenteredPrompt);
   const { prompt } = rewritePromptForFalContentChecker(safetyPrompt);
-  const revisedPrompt = prompt === visualBrief ? null : prompt;
   const model = resolveModelName(avatarReferenceUrls.length > 0);
   const modelDisplayName = getModelDisplayName(model);
 
@@ -1301,7 +1300,11 @@ export async function generateAndUploadContentGalleryVideo(
     contentType: uploaded.contentType,
     durationSec: getModelInputDurationSec(modelInput),
     pathname: uploaded.pathname,
-    revisedPrompt: falRevisedPrompt ?? revisedPrompt,
+    // Only ever surface the provider's genuine echoed prompt (getFalRevisedPrompt
+    // returns null unless fal returned an actual_prompt different from our input).
+    // Never fall back to the assembled internal prompt — it contains the
+    // identity-lock / safety / moderation scaffold and must not leak to creators.
+    revisedPrompt: falRevisedPrompt ?? null,
     url: uploaded.url,
   };
 }
