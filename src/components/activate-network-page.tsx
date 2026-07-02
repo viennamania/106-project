@@ -2352,6 +2352,11 @@ function MemberListContextGrid({
     direct: formatInteger(member.directReferralCount, locale),
     total: formatInteger(member.totalReferralCount, locale),
   });
+  const statusValue = member.serviceSuspendedAt
+    ? copy.statusSuspended
+    : member.status === "completed"
+      ? copy.statusCompleted
+      : copy.statusPending;
 
   return (
     <div className="mt-3 grid grid-cols-2 gap-2">
@@ -2372,8 +2377,8 @@ function MemberListContextGrid({
       />
       <MemberListContextItem
         active={active}
-        label={copy.spendableLabel}
-        value={`${formatInteger(member.spendablePoints, locale)}P`}
+        label={copy.statusLabel}
+        value={statusValue}
       />
     </div>
   );
@@ -3619,7 +3624,10 @@ function getMemberListContextCopy(locale: Locale) {
       lastConnectedLabel: "최근 연결",
       networkLabel: "하위 규모",
       networkValue: "직접 {direct}명 · 전체 {total}명",
-      spendableLabel: "교환 가능",
+      statusCompleted: "가입 완료",
+      statusLabel: "회원 상태",
+      statusPending: "대기",
+      statusSuspended: "중단",
     };
   }
 
@@ -3629,7 +3637,10 @@ function getMemberListContextCopy(locale: Locale) {
       lastConnectedLabel: "最終接続",
       networkLabel: "下位規模",
       networkValue: "直接 {direct}名 · 全体 {total}名",
-      spendableLabel: "交換可能",
+      statusCompleted: "登録完了",
+      statusLabel: "会員状態",
+      statusPending: "待機",
+      statusSuspended: "停止",
     };
   }
 
@@ -3639,7 +3650,10 @@ function getMemberListContextCopy(locale: Locale) {
       lastConnectedLabel: "最近连接",
       networkLabel: "下级规模",
       networkValue: "直属 {direct}人 · 全部 {total}人",
-      spendableLabel: "可兑换",
+      statusCompleted: "注册完成",
+      statusLabel: "会员状态",
+      statusPending: "等待中",
+      statusSuspended: "已暂停",
     };
   }
 
@@ -3649,7 +3663,10 @@ function getMemberListContextCopy(locale: Locale) {
       lastConnectedLabel: "Kết nối gần nhất",
       networkLabel: "Quy mô tuyến dưới",
       networkValue: "Trực tiếp {direct} · Toàn mạng {total}",
-      spendableLabel: "Có thể đổi",
+      statusCompleted: "Hoàn tất",
+      statusLabel: "Trạng thái",
+      statusPending: "Đang chờ",
+      statusSuspended: "Tạm dừng",
     };
   }
 
@@ -3659,7 +3676,10 @@ function getMemberListContextCopy(locale: Locale) {
       lastConnectedLabel: "Terakhir terhubung",
       networkLabel: "Ukuran jaringan",
       networkValue: "Langsung {direct} · Total {total}",
-      spendableLabel: "Dapat ditukar",
+      statusCompleted: "Selesai",
+      statusLabel: "Status",
+      statusPending: "Menunggu",
+      statusSuspended: "Ditangguhkan",
     };
   }
 
@@ -3668,7 +3688,10 @@ function getMemberListContextCopy(locale: Locale) {
     lastConnectedLabel: "Last connected",
     networkLabel: "Downline size",
     networkValue: "Direct {direct} · Total {total}",
-    spendableLabel: "Redeemable",
+    statusCompleted: "Completed",
+    statusLabel: "Member status",
+    statusPending: "Pending",
+    statusSuspended: "Suspended",
   };
 }
 
