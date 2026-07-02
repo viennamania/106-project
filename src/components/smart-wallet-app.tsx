@@ -294,7 +294,7 @@ function getActivationHubCopy(locale: Locale) {
       menuOpenAfterLogin: "이메일 인증 후 메뉴 열림",
       menuPendingDescription: "10 USDT 확인 후 추천, 포인트, 지갑 메뉴가 열립니다.",
       menuPendingTitle: "서비스 이용료 확인이 필요합니다",
-      menuReadyTitle: "다음에 할 일",
+      menuReadyTitle: "지금 먼저 할 일",
       membershipDescription: "이메일, 지갑, 10 USDT 확인 상태입니다.",
       membershipLabel: "가입 상태",
       nextStepTitle: "다음으로 할 일",
@@ -311,7 +311,18 @@ function getActivationHubCopy(locale: Locale) {
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
-      readyMessage: "가입 완료. 추천 회원 또는 포인트 리워드부터 확인하세요.",
+      nextActionFooter:
+        "추천 메뉴는 가입 상태, AI 스타 프로필, 추천 회원, 포인트 기록에 따라 바뀝니다.",
+      nextActionReasonDefault:
+        "추천 회원 관리에서 내 코드로 들어온 회원과 다음 보상 흐름을 확인할 수 있습니다.",
+      nextActionReasonLabel: "추천 이유",
+      nextActionReasonNetwork:
+        "추천 회원이 생겼으므로 가입 시간, 단계, AI 스타 정보를 먼저 확인하세요.",
+      nextActionReasonPoints:
+        "사용 가능한 포인트가 있으므로 교환 가능 잔액과 리워드 이력을 먼저 확인하세요.",
+      nextActionReasonProfile:
+        "AI 스타 프로필을 확인해야 콘텐츠 제작, 공개 피드, 추천 기록이 자연스럽게 이어집니다.",
+      readyMessage: "가입 완료. 상태에 맞는 다음 메뉴를 먼저 추천합니다.",
       recommendedLabel: "먼저 확인",
       secondaryLabel: "다음 행동",
       shareDescription: "내 추천 코드와 공유 링크를 확인합니다.",
@@ -365,7 +376,7 @@ function getActivationHubCopy(locale: Locale) {
     menuOpenAfterLogin: "Menus open after email",
     menuPendingDescription: "Referral, points, and wallet menus open after the 10 USDT check.",
     menuPendingTitle: "Service fee check needed",
-    menuReadyTitle: "Next things to do",
+    menuReadyTitle: "Start here",
     membershipDescription: "Email, wallet, and 10 USDT check status.",
     membershipLabel: "Signup status",
     nextStepTitle: "Next steps",
@@ -382,7 +393,18 @@ function getActivationHubCopy(locale: Locale) {
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
-    readyMessage: "Signup is complete. Start with referrals or point rewards.",
+    nextActionFooter:
+      "The recommendation changes with signup, AI Star profile, referral, and point records.",
+    nextActionReasonDefault:
+      "Use referrals to review members who joined with your code and the next reward flow.",
+    nextActionReasonLabel: "Why this first",
+    nextActionReasonNetwork:
+      "You have referral members. Review signup time, level, and AI Star details first.",
+    nextActionReasonPoints:
+      "You have usable points. Review redeemable balance and reward history first.",
+    nextActionReasonProfile:
+      "Your AI Star profile connects content creation, public feed, and referral records.",
+    readyMessage: "Signup is complete. The next menu is recommended from your status.",
     recommendedLabel: "Start here",
     secondaryLabel: "Next action",
     shareDescription: "Review your referral code and share link.",
@@ -2751,6 +2773,13 @@ function ActivationServiceHub({
       : totalPoints > 0
         ? "points"
         : "network";
+  const recommendedActionReason = !hasStarterAIStar
+    ? copy.nextActionReasonProfile
+    : recommendedActionKey === "network" && totalReferrals > 0
+      ? copy.nextActionReasonNetwork
+      : recommendedActionKey === "points"
+        ? copy.nextActionReasonPoints
+        : copy.nextActionReasonDefault;
   const orderedActionItems = [
     ...actionItems.filter((item) => item.key === recommendedActionKey),
     ...actionItems.filter((item) => item.key !== recommendedActionKey),
@@ -2922,6 +2951,9 @@ function ActivationServiceHub({
                     icon={primaryMenuItem.icon}
                     index={1}
                     metric={primaryMenuItem.metric}
+                    reason={recommendedActionReason}
+                    reasonFooter={copy.nextActionFooter}
+                    reasonLabel={copy.nextActionReasonLabel}
                     title={primaryMenuItem.title}
                   />
                 ) : null}
@@ -2978,6 +3010,9 @@ function ServiceHubCard({
   icon,
   index,
   metric,
+  reason,
+  reasonFooter,
+  reasonLabel,
   title,
 }: {
   badgeLabel?: string;
@@ -2987,6 +3022,9 @@ function ServiceHubCard({
   icon: "feed" | "network" | "points" | "studio" | "wallet";
   index: number;
   metric: string;
+  reason?: string;
+  reasonFooter?: string;
+  reasonLabel?: string;
   title: string;
 }) {
   const Icon =
@@ -3065,6 +3103,23 @@ function ServiceHubCard({
         >
           {description}
         </span>
+        {featured && reason ? (
+          <span className="mt-2 block rounded-2xl border border-white/10 bg-white/[0.08] px-3 py-2">
+            {reasonLabel ? (
+              <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-white/42">
+                {reasonLabel}
+              </span>
+            ) : null}
+            <span className="mt-1 block break-keep text-[0.72rem] leading-5 text-white/72 [word-break:keep-all]">
+              {reason}
+            </span>
+            {reasonFooter ? (
+              <span className="mt-1.5 block break-keep text-[0.66rem] leading-4 text-white/38 [word-break:keep-all]">
+                {reasonFooter}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
       </span>
       <ArrowUpRight
         className={cn(
