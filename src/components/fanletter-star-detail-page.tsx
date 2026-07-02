@@ -37,7 +37,6 @@ import {
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
-import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
@@ -1664,160 +1663,6 @@ function StarAgentRankJoinSignal({
   );
 }
 
-function StarFounderMobilePanel({
-  action,
-  copy,
-  joinReferralCode,
-  locale,
-  loop,
-  referralCode,
-  star,
-  trackingAgentRank,
-  trackingMetadata,
-  showAction = true,
-}: {
-  action: StarPrimaryAction;
-  copy: ReturnType<typeof getFanletterV2Copy>;
-  joinReferralCode?: string | null;
-  locale: Locale;
-  loop: ScoutShareLoopData;
-  referralCode: string;
-  star: AIStar;
-  trackingAgentRank?: AgentRankInteractionSignal | null;
-  trackingMetadata?: FunnelEventMetadata;
-  showAction?: boolean;
-}) {
-  const founderMember = {
-    initials: "A",
-    name: getDisplayMemberName(loop.sourceMember, copy),
-  };
-  const displayStarName = getDisplayStarName(star.name, copy);
-  const mobileAIStarBadgeLabel = isKoreanCopy(copy)
-    ? "AI스타"
-    : copy.labels.aiStarBadge;
-  const portraitBackground = star.portraitImageUrl
-    ? `linear-gradient(180deg, rgba(18,4,31,0.04), rgba(18,4,31,0.72)), url("${star.portraitImageUrl}")`
-    : `radial-gradient(circle at 30% 18%, rgba(255,255,255,0.86), transparent 18%), radial-gradient(circle at 72% 22%, ${star.accentSecondary}, transparent 24%), linear-gradient(145deg, ${star.accentColor}, #31105f 64%, #12041f)`;
-
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_22px_54px_rgba(15,23,42,0.08)]">
-      <div className="grid grid-cols-[1fr_1.75rem_0.8fr] items-stretch gap-2">
-        <div
-          className="relative min-h-44 overflow-hidden rounded-lg border border-fuchsia-200 bg-cover bg-center p-3 text-white"
-          style={{
-            background: portraitBackground,
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#12041f]/82 via-transparent to-white/10" />
-          <div className="relative z-10 flex min-w-0 items-center justify-between gap-1.5">
-            <span
-              aria-label={copy.labels.aiStarBadge}
-              className="shrink-0 whitespace-nowrap rounded-full bg-white px-2 py-1 text-[0.66rem] font-semibold leading-none text-[#5b21b6]"
-            >
-              {mobileAIStarBadgeLabel}
-            </span>
-          </div>
-          {!star.portraitImageUrl ? (
-            <div className="absolute inset-x-6 bottom-12 top-12 rounded-t-full bg-white/16 backdrop-blur-[2px]" />
-          ) : null}
-          <div className="relative z-10 flex min-h-32 flex-col justify-end">
-            <div className="flex size-14 items-center justify-center rounded-full border border-white/28 bg-black/24 text-lg font-semibold shadow-[0_14px_30px_rgba(0,0,0,0.22)]">
-              {star.portraitInitials}
-            </div>
-            <p className="mt-2 text-xl font-semibold leading-none">
-              {displayStarName}
-            </p>
-            <p className="mt-1 text-[0.7rem] font-semibold text-white/72">
-              +{star.growthPercent}% {copy.labels.growth}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center">
-          <ArrowRight className="size-5 text-zinc-900" />
-        </div>
-
-        <div className="flex min-h-44 flex-col justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-          <div>
-            <p className="text-[0.62rem] font-semibold uppercase text-zinc-500">
-              {copy.labels.humanMember}
-            </p>
-            <div className="mt-3">
-              <HumanMemberAvatar member={founderMember} size="lg" />
-            </div>
-            <p className="mt-2 text-sm font-semibold text-zinc-950">
-              {founderMember.name}
-            </p>
-          </div>
-          <FounderRoleBadge copy={copy} role="founder" />
-        </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="rounded-lg bg-[#f7f2ff] p-2">
-          <p className="text-lg font-semibold leading-none">
-            +{loop.rewards.cp}
-          </p>
-          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">CP</p>
-        </div>
-        <div className="rounded-lg bg-[#eefcf4] p-2">
-          <p className="text-lg font-semibold leading-none">
-            +{loop.rewards.influenceScore}
-          </p>
-          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">
-            {copy.labels.influenceScore}
-          </p>
-        </div>
-        <div className="rounded-lg bg-[#fff7ed] p-2">
-          <p className="text-lg font-semibold leading-none">
-            +{loop.rewards.creatorProgressPercent}%
-          </p>
-          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">
-            {copy.labels.creatorProgress}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-lg border border-black/8 bg-[#fafafa] px-3 py-2">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[0.68rem] font-semibold text-black/48">
-            {action.status}
-          </span>
-          <span className="truncate font-mono text-sm font-semibold text-zinc-700">
-            {referralCode}
-          </span>
-        </div>
-      </div>
-
-      {showAction ? (
-        <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-          <StarActionLink
-            action={action}
-            agentRank={trackingAgentRank}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
-            locale={locale}
-            referralCode={joinReferralCode}
-            starId={star.id}
-            trackingMetadata={trackingMetadata}
-          >
-            {action.label}
-            <ArrowRight className="size-4" />
-          </StarActionLink>
-          <a
-            aria-label={copy.actions.createMockReferral}
-            className="inline-flex size-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-900"
-            href="#referral-builder"
-          >
-            <Share2 className="size-5" />
-          </a>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function HumanFounderSlots({
   copy,
   star,
@@ -2400,26 +2245,6 @@ export function FanletterStarDetailPage({
               <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-black/64 sm:block sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
-              <FanletterTerminologyGuide
-                className="mt-4 hidden max-w-2xl sm:block"
-                locale={locale}
-                variant="compact"
-              />
-              <div className="mt-4 hidden max-w-2xl rounded-lg border border-zinc-200 bg-white/88 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)] sm:block">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-900">
-                      {primaryAction.status}
-                    </p>
-                    <p className="mt-1 text-sm font-medium leading-5 text-black/58">
-                      {primaryAction.helper}
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 font-mono text-xs font-semibold text-zinc-700">
-                    {referralCode}
-                  </span>
-                </div>
-              </div>
               <div className="hidden max-w-2xl sm:block">
                 <FounderJoinFlowHint
                   copy={copy}
@@ -2442,18 +2267,6 @@ export function FanletterStarDetailPage({
               <div className="scroll-mt-24" id="star-next-action" />
 
               <div className="mt-5 sm:hidden">
-                <StarFounderMobilePanel
-                  action={primaryAction}
-                  copy={copy}
-                  joinReferralCode={joinReferralCode}
-                  locale={locale}
-                  loop={loop}
-                  referralCode={referralCode}
-                  star={star}
-                  trackingAgentRank={primaryActionAgentRank}
-                  trackingMetadata={primaryActionTrackingMetadata}
-                  showAction={false}
-                />
                 <FounderNextReputationPath
                   copy={copy}
                   referralCode={referralCode}
