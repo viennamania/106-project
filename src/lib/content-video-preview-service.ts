@@ -32,7 +32,7 @@ const PREVIEW_CONTENT_TYPE = "video/mp4";
 const PREVIEW_MAX_SOURCE_BYTES = CONTENT_VIDEO_MAX_BYTES;
 const PREVIEW_MAX_OUTPUT_BYTES = 25 * 1024 * 1024;
 const FFMPEG_TIMEOUT_MS = 150_000;
-const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 6;
+const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 3;
 const SOURCE_DOWNLOAD_RETRY_DELAY_MS = 2_000;
 const SOURCE_DOWNLOAD_TIMEOUT_MS = 90_000;
 const requireFromThisModule = createRequire(import.meta.url);
@@ -195,9 +195,27 @@ function delay(ms: number) {
 }
 
 function isRetriableSourceDownloadError(error: unknown) {
-  return !(
-    error instanceof Error &&
-    error.message === "Source video is larger than the preview limit."
+  if (!(error instanceof Error)) {
+    return true;
+  }
+
+  // Only transient (network/download) failures are worth retrying. Deterministic
+  // failures — source/output size, empty/oversized output, ffmpeg decode/exit,
+  // transcode timeout, missing ffmpeg binary, disallowed URL — fail identically
+  // on retry and just burn the function's time budget (re-downloading up to the
+  // size cap + re-transcoding each attempt), so treat them as non-retriable.
+  const deterministicMarkers = [
+    "larger than the preview limit",
+    "larger than expected",
+    "Generated preview video is empty",
+    "Timed out while generating preview video",
+    "Failed to start ffmpeg preview process",
+    "not allowed for preview generation",
+    "ffmpeg preview transcode failed",
+  ];
+
+  return !deterministicMarkers.some((marker) =>
+    error.message.includes(marker),
   );
 }
 
@@ -380,7 +398,9 @@ async function transcodeSourceVideo(sourceVideoUrl: string) {
 
         settle(
           new Error(
-            stderr.trim() || `ffmpeg exited with status ${code ?? "unknown"}.`,
+            `ffmpeg preview transcode failed: ${
+              stderr.trim() || `exited with status ${code ?? "unknown"}`
+            }`,
           ),
         );
       });
