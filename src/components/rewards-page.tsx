@@ -2202,7 +2202,7 @@ function InfoBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700",
+        "inline-flex max-w-full items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-left text-xs font-medium leading-5 text-slate-700 [word-break:keep-all]",
         className,
       )}
     >
