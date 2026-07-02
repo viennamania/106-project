@@ -3473,8 +3473,8 @@ function getSelectedMemberSummaryCopy(locale: Locale) {
 function getSelectedMemberJourneyCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      aiStarPending: "AI 스타 IP 생성 대기",
-      aiStarTitle: "AI 스타 IP",
+      aiStarPending: "AI 스타 프로필 생성 대기",
+      aiStarTitle: "AI 스타 프로필",
       description:
         "가입, 지갑, AI 스타, 포인트가 어떤 순서로 연결됐는지 확인합니다.",
       doneState: "완료",
@@ -3489,8 +3489,8 @@ function getSelectedMemberJourneyCopy(locale: Locale) {
   }
 
   return {
-    aiStarPending: "AI Star IP pending",
-    aiStarTitle: "AI Star IP",
+    aiStarPending: "AI Star profile pending",
+    aiStarTitle: "AI Star profile",
     description:
       "Review how signup, wallet, AI Star, and points are connected.",
     doneState: "Done",
@@ -3863,7 +3863,7 @@ function getMemberSortCopy(locale: Locale) {
 function getMemberListOverviewCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      aiStarLinked: "AI 스타 IP",
+      aiStarLinked: "AI 스타 프로필",
       aiStarValue: "{count}/{total}명 연결",
       currentSort: "현재 정렬",
       rangeValue: "{start}-{end} / {total}명",
@@ -3873,7 +3873,7 @@ function getMemberListOverviewCopy(locale: Locale) {
 
   if (locale === "ja") {
     return {
-      aiStarLinked: "AIスターIP",
+      aiStarLinked: "AIスタープロフィール",
       aiStarValue: "{count}/{total}名連携",
       currentSort: "現在の並び替え",
       rangeValue: "{start}-{end} / {total}名",
@@ -3883,7 +3883,7 @@ function getMemberListOverviewCopy(locale: Locale) {
 
   if (locale === "zh") {
     return {
-      aiStarLinked: "AI明星IP",
+      aiStarLinked: "AI明星资料",
       aiStarValue: "{count}/{total}人已连接",
       currentSort: "当前排序",
       rangeValue: "{start}-{end} / {total}人",
@@ -3893,7 +3893,7 @@ function getMemberListOverviewCopy(locale: Locale) {
 
   if (locale === "vi") {
     return {
-      aiStarLinked: "AI Star IP",
+      aiStarLinked: "Hồ sơ AI Star",
       aiStarValue: "{count}/{total} đã liên kết",
       currentSort: "Sắp xếp hiện tại",
       rangeValue: "{start}-{end} / {total}",
@@ -3903,7 +3903,7 @@ function getMemberListOverviewCopy(locale: Locale) {
 
   if (locale === "id") {
     return {
-      aiStarLinked: "AI Star IP",
+      aiStarLinked: "Profil AI Star",
       aiStarValue: "{count}/{total} tertaut",
       currentSort: "Urutan saat ini",
       rangeValue: "{start}-{end} / {total}",
@@ -3912,7 +3912,7 @@ function getMemberListOverviewCopy(locale: Locale) {
   }
 
   return {
-    aiStarLinked: "AI Star IP",
+    aiStarLinked: "AI Star profile",
     aiStarValue: "{count}/{total} linked",
     currentSort: "Current sort",
     rangeValue: "{start}-{end} / {total}",
