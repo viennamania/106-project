@@ -1600,20 +1600,23 @@ export function ActivateNetworkPage({
 
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <Pill active={isSelected}>
-                                  {dictionary.activateNetworkPage.labels.level} {member.depth}
+                                  {dictionary.activateNetworkPage.labels.level}{" "}
+                                  {formatInteger(member.depth, locale)}
                                 </Pill>
                                 <Pill active={isSelected}>
                                   {dictionary.activateNetworkPage.labels.pointTier}{" "}
                                   {getTierLabel(dictionary, member.tier)}
                                 </Pill>
-                                <Pill active={isSelected}>
-                                  {memberPointChipCopy.lifetime}{" "}
-                                  {formatInteger(member.lifetimePoints, locale)}P
-                                </Pill>
-                                <Pill active={isSelected}>
-                                  {memberPointChipCopy.spendable}{" "}
-                                  {formatInteger(member.spendablePoints, locale)}P
-                                </Pill>
+                                <MemberPointPill
+                                  active={isSelected}
+                                  label={memberPointChipCopy.lifetime}
+                                  value={`${formatInteger(member.lifetimePoints, locale)}P`}
+                                />
+                                <MemberPointPill
+                                  active={isSelected}
+                                  label={memberPointChipCopy.spendable}
+                                  value={`${formatInteger(member.spendablePoints, locale)}P`}
+                                />
                               </div>
                             </button>
                           </article>
@@ -3237,6 +3240,37 @@ function Pill({
   );
 }
 
+function MemberPointPill({
+  active = false,
+  label,
+  value,
+}: {
+  active?: boolean;
+  label: string;
+  value: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-[6.75rem] flex-col rounded-[16px] border px-3 py-2 text-left",
+        active
+          ? "border-white/18 bg-white/10 text-white"
+          : "border-slate-200 bg-white text-slate-950 shadow-[0_10px_26px_rgba(15,23,42,0.05)]",
+      )}
+    >
+      <span
+        className={cn(
+          "text-[0.66rem] font-semibold leading-none",
+          active ? "text-white/56" : "text-slate-500",
+        )}
+      >
+        {label}
+      </span>
+      <span className="mt-1.5 text-sm font-semibold leading-none">{value}</span>
+    </span>
+  );
+}
+
 function MembershipCardBadge({
   active = false,
   dictionary,
@@ -3864,6 +3898,20 @@ function getMemberPointChipCopy(locale: Locale) {
     return {
       lifetime: "等级累计",
       spendable: "可兑换",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      lifetime: "Tích lũy hạng",
+      spendable: "Có thể đổi",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      lifetime: "Total level",
+      spendable: "Bisa ditukar",
     };
   }
 
