@@ -120,6 +120,13 @@ export async function POST(request: Request) {
       return jsonError("선택한 AI 스타를 사용할 수 없습니다.", 400);
     }
     starAvatarUrl = resolved;
+    // The resolved star avatar is also fetched server-side, so it must live on
+    // our own Blob store too. A profile avatar can be set to an arbitrary URL
+    // (the profile API stores it unvalidated), which would otherwise let a
+    // self-owned star point the server at an internal address (SSRF).
+    if (!isLookbookBlobUrl(starAvatarUrl)) {
+      return jsonError("선택한 AI 스타의 이미지를 사용할 수 없습니다.", 400);
+    }
   } else {
     starAvatarUrl = body?.starAvatarUrl?.trim() ?? "";
     if (!starAvatarUrl) {
