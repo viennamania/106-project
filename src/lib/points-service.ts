@@ -176,7 +176,7 @@ function buildPointsSummary({
   history: PointLedgerDocument[];
   sourceTotals?: PointSourceTotalsRecord;
 }): PointsSummaryRecord {
-  const progress = getPointTierProgress(balance.spendablePoints);
+  const progress = getPointTierProgress(balance.lifetimePoints);
 
   return {
     history: history.map(serializePointLedger),
@@ -319,8 +319,8 @@ async function createOrUpdatePointBalance({
     memberEmail,
     reservedPoints: existingBalance?.reservedPoints ?? 0,
     spendablePoints: aggregate?.spendablePoints ?? 0,
-    tier: getPointTier(aggregate?.spendablePoints ?? 0),
     lifetimePoints: aggregate?.lifetimePoints ?? 0,
+    tier: getPointTier(aggregate?.lifetimePoints ?? 0),
     updatedAt: now,
   };
 
