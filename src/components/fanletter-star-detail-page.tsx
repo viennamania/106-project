@@ -2136,7 +2136,6 @@ export function FanletterStarDetailPage({
   inboundReferralCode,
   locale,
   memberPortfolio,
-  relatedStars,
   star,
   viewerScoutShareLoop,
 }: {
@@ -2645,64 +2644,6 @@ export function FanletterStarDetailPage({
           />
         </div>
 
-        <div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#6d28d9]">
-                {copy.labels.aiStarDiscovery}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-normal text-[#12041f]">
-                {copy.topGrowingStars.title}
-              </h2>
-            </div>
-            <Link
-              className="hidden h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6] sm:inline-flex"
-              href={`/${locale}/fanletter/discovery`}
-            >
-              {copy.actions.openDiscovery}
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {relatedStars.map((relatedStar) => (
-              <AIStarCard
-                copy={copy}
-                detailHref={`/${locale}/fanletter/${relatedStar.id}`}
-                key={relatedStar.id}
-                locale={locale}
-                star={relatedStar}
-              />
-            ))}
-          </div>
-
-          <div className="mt-5 grid grid-cols-3 gap-2 rounded-lg border border-black/10 bg-white p-3 text-center">
-            <div>
-              <p className="text-xl font-semibold text-black">
-                {formatNumber(star.founderCount, locale)}
-              </p>
-              <p className="mt-1 text-[0.68rem] font-semibold text-black/48">
-                {copy.labels.founderCount}
-              </p>
-            </div>
-            <div>
-              <p className="text-xl font-semibold text-black">
-                {formatNumber(loop.rewards.cp, locale)}
-              </p>
-              <p className="mt-1 text-[0.68rem] font-semibold text-black/48">
-                CP
-              </p>
-            </div>
-            <div>
-              <p className="text-xl font-semibold text-black">
-                {formatNumber(fanletterV2Mock.creatorUnlock.createCostUsdt, locale)} USDT
-              </p>
-              <p className="mt-1 text-[0.68rem] font-semibold text-black/48">
-                {copy.creatorUnlock.title}
-              </p>
-            </div>
-          </div>
-        </div>
       </section>
     </main>
   );
