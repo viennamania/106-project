@@ -2213,6 +2213,7 @@ export function FanletterStarDetailPage({
     viewerState,
   });
   const isKorean = isKoreanCopy(copy);
+  const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const displayStarName = getDisplayStarName(star.name, copy);
   const starSocialAccount = buildFanletterAIStarSocialAccountViewModel({
     creatorMemberId: `creator:${star.id}`,
@@ -2625,23 +2626,53 @@ export function FanletterStarDetailPage({
             primaryActionVariant={primaryAction.variant}
             starId={star.id}
           />
-          <div className="grid gap-4">
+          <HumanFounderSlots copy={copy} star={star} />
+        </div>
+
+        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-black/45">
+              {isKorean ? "이 스타의 네트워크" : "This star's network"}
+            </h2>
+            <div className="flex items-center gap-3">
+              <button
+                aria-expanded={isNetworkOpen}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black sm:hidden"
+                onClick={() => setIsNetworkOpen((open) => !open)}
+                type="button"
+              >
+                {isNetworkOpen
+                  ? isKorean
+                    ? "접기"
+                    : "Hide"
+                  : isKorean
+                    ? "네트워크 보기"
+                    : "Show network"}
+              </button>
+              <Link
+                className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black"
+                href={founderNetworkHref}
+              >
+                {isKorean ? "전체 네트워크 보기" : "View full network"}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+          <div
+            className={`${isNetworkOpen ? "grid" : "hidden"} mt-4 gap-4 sm:grid`}
+          >
             <AIStarGenealogySection
               copy={copy}
               locale={locale}
               star={displayStar}
             />
-            <HumanFounderSlots copy={copy} star={star} />
             <SpawnedStarsSection copy={copy} locale={locale} star={displayStar} />
+            <FounderUniversePreview
+              copy={copy}
+              locale={locale}
+              stars={[displayStar]}
+            />
           </div>
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <FounderUniversePreview
-            copy={copy}
-            locale={locale}
-            stars={[displayStar]}
-          />
         </div>
 
       </section>
