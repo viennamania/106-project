@@ -193,7 +193,7 @@ function getActivationSeparationCopy(locale: Locale) {
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "필요한 메뉴에서 추천 회원, 포인트, 지갑, 내 AI 스타를 관리하세요.",
+        "필요한 메뉴에서 추천 회원, 포인트, 지갑, AI 스타 스튜디오를 관리하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
@@ -262,7 +262,7 @@ function getActivationHubCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       actionTitle: "오늘 할 일",
-      aiStarIpLabel: "내 AI 스타",
+      aiStarIpLabel: "AI 스타 프로필",
       aiStarIpPending: "생성 확인 중",
       aiStarIpReady: "프로필 준비됨",
       assetDescription: "USDT와 BNB 잔고, 받을 주소를 확인합니다.",
@@ -272,13 +272,13 @@ function getActivationHubCopy(locale: Locale) {
         "가입 인증",
         "지갑",
         "추천 코드",
-        "AI 스타 IP",
+        "AI 스타 프로필",
         "리워드 포인트",
       ],
       contextFlowBadge: "기록",
       contextFlowLabel: "서비스 기록",
       contextNote:
-        "가입, 지갑, 추천, AI 스타 IP, 포인트 기록이 한 회원 기록으로 연결됩니다.",
+        "가입, 지갑, 추천, AI 스타 프로필, 포인트 기록이 한 회원 기록으로 연결됩니다.",
       graphTitle: "진행 흐름",
       description:
         "가입 상태와 다음 행동만 먼저 확인하세요.",
@@ -321,8 +321,8 @@ function getActivationHubCopy(locale: Locale) {
       stateTitlePending: "10 USDT 확인 필요",
       stateTitleReady: "가입 완료",
       stateTitleUnavailable: "환경 설정 필요",
-      studioDescription: "AI 스타 이름, 프로필 이미지, 콘텐츠 작업을 관리합니다.",
-      studioLabel: "내 AI 스타",
+      studioDescription: "AI 스타 프로필을 확인하고 콘텐츠 제작 화면으로 이어갑니다.",
+      studioLabel: "AI 스타 스튜디오",
       studioProfileMetric: "프로필 설정",
       studioReadyMetric: "프로필/콘텐츠",
       title: "1066FRIEND+ 시작하기",
@@ -333,7 +333,7 @@ function getActivationHubCopy(locale: Locale) {
 
   return {
     actionTitle: "Next action",
-    aiStarIpLabel: "My AI Star",
+    aiStarIpLabel: "AI Star profile",
     aiStarIpPending: "Provisioning",
     aiStarIpReady: "Profile ready",
     assetDescription: "Review USDT, BNB, and wallet security status.",
@@ -343,13 +343,13 @@ function getActivationHubCopy(locale: Locale) {
       "Signup",
       "Wallet",
       "Referral code",
-      "AI Star IP",
+      "AI Star profile",
       "Reward points",
     ],
     contextFlowBadge: "Record",
     contextFlowLabel: "Service record",
     contextNote:
-      "Signup, wallet, referral, AI Star IP, and point records become one member record.",
+      "Signup, wallet, referral, AI Star profile, and point records become one member record.",
     graphTitle: "Progress flow",
     description:
       "Check your status and the next action first.",
@@ -392,8 +392,8 @@ function getActivationHubCopy(locale: Locale) {
     stateTitlePending: "10 USDT check needed",
     stateTitleReady: "Signup complete",
     stateTitleUnavailable: "Setup required",
-    studioDescription: "Manage AI Star name, profile image, and content work.",
-    studioLabel: "My AI Star",
+    studioDescription: "Review the AI Star profile and continue into content creation.",
+    studioLabel: "AI Star Studio",
     studioProfileMetric: "Set profile",
     studioReadyMetric: "Profile / content",
     title: "Start 1066FRIEND+",
