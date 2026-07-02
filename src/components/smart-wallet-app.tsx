@@ -48,7 +48,6 @@ import { NotificationCenterContent } from "@/components/notification-center-cont
 import { NotificationCenterSheet } from "@/components/notification-center-sheet";
 import { NotificationPushCard } from "@/components/notification-push-card";
 import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog";
-import { CopyTextButton } from "@/components/copy-text-button";
 import {
   useWalletUnlockGate,
   WalletUnlockAction,
@@ -3376,6 +3375,7 @@ function CompletedHomeDashboard({
           manageRewards: "포인트 교환",
           points: "추천 보상 합계",
           referralCode: "내 추천 코드",
+          linkReady: "추천 링크 준비됨",
           referralLink: "공유 링크",
           referralLinkDescription:
             "이 링크로 가입이 완료되면 추천 보상과 포인트 기록이 이어집니다.",
@@ -3391,6 +3391,7 @@ function CompletedHomeDashboard({
           manageRewards: "Redeem points",
           points: "Referral reward total",
           referralCode: "Referral code",
+          linkReady: "Referral link ready",
           referralLink: "Referral link",
           referralLinkDescription:
             "Completed signups from this link create referral rewards and point records.",
@@ -3495,12 +3496,17 @@ function CompletedHomeDashboard({
 
           {referralShareUrl ? (
             <div className="mt-5 rounded-[22px] border border-zinc-200 bg-zinc-50 p-3.5">
-              <p className="break-all text-sm font-medium leading-6 text-zinc-700">
-                {referralShareUrl}
-              </p>
-              <div className="mt-3 space-y-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                    {quickLabels.linkReady}
+                  </p>
+                  <p className="mt-1 break-keep text-sm leading-6 text-zinc-600 [word-break:keep-all]">
+                    {activationCopy.growthLinkDescription}
+                  </p>
+                </div>
                 <button
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                   onClick={() => {
                     void handleShareReferralLink();
                   }}
@@ -3513,20 +3519,14 @@ function CompletedHomeDashboard({
                       : contentCopy.actions.share}
                   </span>
                 </button>
-                <CopyTextButton
-                  className="h-10 w-full rounded-full border border-transparent bg-transparent px-4 text-sm font-semibold text-zinc-500 hover:bg-white hover:text-zinc-950"
-                  copiedLabel={
-                    shareState === "copied"
-                      ? quickLabels.copied
-                      : dictionary.common.copied
-                  }
-                  copyLabel={dictionary.common.copyLink}
-                  text={referralShareUrl}
-                />
               </div>
               {shareState === "error" ? (
                 <p className="mt-2 text-sm font-medium text-rose-600">
                   {contentCopy.messages.shareFailed}
+                </p>
+              ) : shareState === "copied" ? (
+                <p className="mt-2 text-sm font-medium text-emerald-700">
+                  {quickLabels.copied}
                 </p>
               ) : null}
             </div>
