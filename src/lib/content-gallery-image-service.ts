@@ -1809,7 +1809,11 @@ export async function generateAndUploadContentGalleryImage(
   const result = {
     contentType: uploaded.contentType,
     pathname: uploaded.pathname,
-    revisedPrompt: prompt === visualBrief ? null : prompt,
+    // The image provider (Replicate/fal) doesn't echo an actual_prompt, so the
+    // only non-null value here would be the assembled internal prompt — which
+    // contains the identity-lock / safety / moderation scaffold. Never surface
+    // it to the creator; leak the scaffold to no one.
+    revisedPrompt: null,
     url: uploaded.url,
   };
 
