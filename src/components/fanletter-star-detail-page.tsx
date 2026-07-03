@@ -1176,10 +1176,6 @@ function FounderJoinResultCard({
       };
   const resultMetrics = [
     {
-      label: locale === "ko" ? "기여 포인트" : "Contribution Points",
-      value: `+${formatNumber(loop.rewards.cp, locale)}`,
-    },
-    {
       label: copy.labels.influenceScore,
       value: `+${formatNumber(loop.rewards.influenceScore, locale)}`,
     },
@@ -1227,7 +1223,7 @@ function FounderJoinResultCard({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             {resultMetrics.map((item) => (
               <div
                 className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-3 text-center"
