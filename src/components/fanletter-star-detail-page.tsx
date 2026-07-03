@@ -1543,17 +1543,6 @@ export function FanletterStarDetailPage({
             viewerState={viewerState}
           />
 
-          <StarViewerRelationshipCard
-            copy={copy}
-            isAuthenticated={isAuthenticated}
-            locale={locale}
-            memberPortfolio={memberPortfolio}
-            primaryAction={primaryAction}
-            social={starSocialAccount}
-            star={star}
-            viewerState={viewerState}
-          />
-
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
@@ -1615,6 +1604,17 @@ export function FanletterStarDetailPage({
               <AIStarCard copy={copy} isSelected locale={locale} star={star} />
             </div>
           </div>
+
+          <StarViewerRelationshipCard
+            copy={copy}
+            isAuthenticated={isAuthenticated}
+            locale={locale}
+            memberPortfolio={memberPortfolio}
+            primaryAction={primaryAction}
+            social={starSocialAccount}
+            star={star}
+            viewerState={viewerState}
+          />
 
           {founderJoinCompleted ? (
             <div className="mt-10 border-t border-zinc-200 pt-6">
