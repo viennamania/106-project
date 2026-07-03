@@ -32,7 +32,7 @@ const activationLocaleByLandingLanguage: Record<LandingLanguage, string> = {
 export const metadata: Metadata = {
   title: "1066friend+ | 새로운 소셜 패러다임",
   description:
-    "참여가 가치와 평판 Context를 만드는 1066friend+ 랜딩 페이지입니다.",
+    "참여가 포인트와 성장 기록으로 연결되는 1066friend+ 랜딩 페이지입니다.",
 };
 
 const languageLabels: Record<LandingLanguage, string> = {
@@ -79,7 +79,7 @@ const landingCopy: Record<
   en: {
     eyebrow: "1066FRIEND+",
     headline: "A new social participation layer",
-    subhead: "Join, refer, and use content while each action becomes points and growth context.",
+    subhead: "Join, refer, and use content while each action becomes points and growth records.",
     primaryCta: "Start now",
     secondaryCta: "View service",
     feeNote: "10 USDT · one-time service fee · not an investment product",
@@ -596,7 +596,7 @@ const landingStoryCopy: Record<
     oldItems: ["콘텐츠를 봐도 기록이 남지 않음", "추천 관계가 사라짐", "포인트와 지갑이 분리됨"],
     newTag: "1066FRIEND+",
     newTitle: "참여하는 순간, 행동이 포인트와 성장 기록이 됩니다.",
-    newItems: ["추천 코드가 네트워크 Context가 됨", "콘텐츠 사용이 포인트 흐름으로 연결", "지갑과 리워드가 한 화면에서 관리"],
+    newItems: ["추천 코드가 네트워크 기록이 됨", "콘텐츠 사용이 포인트 흐름으로 연결", "지갑과 리워드가 한 화면에서 관리"],
     universeEyebrow: "GLOBAL RANDOM LINK",
     universeTitle: "전 세계 사용자가 하나의 참여 네트워크로 연결됩니다.",
     universeBody:
@@ -606,7 +606,7 @@ const landingStoryCopy: Record<
     earnCards: [
       {
         title: "콘텐츠 보기",
-        body: "공개 피드에서 콘텐츠를 보고 활동 Context를 남깁니다.",
+        body: "공개 피드에서 콘텐츠를 보고 활동 기록을 남깁니다.",
         badge: "참여 기록",
       },
       {
@@ -622,7 +622,7 @@ const landingStoryCopy: Record<
     ],
     pointsTitle: "포인트는 사용자의 행동에서 만들어집니다.",
     pointsBody:
-      "콘텐츠를 열람하고, 추천 네트워크를 키우고, 리워드를 교환하는 모든 흐름이 개인 서비스 Context로 축적됩니다.",
+      "콘텐츠를 열람하고, 추천 네트워크를 키우고, 리워드를 교환하는 모든 흐름이 개인 서비스 기록으로 축적됩니다.",
     pointsOptions: [
       { title: "콘텐츠 구매", body: "포인트로 글로벌 콘텐츠를 열람합니다." },
       { title: "리워드 교환", body: "Silver 카드처럼 반복 가능한 리워드로 확장됩니다." },
@@ -644,15 +644,15 @@ const landingStoryCopy: Record<
     finalTitle: "지금 시작하고 내 서비스 흐름을 확인하세요.",
     finalBody:
       "가입 상태, 추천 코드, 포인트, 지갑, 콘텐츠 흐름을 한 번에 확인할 수 있습니다.",
-    footerTagline: "새로운 소셜 패러다임 — 참여가 Context를 만듭니다.",
+    footerTagline: "새로운 소셜 패러다임 — 참여가 성장 기록을 만듭니다.",
   },
   en: {
     oldTag: "Traditional SNS",
-    oldTitle: "Users create value, but platforms keep the context.",
+    oldTitle: "Users create value, but platforms keep the record.",
     oldItems: ["Viewing rarely becomes your record", "Referral relationships disappear", "Points and wallet are separated"],
     newTag: "1066FRIEND+",
-    newTitle: "Participation becomes points, growth, and service context.",
-    newItems: ["Referral codes become network context", "Content usage connects to points", "Wallet and rewards stay in one flow"],
+    newTitle: "Participation becomes points, growth, and service records.",
+    newItems: ["Referral codes become network records", "Content usage connects to points", "Wallet and rewards stay in one flow"],
     universeEyebrow: "GLOBAL RANDOM LINK",
     universeTitle: "Global users connect through one participation network.",
     universeBody:
@@ -660,13 +660,13 @@ const landingStoryCopy: Record<
     universeChips: ["Referral code", "Global feed", "Points", "Wallet", "Content"],
     earnTitle: "Every action leaves a points flow.",
     earnCards: [
-      { title: "Watch content", body: "Use the public feed and leave activity context.", badge: "Activity" },
+      { title: "Watch content", body: "Use the public feed and leave activity records.", badge: "Activity" },
       { title: "Grow referrals", body: "Review members and the six-level network from your code.", badge: "Growth" },
-      { title: "Redeem rewards", body: "Use points for rewards and keep usage context.", badge: "Utility" },
+      { title: "Redeem rewards", body: "Use points for rewards and keep usage records.", badge: "Utility" },
     ],
     pointsTitle: "Points are created from user actions.",
     pointsBody:
-      "Content access, referral growth, and reward redemption accumulate as personal service context.",
+      "Content access, referral growth, and reward redemption accumulate as personal service records.",
     pointsOptions: [
       { title: "Content access", body: "Open global content with points." },
       { title: "Reward exchange", body: "Extend into repeatable rewards like Silver cards." },
@@ -681,7 +681,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "Start now and review your service flow.",
     finalBody: "Check activation status, referral code, points, wallet, and content flow in one place.",
-    footerTagline: "A new social paradigm — participation creates Context.",
+    footerTagline: "A new social paradigm — participation creates records.",
   },
   ja: {
     oldTag: "従来のSNS",
@@ -718,7 +718,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "今すぐ始めてサービスフローを確認しましょう。",
     finalBody: "参加状態、紹介コード、ポイント、ウォレット、コンテンツの流れを一つの画面で確認できます。",
-    footerTagline: "新しいソーシャルパラダイム — 参加がContextを作ります。",
+    footerTagline: "新しいソーシャルパラダイム — 参加が成長記録を作ります。",
   },
   zh: {
     oldTag: "传统SNS",
@@ -752,7 +752,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "现在开始并查看你的服务流程。",
     finalBody: "在一个地方查看激活状态、推荐码、积分、钱包和内容流。",
-    footerTagline: "新的社交范式 — 参与创造 Context。",
+    footerTagline: "新的社交范式 — 参与创造成长记录。",
   },
   vn: {
     oldTag: "SNS truyền thống",
@@ -786,7 +786,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "Bắt đầu và xem luồng dịch vụ của bạn.",
     finalBody: "Kiểm tra trạng thái, mã giới thiệu, điểm, ví và nội dung ở một nơi.",
-    footerTagline: "Mô hình xã hội mới — tham gia tạo Context.",
+    footerTagline: "Mô hình xã hội mới — tham gia tạo hồ sơ tăng trưởng.",
   },
   id: {
     oldTag: "SNS biasa",
@@ -820,7 +820,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "Mulai dan lihat alur layanan Anda.",
     finalBody: "Cek status, kode referral, poin, wallet, dan konten di satu tempat.",
-    footerTagline: "Paradigma sosial baru — partisipasi membuat Context.",
+    footerTagline: "Paradigma sosial baru — partisipasi membuat catatan pertumbuhan.",
   },
   km: {
     oldTag: "SNS ធម្មតា",
@@ -854,7 +854,7 @@ const landingStoryCopy: Record<
     ],
     finalTitle: "ចាប់ផ្តើម និងពិនិត្យលំហូរសេវារបស់អ្នក។",
     finalBody: "ពិនិត្យស្ថានភាព កូដណែនាំ ពិន្ទុ កាបូប និងមាតិកានៅកន្លែងតែមួយ។",
-    footerTagline: "គំរូសង្គមថ្មី — ការចូលរួមបង្កើត Context។",
+    footerTagline: "គំរូសង្គមថ្មី — ការចូលរួមបង្កើតកំណត់ត្រាកំណើន។",
   },
 };
 
