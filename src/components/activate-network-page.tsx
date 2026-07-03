@@ -340,6 +340,7 @@ export function ActivateNetworkPage({
     paginatedMembers[0] ??
     null;
   const memberPointChipCopy = getMemberPointChipCopy(locale);
+  const mobileSelectedMemberCopy = getMobileSelectedMemberCopy(locale);
   const currentPageHref = useMemo(
     () =>
       setPathSearchParams(
@@ -1617,6 +1618,17 @@ export function ActivateNetworkPage({
                                   label={memberPointChipCopy.spendable}
                                   value={`${formatInteger(member.spendablePoints, locale)}P`}
                                 />
+                              </div>
+                              <div
+                                className={cn(
+                                  "mt-3 flex items-center justify-between rounded-2xl border px-3 py-2 text-xs font-semibold sm:hidden",
+                                  isSelected
+                                    ? "border-white/12 bg-white/10 text-white"
+                                    : "border-slate-200 bg-slate-50 text-slate-700",
+                                )}
+                              >
+                                <span>{mobileSelectedMemberCopy.action}</span>
+                                <ChevronRight className="size-4 shrink-0" />
                               </div>
                             </button>
                           </article>
@@ -3508,7 +3520,7 @@ function getSelectedMemberDetailCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "운영 확인에 필요한 지갑 주소, 추천 코드, 배치 코드만 접어서 확인합니다.",
+        "필요할 때 지갑 주소, 추천 코드, 배치 코드만 펼쳐서 확인합니다.",
       eyebrow: "상세 정보",
       title: "지갑·추천 코드 보기",
     };
@@ -3560,60 +3572,60 @@ function getSelectedMemberDetailCopy(locale: Locale) {
 function getMobileSelectedMemberCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      action: "회원 상세 보기",
-      aiStarPending: "AI 스타 준비 중",
-      aiStarReady: "AI 스타 연결됨",
-      eyebrow: "보고 있는 회원",
-      sheetTitle: "회원 상세",
+      action: "상태와 AI 스타 보기",
+      aiStarPending: "AI 스타 대기",
+      aiStarReady: "AI 스타 있음",
+      eyebrow: "선택한 회원",
+      sheetTitle: "회원 상태",
     };
   }
 
   if (locale === "ja") {
     return {
-      action: "メンバー詳細を見る",
-      aiStarPending: "AIスター準備中",
-      aiStarReady: "AIスター連携済み",
-      eyebrow: "表示中のメンバー",
-      sheetTitle: "メンバー詳細",
+      action: "状態とAIスターを見る",
+      aiStarPending: "AIスター待ち",
+      aiStarReady: "AIスターあり",
+      eyebrow: "選択したメンバー",
+      sheetTitle: "メンバー状態",
     };
   }
 
   if (locale === "zh") {
     return {
-      action: "查看会员详情",
-      aiStarPending: "AI Star 准备中",
-      aiStarReady: "已连接 AI Star",
-      eyebrow: "正在查看的会员",
-      sheetTitle: "会员详情",
+      action: "查看状态和 AI Star",
+      aiStarPending: "AI Star 待生成",
+      aiStarReady: "已有 AI Star",
+      eyebrow: "已选会员",
+      sheetTitle: "会员状态",
     };
   }
 
   if (locale === "vi") {
     return {
-      action: "Xem chi tiết thành viên",
-      aiStarPending: "AI Star đang chuẩn bị",
-      aiStarReady: "AI Star đã kết nối",
-      eyebrow: "Thành viên đang xem",
-      sheetTitle: "Chi tiết thành viên",
+      action: "Xem trạng thái và AI Star",
+      aiStarPending: "AI Star đang chờ",
+      aiStarReady: "Có AI Star",
+      eyebrow: "Thành viên đã chọn",
+      sheetTitle: "Trạng thái thành viên",
     };
   }
 
   if (locale === "id") {
     return {
-      action: "Lihat detail member",
-      aiStarPending: "AI Star sedang disiapkan",
-      aiStarReady: "AI Star terhubung",
-      eyebrow: "Member yang dilihat",
-      sheetTitle: "Detail member",
+      action: "Lihat status dan AI Star",
+      aiStarPending: "AI Star menunggu",
+      aiStarReady: "Ada AI Star",
+      eyebrow: "Member terpilih",
+      sheetTitle: "Status member",
     };
   }
 
   return {
-    action: "View member details",
+    action: "View status and AI Star",
     aiStarPending: "AI Star pending",
-    aiStarReady: "AI Star connected",
-    eyebrow: "Viewing member",
-    sheetTitle: "Member details",
+    aiStarReady: "AI Star ready",
+    eyebrow: "Selected member",
+    sheetTitle: "Member status",
   };
 }
 
