@@ -1535,7 +1535,7 @@ export function FanletterStarDetailPage({
             viewerState={viewerState}
           />
 
-          <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
+          <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-start">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
                 <Crown className="size-4" />
