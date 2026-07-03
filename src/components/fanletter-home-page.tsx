@@ -637,113 +637,6 @@ function formatMetric(value: number, locale: Locale) {
   }).format(value);
 }
 
-function FanletterAgentRankHomeCard({
-  href,
-  locale,
-  snapshot,
-}: {
-  href: string;
-  locale: Locale;
-  snapshot?: FanletterAgentRankInvestorSnapshot | null;
-}) {
-  if (!snapshot) {
-    return null;
-  }
-
-  const isKo = locale === "ko";
-  const copy = isKo
-    ? {
-        body: "발견, 참여, 초대가 활동 기록으로 쌓입니다.",
-        cta: "활동 기록 보기",
-        events: "활동 기록",
-        network: "네트워크",
-        title: "행동이 활동 기록이 됩니다",
-      }
-    : {
-        body:
-          "Discovery, joins, and invites are saved to your activity log.",
-        cta: "View activity log",
-        events: "Activity records",
-        network: "Network",
-        title: "Your actions become activity records",
-      };
-  const scorePercent = Math.round(
-    (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
-  );
-  const metrics = [
-    {
-      label: copy.events,
-      value: snapshot.ers.summary.eventCount,
-    },
-    {
-      label: copy.network,
-      value: snapshot.ers.summary.networkEdges,
-    },
-    {
-      label: isKo ? "기여 포인트" : "Contribution Points",
-      value: snapshot.ers.summary.cpTotal,
-    },
-  ];
-
-  return (
-    <div className="rounded-[1.35rem] border border-zinc-200 bg-white/92 p-4 shadow-[0_22px_56px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-700">
-            <ShieldCheck className="size-4 shrink-0" />
-            {copy.events}
-          </p>
-          <h2 className="mt-2 break-words text-base font-semibold text-[#12041f] [word-break:keep-all]">
-            {copy.title}
-          </h2>
-          <p className="mt-1 text-xs font-medium leading-5 text-slate-500 [word-break:keep-all]">
-            {copy.body}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1.5 text-sm font-semibold text-zinc-900">
-          {snapshot.ers.score}
-        </span>
-      </div>
-
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100">
-        <span
-          className="block h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
-          style={{ width: `${scorePercent}%` }}
-        />
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {metrics.map((metric) => (
-          <div className="min-w-0 rounded-xl bg-slate-50 p-2.5" key={metric.label}>
-            <p className="truncate text-sm font-semibold text-[#12041f]">
-              {formatMetric(metric.value, locale)}
-            </p>
-            <p className="mt-1 truncate text-[0.66rem] font-semibold text-slate-400">
-              {metric.label}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <FanletterTrackedLink
-        agentRank={{
-          eventType: "content_engaged",
-          intent: "agentrank_preview_open",
-          source: "fanletter_home",
-        }}
-        className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold !text-zinc-900"
-        eventName="content_open"
-        href={href}
-        metadata={{
-          placement: "fanletter_home_agentrank_card",
-        }}
-      >
-        <span className="truncate">{copy.cta}</span>
-        <ArrowRight className="size-4 shrink-0" />
-      </FanletterTrackedLink>
-    </div>
-  );
-}
 
 // Content-first home gate: member-only blocks render only for a logged-in member
 // with real activity history. A null portfolio (guest) is false; brand-new
@@ -765,9 +658,6 @@ function hasFanletterRealActivity(
 }
 
 function FanletterProductHomeDashboard({
-  agentRankHref,
-  agentRankSnapshot,
-  aiStarGenealogyHref,
   copy,
   creatorUnlock,
   creatorUnlockHref,
@@ -780,9 +670,6 @@ function FanletterProductHomeDashboard({
   stars,
   topGrowingStarsHref,
 }: {
-  agentRankHref: string;
-  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
-  aiStarGenealogyHref: string;
   copy: FanletterCopy;
   creatorUnlock?: CreatorUnlockData | null;
   creatorUnlockHref: string;
@@ -802,12 +689,6 @@ function FanletterProductHomeDashboard({
     starList.find((star) => star.id === scoutShareLoop?.starId) ??
     starList[0] ??
     null;
-  const primaryStarFounderNetworkHref = primaryStar
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/${encodeURIComponent(primaryStar.id)}/universe`,
-        referralCode,
-      )
-    : aiStarGenealogyHref;
   // Show up to 4 cards so the desktop carousel row fills its width (≈4 fit) and
   // the strip matches the home star set (HOME_STAR_LIMIT); mobile scrolls as before.
   const topStars = starList.slice(0, 4);
@@ -1012,45 +893,6 @@ function FanletterProductHomeDashboard({
                   <p className="mt-3 block max-w-2xl break-words text-sm font-medium leading-6 text-zinc-600 [overflow-wrap:anywhere] sm:text-base sm:[word-break:keep-all]">
                     {productCopy.subhead}
                   </p>
-                  {starList.length > 0 ? (
-                    <Link
-                      className="group mt-4 inline-flex items-center gap-3 self-start rounded-full border border-zinc-200 bg-white py-1.5 pl-1.5 pr-4 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition hover:border-zinc-300 hover:shadow-[0_8px_20px_rgba(15,23,42,0.09)]"
-                      href={topGrowingStarsHref}
-                    >
-                      <span className="flex -space-x-2.5">
-                        {starList.slice(0, 5).map((star) => (
-                          <span
-                            aria-hidden="true"
-                            className="relative size-9 shrink-0 overflow-hidden rounded-full border-2 border-white bg-cover bg-center"
-                            key={star.id}
-                            style={
-                              star.portraitImageUrl
-                                ? undefined
-                                : {
-                                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                                  }
-                            }
-                          >
-                            {star.portraitImageUrl ? (
-                              <Image
-                                alt=""
-                                className="object-cover"
-                                fill
-                                sizes="36px"
-                                src={star.portraitImageUrl}
-                              />
-                            ) : null}
-                          </span>
-                        ))}
-                      </span>
-                      <span className="min-w-0 text-sm font-semibold text-zinc-800 [word-break:keep-all]">
-                        {isKo
-                          ? "지금 성장 중인 AI 스타 둘러보기"
-                          : "Browse the AI stars growing now"}
-                      </span>
-                      <ArrowRight className="size-4 shrink-0 text-zinc-500 transition group-hover:translate-x-0.5" />
-                    </Link>
-                  ) : null}
                 </div>
               </div>
             </div>
@@ -1322,106 +1164,6 @@ function FanletterProductHomeDashboard({
         ) : null}
       </div>
 
-      <div className="hidden gap-4">
-        <ScrollReveal delay={120} y={16}>
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#12041f]">
-                {productCopy.founderUniverse}
-              </p>
-              <Link
-                className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-50 px-3 text-xs font-semibold !text-slate-600"
-                href={primaryStarFounderNetworkHref}
-              >
-                {productCopy.founderNetworkCta}
-                <ArrowRight className="size-3.5" />
-              </Link>
-            </div>
-
-            <div className="mt-4 grid gap-4">
-              <div className="relative mx-auto aspect-square w-full max-w-[18rem] rounded-full bg-[radial-gradient(circle,#ffffff_0%,#ffffff_36%,#f8fafc_100%)]">
-                {[1, 2, 3, 4].map((ring) => (
-                  <span
-                    className="absolute rounded-full border border-dashed border-slate-200"
-                    key={ring}
-                    style={{
-                      inset: `${ring * 9}%`,
-                    }}
-                  />
-                ))}
-                {primaryStar ? (
-                  <span
-                    className="absolute left-1/2 top-1/2 flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-[1.35rem] bg-cover bg-center text-lg font-semibold text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)]"
-                    style={
-                      primaryStar.portraitImageUrl
-                        ? { backgroundImage: `url(${primaryStar.portraitImageUrl})` }
-                        : {
-                            background: `linear-gradient(145deg, ${primaryStar.accentColor}, ${primaryStar.accentSecondary})`,
-                          }
-                    }
-                  >
-                    {primaryStar.portraitImageUrl
-                      ? null
-                      : primaryStar.portraitInitials}
-                  </span>
-                ) : null}
-                {[0, 1, 2, 3, 4, 5].map((index) => {
-                  const angle = -90 + index * 60;
-                  const radians = (angle * Math.PI) / 180;
-                  const x = 50 + Math.cos(radians) * 39;
-                  const y = 50 + Math.sin(radians) * 39;
-
-                  return (
-                    <span
-                      className="absolute flex size-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-[0.68rem] font-semibold text-slate-500"
-                      key={index}
-                      style={{
-                        left: `${x}%`,
-                        top: `${y}%`,
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      {index + 1}
-                    </span>
-                  );
-                })}
-              </div>
-
-              <div>
-                <p className="text-xl font-semibold text-[#12041f]">
-                  {primaryStar?.name ?? "AI Star"}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-slate-500">
-                  {primaryStar?.universeName ?? productCopy.founderUniverse}
-                </p>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {[
-                    [productCopy.founder, primaryStar?.founderCount ?? 0],
-                    [productCopy.open, primaryStar?.openSlots.open ?? 0],
-                  ].map(([label, value]) => (
-                    <span className="rounded-xl bg-slate-50 p-3 text-center" key={label}>
-                      <span className="block text-lg font-semibold text-[#12041f]">
-                        {value}
-                      </span>
-                      <span className="text-[0.64rem] font-semibold text-slate-400">
-                        {label}
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal className="hidden sm:block" delay={220} y={16}>
-          <FanletterAgentRankHomeCard
-            href={agentRankHref}
-            locale={locale}
-            snapshot={agentRankSnapshot}
-          />
-        </ScrollReveal>
-      </div>
     </section>
   );
 }
@@ -1467,14 +1209,6 @@ export function FanletterHomePage({
   );
   const creatorUnlockHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
-    referralCode,
-  );
-  const aiStarGenealogyHref = buildPathWithReferral(
-    `/${locale}/fanletter/ai-star-genealogy`,
-    referralCode,
-  );
-  const agentRankHref = buildPathWithReferral(
-    `/${locale}/fanletter/agentrank`,
     referralCode,
   );
   const myAiHref = buildPathWithReferral(
@@ -1741,9 +1475,6 @@ export function FanletterHomePage({
           ) : null}
 
           <FanletterProductHomeDashboard
-            agentRankHref={agentRankHref}
-            agentRankSnapshot={agentRankSnapshot}
-            aiStarGenealogyHref={aiStarGenealogyHref}
             copy={copy}
             creatorUnlock={founderClubCreatorUnlock}
             creatorUnlockHref={creatorUnlockHref}
