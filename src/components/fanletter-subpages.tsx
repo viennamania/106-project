@@ -10362,18 +10362,18 @@ export function FanletterOnboardingPage({
             accountState:
               "이 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
             asideBody:
-              "계정 연결 후 참여 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
+              "아래 3단계를 순서대로 진행하면 참여가 완료됩니다.",
             asideTitle: "참여 준비",
             completeBody:
-              "계정 연결, 참여 귀속 확인, 추천 링크 공유까지 이어지면 기여 포인트와 영향력 적립 흐름을 확인할 수 있습니다.",
+              "계정 연결, 참여 귀속 확인, 추천 링크 공유까지 이어지면 내 활동 기록과 참여 보상을 확인할 수 있습니다.",
             completeTitle: "참여 체크리스트",
             description: `${founderUniverseName} 참여, 추천 코드 생성, SNS 공유까지 한 흐름으로 이어가세요.`,
-            eyebrow: "Creator Club 온보딩",
+            eyebrow: "AI 스타 유니버스 온보딩",
             feedCta: "Creator Club 보기",
             helper:
-              "Creator Club에서 내 역할, 추천 링크, 기여 포인트, 영향력, Creator 진행률을 관리합니다.",
+              "Creator Club에서 내 역할, 추천 링크, 활동 기록, Creator 진행률을 관리합니다.",
             homeCta: "AI 스타 유니버스 보기",
-            primaryCta: "계정 연결",
+            primaryCta: "지금 참여하기",
             progress: "참여 진행",
             readyValue: "3단계",
             returnBody:
@@ -10386,7 +10386,7 @@ export function FanletterOnboardingPage({
                 badge: "계정",
                 body:
                   "이메일 계정을 연결해 팬 역할과 추천 보상이 같은 계정에 저장되도록 합니다.",
-                cta: "계정 연결하기",
+                cta: "먼저 계정 연결",
                 href: connectHref,
                 Icon: User,
                 meta: "01 · 계정",
@@ -10419,18 +10419,18 @@ export function FanletterOnboardingPage({
             accountState:
               "This Join is attributed to the selected AI Star Universe. Real payment is still deferred.",
             asideBody:
-              "Connect the account, confirm Join attribution, then create and share the referral link from the Star detail page.",
+              "Complete the 3 steps below in order to finish joining.",
             asideTitle: "Join setup",
             completeBody:
-              "After account connection, Join attribution, and referral sharing, the Contribution Points and influence reward flow is ready to preview.",
+              "After account connection, Join attribution, and referral sharing, your activity log and participation rewards are ready to preview.",
             completeTitle: "Join checklist",
             description: `Continue through ${founderUniverseName} Join, referral code creation, and SNS sharing.`,
-            eyebrow: "Creator Club Onboarding",
+            eyebrow: "AI Star Universe Onboarding",
             feedCta: "View Creator Club",
             helper:
-              "Manage your roles, referral links, Contribution Points, influence, and Creator progress in Creator Club.",
+              "Manage your roles, referral links, activity log, and Creator progress in Creator Club.",
             homeCta: "View AI Star Universe",
-            primaryCta: "Connect and join",
+            primaryCta: "Join now",
             progress: "Participation progress",
             readyValue: "3 steps",
             returnBody:
@@ -10443,7 +10443,7 @@ export function FanletterOnboardingPage({
                 badge: "Account",
                 body:
                   "Connect email so the Fan role and referral rewards stay attached to one account.",
-                cta: "Connect account",
+                cta: "First, connect account",
                 href: connectHref,
                 Icon: User,
                 meta: "01 · Account",
