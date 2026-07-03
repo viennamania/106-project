@@ -2553,10 +2553,10 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "멤버 등급 산정용 누적 기록",
       lifetimeLabel: "등급 기준 누적",
       maxTierHint: "현재 최고 등급입니다",
-      nextTierHint: "누적 적립 기준",
-      nextTierLabel: "다음 등급",
+      nextTierHint: "교환 가능 잔액이 아닌 누적 기준",
+      nextTierLabel: "등급 기준 목표",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}까지 ${points}P 더 필요`,
+        `${tier} 등급까지 ${points}P 필요`,
       progressCaption:
         "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적으로 계산합니다.",
       sourceBreakdownLabel: "포인트 출처",
@@ -2591,10 +2591,10 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "会員ランク算定用の累積記録",
       lifetimeLabel: "ランク基準累積",
       maxTierHint: "現在の最高ランクです",
-      nextTierHint: "累積獲得基準",
-      nextTierLabel: "次のランク",
+      nextTierHint: "交換可能残高ではなく累積基準",
+      nextTierLabel: "ランク基準目標",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}まであと${points}P`,
+        `${tier}ランクまで${points}P必要`,
       progressCaption:
         "ランク進捗は交換可能残高ではなく、ランク基準累積で計算します。",
       sourceBreakdownLabel: "ポイントの内訳",
@@ -2629,10 +2629,10 @@ function getRewardPointContextCopy(locale: Locale) {
       lifetimeHint: "会员等级计算用累计记录",
       lifetimeLabel: "等级基准累计",
       maxTierHint: "当前已是最高等级",
-      nextTierHint: "按累计获得积分计算",
-      nextTierLabel: "下一等级",
+      nextTierHint: "不是可兑换余额，而是累计基准",
+      nextTierLabel: "等级基准目标",
       nextTierNeeded: (tier: string, points: string) =>
-        `距离 ${tier} 还需 ${points}P`,
+        `到 ${tier} 等级还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
       sourceBreakdownLabel: "积分来源",
       spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级基准累计分开管理。",
@@ -2664,10 +2664,10 @@ function getRewardPointContextCopy(locale: Locale) {
     lifetimeHint: "Lifetime record used for member tier",
     lifetimeLabel: "Tier basis lifetime",
     maxTierHint: "You are at the top tier",
-    nextTierHint: "Calculated from lifetime earned points",
-    nextTierLabel: "Next tier",
+    nextTierHint: "Based on lifetime points, not redeemable balance",
+    nextTierLabel: "Tier-basis target",
     nextTierNeeded: (tier: string, points: string) =>
-      `${points}P more to ${tier}`,
+      `${points}P needed for ${tier}`,
     progressCaption:
       "Tier progress is calculated from tier-basis lifetime points, not redeemable balance.",
     sourceBreakdownLabel: "Point sources",
