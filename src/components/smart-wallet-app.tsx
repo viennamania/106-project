@@ -3481,7 +3481,7 @@ function CompletedHomeDashboard({
       ? {
           copied: "복사 완료",
           current: "현재 상태",
-          manageNetwork: "추천 회원 관리",
+          manageNetwork: "추천 회원 보기",
           manageRewards: "포인트 교환",
           points: "추천 적립 합계",
           referralCode: "내 추천 코드",

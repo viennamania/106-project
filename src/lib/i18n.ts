@@ -1038,10 +1038,10 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     referralsPage: {
-      title: "추천 회원 관리",
+      title: "추천 회원",
       eyebrow: "invite network",
       description:
-        "회원가입이 완료된 뒤 내 추천 코드와 해당 코드로 가입한 회원을 확인합니다.",
+        "내 추천 코드로 가입한 회원과 다음 보상 흐름을 확인합니다.",
       shareTitle: "내 추천 코드",
       listTitle: "내 코드로 가입한 회원",
       rootLabel: "전체 추천 트리",
@@ -1049,7 +1049,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       depthHint: "한 화면에서 최대 {depth}단계까지 탐색할 수 있습니다.",
       firstLevelLimitHint: "1단계는 최대 {limit}명까지 등록할 수 있습니다.",
       disconnected:
-        "이메일 로그인하고 회원가입을 완료하면 추천 회원 관리를 볼 수 있습니다.",
+        "이메일 로그인하고 회원가입을 완료하면 추천 회원을 볼 수 있습니다.",
       loading: "추천 회원 데이터를 확인하는 중입니다.",
       empty: "아직 내 추천 코드로 가입한 회원이 없습니다.",
       memberReady: "이 이메일 회원의 추천 코드가 발급되어 있습니다.",
@@ -1101,20 +1101,20 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     activateNetworkPage: {
-      title: "내 코드 가입 회원 관리",
+      title: "내 코드 가입 회원",
       eyebrow: "network control",
       description:
-        "내 코드로 가입한 완료 회원의 조직도, 등급 기준 누적 포인트, 교환 가능 포인트, 포인트 등급, 카드 보유 상태를 한 화면에서 관리합니다.",
+        "내 코드로 가입한 회원의 단계, 가입 시각, 포인트, AI 스타 정보를 확인합니다.",
       disconnected:
-        "이메일 로그인 후 내 코드 가입 회원 관리 페이지를 이용할 수 있습니다.",
+        "이메일 로그인 후 내 코드 가입 회원 페이지를 이용할 수 있습니다.",
       loading: "조직도 데이터를 불러오는 중입니다.",
       empty: "표시할 회원이 없습니다.",
       memberMissing: "회원 조직도 데이터를 찾을 수 없습니다.",
       paymentRequired:
-        "회원가입 완료 후에만 내 코드 가입 회원 관리 페이지를 확인할 수 있습니다.",
+        "회원가입 완료 후에만 내 코드 가입 회원 페이지를 확인할 수 있습니다.",
       searchPlaceholder: "이메일, 추천 코드, 지갑 주소로 검색",
       selectionHint:
-        "좌측 목록이나 하단 조직도에서 회원을 선택하면 등급 기준 포인트, 포인트 등급, 카드 상태를 바로 확인할 수 있습니다.",
+        "회원을 선택하면 단계, 가입 시각, 포인트, AI 스타 정보를 바로 확인할 수 있습니다.",
       leaderboardDescription:
         "포인트 순으로 정렬된 회원 목록입니다. 포인트 등급과 카드 보유 상태를 빠르게 확인할 수 있습니다.",
       treeDescription:
@@ -1403,11 +1403,11 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
     },
     rewardsPage: {
-      title: "포인트 리워드",
+      title: "포인트 내역",
       eyebrow: "points utility",
       description:
         "추천으로 쌓인 포인트와 교환 가능한 리워드를 한눈에 확인합니다.",
-      disconnected: "이메일 로그인 후 포인트 리워드 페이지를 확인할 수 있습니다.",
+      disconnected: "이메일 로그인 후 포인트 내역 페이지를 확인할 수 있습니다.",
       loading: "포인트 데이터를 불러오는 중입니다.",
       paymentRequired:
         "아직 회원가입이 완료되지 않았습니다. 1066FRIEND+ 홈에서 가입을 먼저 완료하세요.",
