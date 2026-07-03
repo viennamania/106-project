@@ -2153,8 +2153,11 @@ function SelectedMemberCard({
         </div>
       </details>
 
-      <div className="rounded-[24px] border border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,223,0.92))] p-4 shadow-[0_18px_45px_rgba(217,119,6,0.08)]">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <details
+        className="group rounded-[24px] border border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,223,0.92))] p-4 shadow-[0_18px_45px_rgba(217,119,6,0.08)]"
+        open={isServiceSuspended}
+      >
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-amber-800/70">
               {serviceCopy.title}
@@ -2163,19 +2166,24 @@ function SelectedMemberCard({
               {serviceCopy.description}
             </p>
           </div>
-          <span
-            className={cn(
-              "inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.32)]",
-              isServiceSuspended
-                ? "border-rose-200 bg-rose-50 text-rose-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700",
-            )}
-          >
-            {isServiceSuspended
-              ? serviceCopy.suspendedValue
-              : serviceCopy.activeValue}
-          </span>
-        </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.32)]",
+                isServiceSuspended
+                  ? "border-rose-200 bg-rose-50 text-rose-700"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700",
+              )}
+            >
+              {isServiceSuspended
+                ? serviceCopy.suspendedValue
+                : serviceCopy.activeValue}
+            </span>
+            <span className="inline-flex size-10 items-center justify-center rounded-full border border-amber-200/85 bg-white/70 text-amber-900 transition group-open:rotate-90">
+              <ChevronRight className="size-4" />
+            </span>
+          </div>
+        </summary>
 
         {isServiceSuspended ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -2200,7 +2208,7 @@ function SelectedMemberCard({
           </div>
         ) : null}
 
-        <div className="mt-4">
+        <div className="mt-4 border-t border-amber-200/70 pt-4">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
             {serviceCopy.scopeLabel}
           </p>
@@ -2268,7 +2276,7 @@ function SelectedMemberCard({
               : serviceCopy.releaseAction}
           </button>
         </div>
-      </div>
+      </details>
     </div>
   );
 }
