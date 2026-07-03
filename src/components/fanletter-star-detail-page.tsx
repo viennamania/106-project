@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Bot,
   Crown,
-  Database,
   GitBranch,
   ShieldCheck,
   Share2,
@@ -19,15 +18,12 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
-import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
-import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import {
   AIStarCard,
   FounderRoleBadge,
-  FounderUniversePreview,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
 import {
@@ -1144,251 +1140,6 @@ function StarDetailMobileSignpost({
   );
 }
 
-function FounderJoinFlowHint({
-  copy,
-  viewerState,
-}: {
-  copy: ReturnType<typeof getFanletterV2Copy>;
-  viewerState: StarDetailViewerState;
-}) {
-  const isKorean = isKoreanCopy(copy);
-  const labels =
-    isKorean
-      ? {
-          active: "현재 단계",
-          done: "완료",
-          steps: [
-            "계정 연결",
-            "참여",
-            "추천 링크 생성",
-            "초대 보상 적립",
-          ],
-          title: "참여 흐름",
-          waiting: "다음",
-        }
-      : {
-          active: "Current",
-          done: "Done",
-          steps: [
-            "Connect account",
-            "Join",
-            "Create referral link",
-            "Earn invite rewards",
-          ],
-          title: "Join Flow",
-          waiting: "Next",
-        };
-  const activeIndex =
-    viewerState === "guest" ? 0 : viewerState === "member" ? 1 : 2;
-
-  return (
-    <div className="mt-4 rounded-lg border border-zinc-200 bg-white/88 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-      <p className="text-xs font-semibold text-zinc-700">{labels.title}</p>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {labels.steps.map((step, index) => {
-          const isDone = index < activeIndex;
-          const isActive = index === activeIndex;
-
-          return (
-            <div
-              className={joinClasses(
-                "min-w-0 rounded-lg border px-3 py-2",
-                isActive
-                  ? "border-zinc-950 bg-zinc-50"
-                  : isDone
-                    ? "border-emerald-200 bg-emerald-50"
-                    : "border-slate-200 bg-white",
-              )}
-              key={step}
-            >
-              <p
-                className={joinClasses(
-                  "text-[0.62rem] font-semibold",
-                  isActive
-                    ? "text-zinc-950"
-                    : isDone
-                      ? "text-emerald-700"
-                      : "text-slate-400",
-                )}
-              >
-                {isDone ? labels.done : isActive ? labels.active : labels.waiting}
-              </p>
-              <p className="mt-1 truncate text-xs font-semibold text-[#12041f]">
-                {step}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function FounderNextReputationPath({
-  className,
-  copy,
-  referralCode,
-  viewerState,
-}: {
-  className?: string;
-  copy: ReturnType<typeof getFanletterV2Copy>;
-  referralCode: string;
-  viewerState: StarDetailViewerState;
-}) {
-  if (viewerState !== "founder") {
-    return null;
-  }
-
-  const isKorean = isKoreanCopy(copy);
-  const labels = isKorean
-    ? {
-        active: "지금 할 일",
-        done: "완료",
-        next: "다음",
-        subtitle: "내 링크로 새 팬이 참여하면 보상과 활동 기록이 함께 생성됩니다.",
-        title: "다음 흐름",
-      }
-    : {
-        active: "Now",
-        done: "Done",
-        next: "Next",
-        subtitle: "When a new Fan joins through your link, rewards and activity records are created together.",
-        title: "Next path",
-      };
-  const steps = [
-    {
-      event: "founder_joined",
-      icon: Crown,
-      label: isKorean ? "참여 완료" : "Joined",
-      recordLabel: isKorean ? "참여 기록" : "Join record",
-      state: "done",
-    },
-    {
-      event: "referral_shared",
-      href: "#referral-builder",
-      icon: Share2,
-      label: isKorean ? "추천 공유" : "Share referral",
-      recordLabel: isKorean ? "추천 공유 기록" : "Referral share record",
-      state: "active",
-    },
-    {
-      event: "event_ledger",
-      icon: Database,
-      label: isKorean ? "활동 기록" : "Activity record",
-      recordLabel: isKorean ? "보상/참여 기록" : "Reward and join record",
-      state: "next",
-    },
-    {
-      event: "creator_unlock_evaluated",
-      icon: Bot,
-      label: isKorean ? "크리에이터 여정" : "Creator Journey",
-      recordLabel: isKorean ? "권한 조건 점검" : "Permission condition review",
-      state: "next",
-    },
-  ];
-
-  return (
-    <article
-      className={joinClasses(
-        "mt-4 rounded-2xl border border-zinc-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]",
-        className,
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-zinc-500">
-            {labels.title}
-          </p>
-          <p className="mt-1 text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
-            {labels.subtitle}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 font-mono text-[0.66rem] font-semibold text-zinc-700">
-          {referralCode}
-        </span>
-      </div>
-
-      <div className="mt-3 grid gap-2 sm:grid-cols-4">
-        {steps.map((step) => {
-          const Icon = step.icon;
-          const isActive = step.state === "active";
-          const isDone = step.state === "done";
-          const statusLabel = isActive
-            ? labels.active
-            : isDone
-              ? labels.done
-              : labels.next;
-          const content = (
-            <div
-              className={joinClasses(
-                "min-h-[7rem] min-w-0 rounded-xl border p-3 transition",
-                isActive
-                  ? "border-zinc-950 bg-zinc-950 text-white shadow-[0_16px_32px_rgba(15,23,42,0.16)]"
-                  : isDone
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
-                    : "border-zinc-200 bg-zinc-50 text-zinc-950",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className={joinClasses(
-                    "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
-                    isActive
-                      ? "bg-white text-zinc-950"
-                      : isDone
-                        ? "bg-white text-emerald-700"
-                        : "bg-white text-zinc-600",
-                  )}
-                >
-                  <Icon className="size-4" />
-                </span>
-                <span
-                  className={joinClasses(
-                    "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
-                    isActive
-                      ? "text-white/62"
-                      : isDone
-                        ? "text-emerald-700"
-                        : "text-zinc-500",
-                  )}
-                >
-                  {statusLabel}
-                </span>
-              </div>
-              <p className="mt-3 text-sm font-semibold leading-5 [word-break:keep-all]">
-                {step.label}
-              </p>
-              <p
-                className={joinClasses(
-                  "mt-2 text-[0.62rem] font-semibold leading-4 [word-break:keep-all]",
-                  isActive
-                    ? "text-white/58"
-                    : isDone
-                      ? "text-emerald-700/70"
-                      : "text-zinc-400",
-                )}
-                title={step.recordLabel}
-              >
-                {step.recordLabel}
-              </p>
-            </div>
-          );
-
-          return step.href ? (
-            <a className="block min-w-0" href={step.href} key={step.event}>
-              {content}
-            </a>
-          ) : (
-            <div className="min-w-0" key={step.event}>
-              {content}
-            </div>
-          );
-        })}
-      </div>
-    </article>
-  );
-}
-
 function FounderJoinResultCard({
   copy,
   founderNetworkHref,
@@ -1549,120 +1300,6 @@ function FounderJoinResultCard({
   );
 }
 
-function StarAgentRankJoinSignal({
-  locale,
-  snapshot,
-  star,
-}: {
-  locale: Locale;
-  snapshot?: FanletterAgentRankInvestorSnapshot | null;
-  star: AIStar;
-}) {
-  if (!snapshot) {
-    return null;
-  }
-
-  const isKorean = locale === "ko";
-  const labels = isKorean
-    ? {
-        cta: "활동 기록 보기",
-        edges: "네트워크",
-        events: "활동 기록",
-        join: "참여",
-        ledger: "이벤트 원장",
-        referral: "추천 코드",
-        reward: "기여 포인트 보상",
-        title: "이 참여가 활동 기록이 됩니다",
-      }
-    : {
-        cta: "View activity log",
-        edges: "Network",
-        events: "Activity records",
-        join: "Join",
-        ledger: "Event Ledger",
-        referral: "Referral Code",
-        reward: "Contribution Point Reward",
-        title: "This join becomes an activity record",
-      };
-  const scorePercent = Math.round(
-    (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
-  );
-
-  return (
-    <article className="mt-4 max-w-2xl rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
-            {isKorean ? "활동 점수" : "Activity score"} {snapshot.ers.score}
-          </p>
-          <h2 className="mt-1 break-words text-sm font-semibold text-[#12041f] [word-break:keep-all]">
-            {labels.title}
-          </h2>
-        </div>
-        <div className="hidden shrink-0 flex-wrap gap-2 sm:flex">
-          <Link
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-slate-900 px-3 text-xs font-semibold !text-white"
-            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-              star.id,
-            )}`}
-          >
-            {labels.cta}
-            <ArrowRight className="size-3.5" />
-          </Link>
-          <Link
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700"
-            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
-              star.id,
-            )}`}
-          >
-            <Database className="size-3.5" />
-            {labels.ledger}
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
-        <span
-          className="block h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
-          style={{ width: `${scorePercent}%` }}
-        />
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {[
-          [labels.events, snapshot.ers.summary.eventCount],
-          [labels.edges, snapshot.ers.summary.networkEdges],
-          ["CP", snapshot.ers.summary.cpTotal],
-        ].map(([label, value]) => (
-          <span
-            className="min-w-0 rounded-lg bg-slate-50 px-2 py-2 text-center"
-            key={label}
-          >
-            <span className="block truncate text-sm font-semibold text-[#12041f]">
-              {formatNumber(Number(value), locale)}
-            </span>
-            <span className="mt-0.5 block truncate text-[0.66rem] font-semibold text-slate-400">
-              {label}
-            </span>
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        {[labels.join, labels.referral, labels.reward].map((eventLabel) => (
-          <span
-            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.66rem] font-semibold text-slate-700"
-            key={eventLabel}
-          >
-            {eventLabel}
-          </span>
-        ))}
-      </div>
-    </article>
-  );
-}
-
 function HumanFounderSlots({
   copy,
   star,
@@ -1717,258 +1354,6 @@ function HumanFounderSlots({
           );
         })}
       </div>
-    </article>
-  );
-}
-
-function SpawnedStarsSection({
-  copy,
-  locale,
-  star,
-}: {
-  copy: ReturnType<typeof getFanletterV2Copy>;
-  locale: Locale;
-  star: AIStar;
-}) {
-  return (
-    <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
-      <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
-          <Bot className="size-5" />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-zinc-700">
-            {copy.labels.spawnedStars}
-          </p>
-          <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
-            {copy.starDetail.spawnedTitle}
-          </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-black/62">
-            {copy.starDetail.spawnedBody}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {star.spawnedStars.map((spawnedStar) => {
-          const sourceUniverseName = spawnedStar.sourceUniverseName
-            ? getDisplayUniverseName(spawnedStar.sourceUniverseName, copy)
-            : null;
-          const displaySpawnedStarName = getDisplayStarName(
-            spawnedStar.name,
-            copy,
-          );
-
-          return (
-            <Link
-              className="rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.16)] transition hover:-translate-y-0.5"
-              href={`/${locale}/fanletter/${spawnedStar.id}`}
-              key={spawnedStar.id}
-              style={{
-                background: `linear-gradient(145deg, ${spawnedStar.accentColor}, #21103d 72%)`,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex size-12 items-center justify-center rounded-lg border border-white/18 text-sm font-semibold"
-                  style={{
-                    background: `linear-gradient(145deg, ${spawnedStar.accentSecondary}, rgba(255,255,255,0.16))`,
-                  }}
-                >
-                  {spawnedStar.portraitInitials}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[0.66rem] font-semibold text-fuchsia-100">
-                    {copy.labels.aiStarBadge}
-                  </p>
-                  <p className="truncate text-lg font-semibold">
-                    {displaySpawnedStarName}
-                  </p>
-                  <p className="truncate text-xs font-medium text-white/60">
-                    {getFanletterV2LocalizedText(
-                      spawnedStar.specialty,
-                      locale,
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-2 text-xs font-semibold text-white/70">
-                <span>
-                  +{spawnedStar.growthPercent}% {copy.labels.growth}
-                </span>
-              </div>
-              {spawnedStar.createdByUnlock || sourceUniverseName ? (
-                <div className="mt-3 rounded-lg border border-white/12 bg-white/8 p-2 text-[0.68rem] font-semibold leading-4 text-white/72">
-                  {sourceUniverseName ? (
-                    <p className="truncate">
-                      {copy.labels.sourceUniverse}: {sourceUniverseName}
-                    </p>
-                  ) : null}
-                  {spawnedStar.createdByUnlock ? (
-                    <p className="truncate">{copy.labels.createdByUnlock}</p>
-                  ) : null}
-                </div>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
-    </article>
-  );
-}
-
-function AIStarGenealogySection({
-  copy,
-  locale,
-  star,
-}: {
-  copy: ReturnType<typeof getFanletterV2Copy>;
-  locale: Locale;
-  star: AIStar;
-}) {
-  const isKorean = isKoreanCopy(copy);
-  const parentStar = star.parentStar ?? null;
-  const firstSpawnedStar = star.spawnedStars[0] ?? null;
-
-  if (!parentStar && !firstSpawnedStar) {
-    return null;
-  }
-
-  const labels = isKorean
-    ? {
-        body:
-          "이 AI 스타가 어느 AI 스타 유니버스에서 탄생했고, 다음 AI 스타로 어떻게 확장되는지 보여줍니다.",
-        current: "현재 AI 스타",
-        map: "전체 계보 맵",
-        parent: "Parent AI Star",
-        spawned: "Spawned AI Star",
-        title: "AI 스타 계보",
-      }
-    : {
-        body:
-          "See where this AI Star was born and how it expands into the next AI Stars.",
-        current: "Current AI Star",
-        map: "Full genealogy map",
-        parent: "Parent AI Star",
-        spawned: "Spawned AI Star",
-        title: "AI Star Genealogy",
-      };
-  const currentStarAsNode: SpawnedAIStar = {
-    accentColor: star.accentColor,
-    accentSecondary: star.accentSecondary,
-    founderCount: star.founderCount,
-    growthPercent: star.growthPercent,
-    id: star.id,
-    name: star.name,
-    portraitInitials: star.portraitInitials,
-    specialty: star.specialty,
-    starScore: star.starScore,
-  };
-  const cards = [
-    parentStar
-      ? {
-          badge: labels.parent,
-          href: `/${locale}/fanletter/${encodeURIComponent(parentStar.id)}`,
-          node: parentStar,
-          tone: "from-[#4f46e5] to-[#7c3aed]",
-        }
-      : null,
-    {
-      badge: labels.current,
-      href: `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
-      node: currentStarAsNode,
-      tone: "from-[#7c3aed] to-[#22d3ee]",
-    },
-    firstSpawnedStar
-      ? {
-          badge: labels.spawned,
-          href: `/${locale}/fanletter/${encodeURIComponent(firstSpawnedStar.id)}`,
-          node: firstSpawnedStar,
-          tone: "from-[#a855f7] to-[#ec4899]",
-        }
-      : null,
-  ].filter(
-    (
-      item,
-    ): item is {
-      badge: string;
-      href: string;
-      node: SpawnedAIStar;
-      tone: string;
-    } => item !== null,
-  );
-
-  return (
-    <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black !text-white">
-            <GitBranch className="size-5" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-zinc-700">
-              {copy.labels.aiStarBadge}
-            </p>
-            <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
-              {labels.title}
-            </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-black/62">
-              {labels.body}
-            </p>
-          </div>
-        </div>
-        <Link
-          className="hidden h-10 shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-100 sm:inline-flex"
-          href={`/${locale}/fanletter/ai-star-genealogy`}
-        >
-          {labels.map}
-          <ArrowRight className="size-4" />
-        </Link>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-stretch">
-        {cards.map((item, index) => (
-          <div
-            className="contents"
-            key={`${item.node.id}-${item.badge}`}
-          >
-            {index > 0 ? (
-              <div className="hidden items-center justify-center text-zinc-900 sm:flex">
-                <ArrowRight className="size-5" />
-              </div>
-            ) : null}
-            <Link
-              className={`rounded-lg bg-gradient-to-br ${item.tone} p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.18)] transition hover:-translate-y-0.5`}
-              href={item.href}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-white/18 px-2 py-1 text-[0.66rem] font-semibold">
-                  {item.badge}
-                </span>
-                <Bot className="size-4 text-white/82" />
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/16 text-sm font-semibold">
-                  {item.node.portraitInitials}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-semibold">
-                    {getDisplayStarName(item.node.name, copy)}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      <Link
-        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-100 sm:hidden"
-        href={`/${locale}/fanletter/ai-star-genealogy`}
-      >
-        {labels.map}
-        <ArrowRight className="size-4" />
-      </Link>
     </article>
   );
 }
@@ -2058,7 +1443,6 @@ export function FanletterStarDetailPage({
     viewerState,
   });
   const isKorean = isKoreanCopy(copy);
-  const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const displayStarName = getDisplayStarName(star.name, copy);
   const starSocialAccount = buildFanletterAIStarSocialAccountViewModel({
     creatorMemberId: `creator:${star.id}`,
@@ -2085,63 +1469,6 @@ export function FanletterStarDetailPage({
     starName: star.name,
     viewerState,
   } satisfies FunnelEventMetadata;
-  const starDetailGuideSteps =
-    viewerState === "founder"
-      ? [
-          {
-            label: isKorean ? "AI 스타 발견" : "Discover",
-            status: "done" as const,
-          },
-          {
-            label: isKorean ? "참여" : "Join",
-            status: "done" as const,
-          },
-          {
-            label: isKorean ? "추천 공유" : "Share",
-            status: "active" as const,
-          },
-          {
-            label: isKorean ? "활동 기록" : "Activity record",
-            status: "next" as const,
-          },
-        ]
-      : viewerState === "member"
-        ? [
-            {
-              label: isKorean ? "AI 스타 발견" : "Discover",
-              status: "done" as const,
-            },
-            {
-              label: isKorean ? "참여" : "Join",
-              status: "active" as const,
-            },
-            {
-              label: isKorean ? "추천 공유" : "Share",
-              status: "next" as const,
-            },
-            {
-              label: isKorean ? "활동 기록" : "Activity record",
-              status: "next" as const,
-            },
-          ]
-        : [
-            {
-              label: isKorean ? "AI 스타 발견" : "Discover",
-              status: "done" as const,
-            },
-            {
-              label: isKorean ? "계정 연결" : "Connect",
-              status: "active" as const,
-            },
-            {
-              label: isKorean ? "참여" : "Join",
-              status: "next" as const,
-            },
-            {
-              label: isKorean ? "활동 기록" : "Activity record",
-              status: "next" as const,
-            },
-          ];
   const primaryReputationEventLabel =
     primaryAction.variant === "share"
       ? isKorean
@@ -2245,34 +1572,7 @@ export function FanletterStarDetailPage({
               <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-black/64 sm:block sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
-              <div className="hidden max-w-2xl sm:block">
-                <FounderJoinFlowHint
-                  copy={copy}
-                  viewerState={viewerState}
-                />
-                <FounderNextReputationPath
-                  copy={copy}
-                  referralCode={referralCode}
-                  viewerState={viewerState}
-                />
-              </div>
-              <div className="hidden sm:block">
-                <StarAgentRankJoinSignal
-                  locale={locale}
-                  snapshot={agentRankSnapshot}
-                  star={star}
-                />
-              </div>
-
               <div className="scroll-mt-24" id="star-next-action" />
-
-              <div className="mt-5 sm:hidden">
-                <FounderNextReputationPath
-                  copy={copy}
-                  referralCode={referralCode}
-                  viewerState={viewerState}
-                />
-              </div>
 
               <FanletterFounderMockStatusBanner
                 className="mt-4 max-w-2xl lg:mx-0"
@@ -2282,7 +1582,7 @@ export function FanletterStarDetailPage({
               />
 
               <FanletterAIStarSocialAccountCard
-                className="mt-4 max-w-2xl lg:mx-0"
+                className="mt-4 hidden max-w-2xl sm:block lg:mx-0"
                 connectHref={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
                   star.id,
                 )}`}
@@ -2316,11 +1616,8 @@ export function FanletterStarDetailPage({
             </div>
           </div>
 
-          <div className="mt-10 border-t border-zinc-200 pt-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-black/45">
-              {isKorean ? "성장·평판 여정" : "Growth & reputation journey"}
-            </p>
-            {founderJoinCompleted ? (
+          {founderJoinCompleted ? (
+            <div className="mt-10 border-t border-zinc-200 pt-6">
               <FounderJoinResultCard
                 copy={copy}
                 founderNetworkHref={founderNetworkHref}
@@ -2338,90 +1635,15 @@ export function FanletterStarDetailPage({
                 referralCode={referralCode}
                 star={star}
               />
-            ) : null}
-            {coverageAction ? (
-              <FanletterAgentRankCoverageActionNotice
-                action={coverageAction}
-                className="mt-5"
-                locale={locale}
-              />
-            ) : null}
-            <FanletterActionGuide
-              className="mt-5 hidden sm:block"
+            </div>
+          ) : null}
+          {coverageAction ? (
+            <FanletterAgentRankCoverageActionNotice
+              action={coverageAction}
+              className="mt-6"
               locale={locale}
-              currentLabel={
-                isKorean
-                  ? `${displayStarName} AI 스타 유니버스`
-                  : `${displayStarName} AI Star Universe`
-              }
-              metrics={[
-                {
-                  label: copy.labels.openSlots,
-                  value: `${formatNumber(star.openSlots.open, locale)}/${formatNumber(
-                    star.openSlots.total,
-                    locale,
-                  )}`,
-                },
-              ]}
-              primaryAction={{
-                href: primaryAction.href,
-                label: primaryAction.label,
-              }}
-              primaryActionSlot={
-                <StarActionLink
-                  action={primaryAction}
-                  agentRank={primaryActionAgentRank}
-                  className="inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5"
-                  locale={locale}
-                  referralCode={joinReferralCode}
-                  starId={star.id}
-                  trackingMetadata={{
-                    ...primaryActionTrackingMetadata,
-                    placement: "fanletter_star_detail_action_guide_primary",
-                  }}
-                >
-                  <span className="min-w-0 whitespace-normal text-center leading-tight [word-break:keep-all]">
-                    {primaryAction.label}
-                  </span>
-                  <ArrowRight className="size-4 shrink-0" />
-                </StarActionLink>
-              }
-              reputationEventLabel={primaryReputationEventLabel}
-              secondaryActions={[
-                {
-                  agentRank: {
-                    eventType: "universe_growth",
-                    intent: "star_detail_founder_network_open",
-                    source: "fanletter_star_detail",
-                    starId: star.id,
-                  },
-                  eventName: "content_open",
-                  href: founderNetworkHref,
-                  label: isKorean
-                    ? "크리에이터 네트워크 보기"
-                    : "View Creator Network",
-                  metadata: {
-                    placement: "fanletter_star_detail_founder_network_secondary",
-                    starName: star.name,
-                  },
-                  referralCode,
-                },
-              ]}
-              steps={starDetailGuideSteps}
-              subtitle={primaryAction.helper}
-              title={
-                isKorean
-                  ? `다음 행동: ${primaryAction.label}`
-                  : `Next action: ${primaryAction.label}`
-              }
             />
-            <FanletterAgentRankJourneyRail
-              active="founder"
-              className="mt-3"
-              locale={locale}
-              starId={star.id}
-            />
-          </div>
+          ) : null}
         </div>
       </section>
 
@@ -2447,44 +1669,13 @@ export function FanletterStarDetailPage({
             <h2 className="text-sm font-semibold uppercase tracking-wide text-black/45">
               {isKorean ? "이 스타의 네트워크" : "This star's network"}
             </h2>
-            <div className="flex items-center gap-3">
-              <button
-                aria-expanded={isNetworkOpen}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black sm:hidden"
-                onClick={() => setIsNetworkOpen((open) => !open)}
-                type="button"
-              >
-                {isNetworkOpen
-                  ? isKorean
-                    ? "접기"
-                    : "Hide"
-                  : isKorean
-                    ? "네트워크 보기"
-                    : "Show network"}
-              </button>
-              <Link
-                className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black"
-                href={founderNetworkHref}
-              >
-                {isKorean ? "전체 네트워크 보기" : "View full network"}
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
-          </div>
-          <div
-            className={`${isNetworkOpen ? "grid" : "hidden"} mt-4 gap-4 sm:grid`}
-          >
-            <AIStarGenealogySection
-              copy={copy}
-              locale={locale}
-              star={displayStar}
-            />
-            <SpawnedStarsSection copy={copy} locale={locale} star={displayStar} />
-            <FounderUniversePreview
-              copy={copy}
-              locale={locale}
-              stars={[displayStar]}
-            />
+            <Link
+              className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black"
+              href={founderNetworkHref}
+            >
+              {isKorean ? "전체 네트워크 보기" : "View full network"}
+              <ArrowRight className="size-4" />
+            </Link>
           </div>
         </div>
 
