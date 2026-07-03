@@ -140,7 +140,7 @@ function MobileReferralFlow({
             {copy.starDetail.rewardsTitle}
           </p>
           <p className="text-sm font-semibold text-emerald-900">
-            +{rewards.cp} CP
+            +{rewards.creatorProgressPercent}%
           </p>
         </div>
       </div>
@@ -186,7 +186,7 @@ function ReferralShareOutcomeCard({
           "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
         readyBody:
-          "새 팬이 이 링크로 참여하면 기여 포인트와 크리에이터 진행률이 이어집니다.",
+          "새 팬이 이 링크로 참여하면 크리에이터 진행률과 활동 기록이 이어집니다.",
         readyTitle: "추천 공유 기록 생성됨",
       }
     : {
@@ -203,7 +203,7 @@ function ReferralShareOutcomeCard({
           "Copy the link or share to SNS to create a referral share record.",
         pendingTitle: "Share pending",
         readyBody:
-          "When a new Fan joins through this link, Contribution Points and Creator progress continue.",
+          "When a new Fan joins through this link, your Creator progress and activity records continue.",
         readyTitle: "Referral share recorded",
       };
 
@@ -250,9 +250,8 @@ function ReferralShareOutcomeCard({
         </span>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {[
-          [labels.cp, `+${rewards.cp}`],
           [labels.influence, `+${rewards.influenceScore}`],
           [labels.creator, `+${rewards.creatorProgressPercent}%`],
         ].map(([label, value]) => (
@@ -272,8 +271,8 @@ function ReferralShareOutcomeCard({
 
       <p className="mt-3 rounded-lg bg-white/78 px-3 py-2 text-[0.68rem] font-semibold leading-4 text-zinc-600 [word-break:keep-all]">
         {isKorean
-          ? "추천 공유 → 기여 포인트 보상 → Creator 조건 반영"
-          : "Referral share → Contribution Point reward → Creator condition update"}
+          ? "추천 공유 → 참여 보상 → Creator 조건 반영"
+          : "Referral share → participation reward → Creator condition update"}
       </p>
 
       {hasSharedReferral ? (
@@ -630,13 +629,7 @@ export function FanletterStarReferralPanel({
         <p className="text-sm font-semibold text-fuchsia-100">
           {copy.starDetail.rewardsTitle}
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          <div className="rounded-lg border border-white/12 bg-white/10 p-3">
-            <p className="text-xl font-semibold">+{loop.rewards.cp}</p>
-            <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
-              CP
-            </p>
-          </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-lg border border-white/12 bg-white/10 p-3">
             <p className="text-xl font-semibold">
               +{loop.rewards.influenceScore}
@@ -874,13 +867,7 @@ export function FanletterStarReferralPanel({
             <p className="text-sm font-semibold text-fuchsia-100">
               {panelLabels.reward}
             </p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="rounded-lg border border-white/12 bg-white/10 p-3">
-                <p className="text-lg font-semibold">+{loop.rewards.cp}</p>
-                <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
-                  CP
-                </p>
-              </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-lg border border-white/12 bg-white/10 p-3">
                 <p className="text-lg font-semibold">
                   +{loop.rewards.influenceScore}
