@@ -193,7 +193,7 @@ function getActivationSeparationCopy(locale: Locale) {
       activationTitle: "가입이 완료되었습니다",
       coreBadge: "서비스 준비 완료",
       coreStatusDescription:
-        "필요한 메뉴에서 추천 회원, 포인트, 지갑, AI 스타 스튜디오를 관리하세요.",
+        "추천 회원, 포인트, 지갑, AI 스타 프로필을 각각 전용 화면에서 확인하세요.",
       coreStatusTitle: "가입 완료",
       growthDescription:
         "추천 가입으로 쌓인 포인트와 보상 내역은 포인트 관리에서 확인합니다.",
@@ -229,7 +229,7 @@ function getActivationSeparationCopy(locale: Locale) {
     activationTitle: "Signup is complete",
     coreBadge: "Service ready",
     coreStatusDescription:
-      "Use the menu to manage referrals, points, wallet, and your AI Star.",
+      "Review referrals, points, wallet, and AI Star profile in dedicated screens.",
     coreStatusTitle: "Signup complete",
     growthDescription:
       "Review referral points and reward history in Points.",
@@ -266,7 +266,7 @@ function getActivationHubCopy(locale: Locale) {
       aiStarIpPending: "생성 확인 중",
       aiStarIpReady: "프로필 준비됨",
       assetDescription: "USDT와 BNB 잔고, 받을 주소를 확인합니다.",
-      assetLabel: "지갑 보기",
+      assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
       contextFlowItems: [
         "가입 인증",
@@ -286,9 +286,9 @@ function getActivationHubCopy(locale: Locale) {
         "가입 상태와 다음 행동만 먼저 확인하세요.",
       disconnected: "연결 필요",
       disconnectedMessage: "이메일로 시작하면 내 추천 코드가 준비됩니다.",
-      feedDescription: "전체 공개 콘텐츠와 리포트 작성자를 확인합니다.",
-      feedLabel: "공개 콘텐츠 보기",
-      feedMetric: "전체 공개",
+      feedDescription: "공개 콘텐츠와 리포트 작성자를 봅니다.",
+      feedLabel: "콘텐츠 피드",
+      feedMetric: "피드 열기",
       hubLabel: "1066FRIEND+",
       lockedMenuCaption: "이메일 인증 후 메뉴가 열립니다.",
       menuLockedDescription: "이메일 인증 후 추천 코드와 지갑 메뉴를 사용할 수 있습니다.",
@@ -296,32 +296,32 @@ function getActivationHubCopy(locale: Locale) {
       menuOpenAfterLogin: "이메일 인증 후 메뉴 열림",
       menuPendingDescription: "10 USDT 확인 후 추천, 포인트, 지갑 메뉴가 열립니다.",
       menuPendingTitle: "서비스 이용료 확인이 필요합니다",
-      menuReadyTitle: "지금 먼저 할 일",
+      menuReadyTitle: "다음에 할 일",
       membershipDescription: "이메일, 지갑, 10 USDT 확인 상태입니다.",
       membershipLabel: "가입 상태",
       nextStepTitle: "다음으로 할 일",
-      networkDescription: "내 코드로 가입한 회원, 가입일, 단계, AI 스타를 확인합니다.",
-      networkLabel: "추천 회원 관리",
+      networkDescription: "내 코드로 들어온 회원, 가입일, 단계, AI 스타를 봅니다.",
+      networkLabel: "추천 회원",
       notReady: "설정 필요",
       pending: "결제 확인 필요",
       pendingMessage: "10 USDT 확인 후 추천 코드와 포인트 메뉴가 열립니다.",
-      pointsDescription: "추천 적립 합계와 실제 교환 가능 잔액을 구분해서 봅니다.",
-      pointsLabel: "포인트 리워드",
-      pointsMetricPrefix: "적립",
+      pointsDescription: "누적 적립 기록과 교환 가능 잔액을 구분해서 봅니다.",
+      pointsLabel: "포인트 내역",
+      pointsMetricPrefix: "누적 적립",
       profileFirstLabel: "프로필 먼저",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
       nextActionFooter:
-        "추천 메뉴는 가입 상태, AI 스타 프로필, 추천 회원, 포인트 기록에 따라 바뀝니다.",
+        "각 메뉴는 전용 화면에서 이어집니다.",
       nextActionReasonDefault:
-        "추천 회원 관리에서 내 코드로 들어온 회원과 다음 보상 흐름을 확인할 수 있습니다.",
+        "추천 회원 화면에서 내 코드로 들어온 회원과 다음 보상 흐름을 확인할 수 있습니다.",
       nextActionReasonLabel: "추천 이유",
       nextActionReasonNetwork:
         "추천 회원이 생겼으므로 가입 시간, 단계, AI 스타 정보를 먼저 확인하세요.",
       nextActionReasonPoints:
-        "사용 가능한 포인트가 있으므로 교환 가능 잔액과 리워드 이력을 먼저 확인하세요.",
+        "누적 포인트가 있으므로 포인트 화면에서 교환 가능 잔액과 리워드 이력을 먼저 확인하세요.",
       nextActionReasonProfile:
         "AI 스타 프로필을 확인해야 콘텐츠 제작, 공개 피드, 추천 기록이 자연스럽게 이어집니다.",
       readyMessage: "가입 완료. 상태에 맞는 다음 메뉴를 먼저 추천합니다.",
@@ -334,13 +334,13 @@ function getActivationHubCopy(locale: Locale) {
       stateTitlePending: "10 USDT 확인 필요",
       stateTitleReady: "가입 완료",
       stateTitleUnavailable: "환경 설정 필요",
-      studioDescription: "AI 스타 프로필을 확인하고 콘텐츠 제작 화면으로 이어갑니다.",
-      studioLabel: "AI 스타 스튜디오",
+      studioDescription: "AI 스타 프로필을 확인하고 콘텐츠 제작으로 이어갑니다.",
+      studioLabel: "AI 스타 프로필",
       studioProfileMetric: "프로필 설정",
-      studioReadyMetric: "프로필/콘텐츠",
+      studioReadyMetric: "프로필 관리",
       title: "1066FRIEND+ 시작하기",
       walletDescription: "USDT와 BNB 지갑 상태를 확인합니다.",
-      walletLabel: "지갑 보기",
+      walletLabel: "지갑 / 자산",
     };
   }
 
@@ -370,9 +370,9 @@ function getActivationHubCopy(locale: Locale) {
       "Check your status and the next action first.",
     disconnected: "Connection required",
     disconnectedMessage: "Start with email to prepare your referral code.",
-    feedDescription: "Review all public content and reporter identity.",
-    feedLabel: "View public content",
-    feedMetric: "All public",
+    feedDescription: "Review public content and reporter identity.",
+    feedLabel: "Content feed",
+    feedMetric: "Open feed",
     hubLabel: "1066FRIEND+",
     lockedMenuCaption: "Menus open after email verification.",
     menuLockedDescription: "Verify email to use referral code and wallet menus.",
@@ -380,32 +380,32 @@ function getActivationHubCopy(locale: Locale) {
     menuOpenAfterLogin: "Menus open after email",
     menuPendingDescription: "Referral, points, and wallet menus open after the 10 USDT check.",
     menuPendingTitle: "Service fee check needed",
-    menuReadyTitle: "Start here",
+    menuReadyTitle: "Next action",
     membershipDescription: "Email, wallet, and 10 USDT check status.",
     membershipLabel: "Signup status",
     nextStepTitle: "Next steps",
     networkDescription: "Review members, signup time, levels, and AI Stars from your code.",
-    networkLabel: "Manage referrals",
+    networkLabel: "Referrals",
     notReady: "Setup required",
     pending: "Payment check needed",
     pendingMessage: "Referral code and points open after the 10 USDT check.",
-    pointsDescription: "Separate referral-earned totals from the actual redeemable balance.",
-    pointsLabel: "Point rewards",
-    pointsMetricPrefix: "Earned",
+    pointsDescription: "Separate lifetime earned records from redeemable balance.",
+    pointsLabel: "Point history",
+    pointsMetricPrefix: "Lifetime earned",
     profileFirstLabel: "Profile first",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
     nextActionFooter:
-      "The recommendation changes with signup, AI Star profile, referral, and point records.",
+      "Each menu continues in a dedicated screen.",
     nextActionReasonDefault:
       "Use referrals to review members who joined with your code and the next reward flow.",
     nextActionReasonLabel: "Why this first",
     nextActionReasonNetwork:
       "You have referral members. Review signup time, level, and AI Star details first.",
     nextActionReasonPoints:
-      "You have usable points. Review redeemable balance and reward history first.",
+      "You have point records. Review redeemable balance and reward history first.",
     nextActionReasonProfile:
       "Your AI Star profile connects content creation, public feed, and referral records.",
     readyMessage: "Signup is complete. The next menu is recommended from your status.",
@@ -419,12 +419,12 @@ function getActivationHubCopy(locale: Locale) {
     stateTitleReady: "Signup complete",
     stateTitleUnavailable: "Setup required",
     studioDescription: "Review the AI Star profile and continue into content creation.",
-    studioLabel: "AI Star Studio",
+    studioLabel: "AI Star profile",
     studioProfileMetric: "Set profile",
-    studioReadyMetric: "Profile / content",
+    studioReadyMetric: "Manage profile",
     title: "Start 1066FRIEND+",
     walletDescription: "Check USDT and BNB wallet status.",
-    walletLabel: "My wallet",
+    walletLabel: "Wallet / Assets",
   };
 }
 
@@ -3125,7 +3125,7 @@ function ServiceHubCard({
           ) : null}
           <span
             className={cn(
-              "max-w-[92px] shrink-0 truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[120px] sm:px-2.5 sm:py-1 sm:text-xs",
+              "max-w-[138px] shrink-0 truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[180px] sm:px-2.5 sm:py-1 sm:text-xs",
               featured ? "bg-white/10 text-white/72" : "bg-zinc-100 text-zinc-600",
             )}
           >
