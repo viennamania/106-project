@@ -17,7 +17,6 @@ import {
   AnimatedNumber,
   ScrollReveal,
 } from "@/components/fanletter-home-motion";
-import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import type {
   FanletterFeaturedVideo,
   FanletterLiveStats,
@@ -1169,7 +1168,6 @@ function FanletterProductHomeDashboard({
 }
 
 export function FanletterHomePage({
-  agentRankSnapshot,
   agentRankTrackingStarId,
   coverageAction,
   featuredVideos,
@@ -1183,7 +1181,6 @@ export function FanletterHomePage({
   referralCode,
   shareContext,
 }: {
-  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   agentRankTrackingStarId?: string | null;
   coverageAction?: string | null;
   featuredVideos: FanletterFeaturedVideo[];

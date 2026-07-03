@@ -6,7 +6,6 @@ import {
   normalizeAgentRankCoverageAction,
   readFirstSearchParam,
 } from "@/lib/agentrank/coverage-action";
-import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   buildFanletterOgImagePath,
   buildFanletterOgVersionToken,
@@ -262,20 +261,12 @@ export default async function FanletterStarLandingPage({
   const memberSession = await readMemberServerSession();
 
   if (star) {
-    const [liveViewerScoutShareLoop, agentRankSnapshot, memberPortfolio] =
+    const [liveViewerScoutShareLoop, memberPortfolio] =
       await Promise.all([
         getFanletterFounderClubStarScoutShareLoop({
           email: memberSession?.email ?? null,
           locale: lang,
           starId: star.id,
-        }),
-        getFanletterAgentRankInvestorSnapshot({
-          limit: 80,
-          starId: star.id,
-        }).catch((error) => {
-          console.error("Failed to load AIAVpark star AgentRank snapshot", error);
-
-          return null;
         }),
         getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
       ]);
@@ -291,7 +282,6 @@ export default async function FanletterStarLandingPage({
 
     return (
       <FanletterStarDetailPage
-        agentRankSnapshot={agentRankSnapshot}
         coverageAction={
           coverageAction
             ? {

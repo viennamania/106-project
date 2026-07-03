@@ -7,7 +7,6 @@ import {
   type FanletterHomeShareContext,
 } from "@/components/fanletter-home-page";
 import { FanletterHomeStructuredData } from "@/components/fanletter-home-structured-data";
-import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubHomeStars,
@@ -209,7 +208,6 @@ export default async function FanletterRoutePage({
     founderClubMemberPortfolio,
     founderClubScoutShareLoop,
     founderClubCreatorUnlock,
-    agentRankSnapshot,
   ] = await Promise.all([
     safeLoadFanletterHomeData(
       "landing data",
@@ -246,11 +244,6 @@ export default async function FanletterRoutePage({
     safeLoadFanletterHomeData(
       "creator unlock",
       getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
-      null,
-    ),
-    safeLoadFanletterHomeData(
-      "AgentRank snapshot",
-      getFanletterAgentRankInvestorSnapshot({ limit: 80 }),
       null,
     ),
   ]);
@@ -306,7 +299,6 @@ export default async function FanletterRoutePage({
     <>
       <FanletterHomeStructuredData locale={locale} />
       <FanletterHomePage
-        agentRankSnapshot={agentRankSnapshot}
         featuredVideos={landingData.featuredVideos}
         founderClubCreatorUnlock={founderClubCreatorUnlock}
         founderClubMemberPortfolio={founderClubMemberPortfolio}

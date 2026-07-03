@@ -36,7 +36,6 @@ import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral
 import { getFanletterPublicRoleLabel } from "@/lib/fanletter-public-role";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
-import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import type { FunnelEventMetadata } from "@/lib/funnel";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
@@ -47,7 +46,6 @@ import {
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
-  getFanletterV2LocalizedText,
   type AIStar,
   type MemberPortfolio as MemberPortfolioData,
   type ScoutShareLoopData,
@@ -1355,7 +1353,6 @@ function HumanFounderSlots({
 }
 
 export function FanletterStarDetailPage({
-  agentRankSnapshot,
   coverageAction = null,
   founderJoinCompleted = false,
   isAuthenticated = false,
@@ -1365,7 +1362,6 @@ export function FanletterStarDetailPage({
   star,
   viewerScoutShareLoop,
 }: {
-  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   coverageAction?: AgentRankCoverageActionContext | null;
   founderJoinCompleted?: boolean;
   isAuthenticated?: boolean;
@@ -1481,17 +1477,17 @@ export function FanletterStarDetailPage({
           eventType: "ai_star_discovered",
           intent: "fanletter_star_detail_view",
           source: "fanletter_star_detail",
-          starId: star.id,
+          starId: displayStar.id,
         }}
         metadata={{
-          founderCount: star.founderCount,
-          growthPercent: star.growthPercent,
-          openSlots: star.openSlots.open,
+          founderCount: displayStar.founderCount,
+          growthPercent: displayStar.growthPercent,
+          openSlots: displayStar.openSlots.open,
           page: "fanletter_star_detail",
           coverageAction: coverageAction?.action ?? null,
           coverageActionStarId: coverageAction?.starId ?? null,
-          starName: star.name,
-          starScore: star.starScore,
+          starName: displayStar.name,
+          starScore: displayStar.starScore,
           viewerState,
         }}
         referralCode={referralCode}
@@ -1583,21 +1579,21 @@ export function FanletterStarDetailPage({
               <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-2">
                 <MetricTile
                   label={copy.labels.growth}
-                  value={`+${star.growthPercent}%`}
+                  value={`+${displayStar.growthPercent}%`}
                 />
                 <MetricTile
                   label={copy.labels.openSlots}
                   value={`${formatNumber(
-                    star.openSlots.open,
+                    displayStar.openSlots.open,
                     locale,
-                  )}/${formatNumber(star.openSlots.total, locale)}`}
+                  )}/${formatNumber(displayStar.openSlots.total, locale)}`}
                 />
               </div>
 
             </div>
 
             <div className="hidden lg:block">
-              <AIStarCard copy={copy} isSelected locale={locale} star={star} />
+              <AIStarCard copy={copy} isSelected locale={locale} star={displayStar} />
             </div>
           </div>
 
@@ -1608,7 +1604,7 @@ export function FanletterStarDetailPage({
             memberPortfolio={memberPortfolio}
             primaryAction={primaryAction}
             social={starSocialAccount}
-            star={star}
+            star={displayStar}
             viewerState={viewerState}
           />
 
@@ -1657,7 +1653,7 @@ export function FanletterStarDetailPage({
             primaryActionVariant={primaryAction.variant}
             starId={star.id}
           />
-          <HumanFounderSlots copy={copy} star={star} />
+          <HumanFounderSlots copy={copy} star={displayStar} />
         </div>
 
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
