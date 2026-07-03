@@ -1112,7 +1112,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       memberMissing: "회원 조직도 데이터를 찾을 수 없습니다.",
       paymentRequired:
         "회원가입 완료 후에만 내 코드 가입 회원 페이지를 확인할 수 있습니다.",
-      searchPlaceholder: "이메일, 추천 코드, 지갑 주소로 검색",
+      searchPlaceholder: "이메일, AI 스타, 추천 코드, 지갑 주소 검색",
       selectionHint:
         "회원을 선택하면 단계, 가입 시각, 포인트, AI 스타 정보를 바로 확인할 수 있습니다.",
       leaderboardDescription:
@@ -1120,7 +1120,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       treeDescription:
         "조직도를 단계별로 탐색하면서 각 회원의 포인트, 포인트 등급, 카드 상태를 함께 확인합니다.",
       labels: {
-        currentMember: "보고 있는 회원",
+        currentMember: "선택한 회원",
         descendants: "전체 하위",
         directChildren: "직접 하위",
         directMembers: "직접 가입 회원",
