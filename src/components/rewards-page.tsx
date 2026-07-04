@@ -702,7 +702,7 @@ export function RewardsPage({
           </MessageCard>
         ) : (
           <>
-            <section className="grid gap-3 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+            <section className="grid gap-3 sm:gap-5 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
               <section className="relative overflow-hidden rounded-[26px] border border-zinc-900 bg-zinc-950 p-4 text-white shadow-[0_28px_80px_rgba(24,24,27,0.24)] sm:rounded-[30px] sm:p-6">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)]" />
                 <div className="relative">
@@ -861,7 +861,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
+              <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6 lg:self-start">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
