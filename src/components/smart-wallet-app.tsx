@@ -268,6 +268,8 @@ function getActivationHubCopy(locale: Locale) {
       assetDescription: "USDT와 BNB 잔고, 받을 주소를 확인합니다.",
       assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
+      contextDetailsClosed: "보기",
+      contextDetailsOpen: "닫기",
       contextFlowItems: [
         "가입 인증",
         "지갑",
@@ -352,6 +354,8 @@ function getActivationHubCopy(locale: Locale) {
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
+    contextDetailsClosed: "View",
+    contextDetailsOpen: "Close",
     contextFlowItems: [
       "Signup",
       "Wallet",
@@ -2910,49 +2914,54 @@ function ActivationServiceHub({
                 ))}
               </div>
 
-              <div className="mt-3 rounded-[20px] border border-white/10 bg-black/25 px-3 py-3">
-                <div className="flex items-center justify-between gap-3">
+              <details className="group mt-3 rounded-[20px] border border-white/10 bg-black/25">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3 marker:content-none">
                   <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/40">
                     {copy.contextFlowLabel}
                   </p>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.62rem] font-semibold text-white/55">
-                    {copy.contextFlowBadge}
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.62rem] font-semibold text-white/55 group-open:hidden">
+                    {copy.contextDetailsClosed}
                   </span>
-                </div>
-                <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                  {contextFlowSteps.map((step, index) => (
-                    <span
-                      className={cn(
-                        "flex min-w-0 items-center gap-2 rounded-2xl border px-2.5 py-2",
-                        step.isDone
-                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
-                          : "border-white/10 bg-white/[0.06] text-white/62",
-                      )}
-                      key={step.label}
-                    >
+                  <span className="hidden rounded-full bg-white/10 px-2 py-0.5 text-[0.62rem] font-semibold text-white/55 group-open:inline-flex">
+                    {copy.contextDetailsOpen}
+                  </span>
+                </summary>
+                <div className="border-t border-white/10 px-3 pb-3 pt-2">
+                  <div className="grid gap-1.5 sm:grid-cols-2">
+                    {contextFlowSteps.map((step, index) => (
                       <span
                         className={cn(
-                          "flex size-5 shrink-0 items-center justify-center rounded-full text-[0.58rem] font-semibold",
+                          "flex min-w-0 items-center gap-2 rounded-2xl border px-2.5 py-2",
                           step.isDone
-                            ? "bg-emerald-300 text-zinc-950"
-                            : "bg-white/10 text-white/55",
+                            ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+                            : "border-white/10 bg-white/[0.06] text-white/62",
                         )}
+                        key={step.label}
                       >
-                        {step.isDone ? <Check className="size-3" /> : index + 1}
+                        <span
+                          className={cn(
+                            "flex size-5 shrink-0 items-center justify-center rounded-full text-[0.58rem] font-semibold",
+                            step.isDone
+                              ? "bg-emerald-300 text-zinc-950"
+                              : "bg-white/10 text-white/55",
+                          )}
+                        >
+                          {step.isDone ? <Check className="size-3" /> : index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[0.68rem] font-semibold">
+                          {step.label}
+                        </span>
+                        <span className="shrink-0 text-[0.58rem] font-semibold opacity-70">
+                          {step.isDone ? copy.contextFlowDone : copy.contextFlowTodo}
+                        </span>
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-[0.68rem] font-semibold">
-                        {step.label}
-                      </span>
-                      <span className="shrink-0 text-[0.58rem] font-semibold opacity-70">
-                        {step.isDone ? copy.contextFlowDone : copy.contextFlowTodo}
-                      </span>
-                    </span>
-                  ))}
+                    ))}
+                  </div>
+                  <p className="mt-2 break-keep text-[0.72rem] leading-5 text-white/45 [word-break:keep-all]">
+                    {copy.contextNote}
+                  </p>
                 </div>
-                <p className="mt-2 break-keep text-[0.72rem] leading-5 text-white/45 [word-break:keep-all]">
-                  {copy.contextNote}
-                </p>
-              </div>
+              </details>
             </div>
 
             {primaryAction ? <div className="mt-4">{primaryAction}</div> : null}
