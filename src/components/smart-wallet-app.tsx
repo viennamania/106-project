@@ -445,6 +445,7 @@ function getActivationTimelineCopy(locale: Locale) {
       pointRecord: "포인트 기록",
       referralCode: "추천 코드",
       serviceFee: "10 USDT 확인",
+      signupComplete: "가입 완료",
       title: "서비스 기록",
       walletConnected: "지갑 연결",
     };
@@ -461,6 +462,7 @@ function getActivationTimelineCopy(locale: Locale) {
     pointRecord: "Point record",
     referralCode: "Referral code",
     serviceFee: "10 USDT check",
+    signupComplete: "Signup complete",
     title: "Service record",
     walletConnected: "Wallet connected",
   };
@@ -2745,6 +2747,11 @@ function ActivationServiceHub({
       label,
     };
   });
+  const completedContextStepCount = contextFlowSteps.filter(
+    (step) => step.isDone,
+  ).length;
+  const nextContextStep =
+    contextFlowSteps.find((step) => !step.isDone)?.label ?? copy.ready;
   const actionItems = [
     {
       description: copy.networkDescription,
@@ -2912,6 +2919,51 @@ function ActivationServiceHub({
                     </div>
                   )
                 ))}
+              </div>
+
+              <div className="mt-3 rounded-[20px] border border-white/10 bg-black/25 px-3 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                      {copy.graphTitle}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white/88">
+                      {copy.nextStepTitle}: {nextContextStep}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[0.62rem] font-semibold text-white/62">
+                    {completedContextStepCount}/{contextFlowSteps.length}
+                  </span>
+                </div>
+                <div
+                  aria-label={`${copy.graphTitle} ${completedContextStepCount}/${contextFlowSteps.length}`}
+                  className="mt-3 grid grid-cols-5 gap-1.5"
+                >
+                  {contextFlowSteps.map((step, index) => (
+                    <span
+                      className="min-w-0"
+                      key={`${step.label}-${index}`}
+                      title={step.label}
+                    >
+                      <span
+                        className={cn(
+                          "block h-1.5 rounded-full transition",
+                          step.isDone
+                            ? "bg-emerald-300"
+                            : "bg-white/12",
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "mt-1 hidden truncate text-[0.58rem] font-semibold sm:block",
+                          step.isDone ? "text-emerald-100" : "text-white/35",
+                        )}
+                      >
+                        {step.label}
+                      </span>
+                    </span>
+                  ))}
+                </div>
               </div>
 
               <details className="group mt-3 rounded-[20px] border border-white/10 bg-black/25">
@@ -3800,7 +3852,7 @@ function ActivationMemberTimeline({
       detail: member.registrationCompletedAt
         ? formatDateTime(member.registrationCompletedAt, locale)
         : copy.completed,
-      label: copy.completed,
+      label: copy.signupComplete,
       state: "done" as const,
     },
     {
