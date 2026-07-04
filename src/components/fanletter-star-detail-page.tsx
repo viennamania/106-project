@@ -1657,18 +1657,25 @@ export function FanletterStarDetailPage({
         </div>
 
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-black/45">
-              {isKorean ? "이 스타의 네트워크" : "This star's network"}
-            </h2>
-            <Link
-              className="inline-flex items-center gap-1 text-sm font-semibold text-black/55 transition hover:text-black"
-              href={founderNetworkHref}
-            >
-              {isKorean ? "전체 네트워크 보기" : "View full network"}
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
+          <Link
+            className="group flex items-center justify-between gap-4 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_36px_rgba(15,23,42,0.055)] transition hover:border-zinc-300 sm:p-5"
+            href={founderNetworkHref}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-zinc-950">
+                {isKorean ? "이 스타의 네트워크" : "This star's network"}
+              </p>
+              <p className="mt-1 text-xs font-medium leading-5 text-black/55 [word-break:keep-all]">
+                {isKorean
+                  ? "계보 · 파생 AI 스타 · 크리에이터 네트워크 전체를 유니버스에서 확인하세요."
+                  : "See the genealogy, spawned AI stars, and full creator network in the universe."}
+              </p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-black/55 transition group-hover:text-black">
+              {isKorean ? "전체 보기" : "View"}
+              <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+            </span>
+          </Link>
         </div>
 
       </section>
