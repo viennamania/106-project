@@ -245,10 +245,10 @@ function getContextCopy(
       return {
         accountBody: `계정 연결이 확인되면 ${starContext.universeName}의 크리에이터 네트워크 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
         completedBody: `계정 연결이 확인되었습니다. 이제 ${starContext.universeName} 참여를 확정하고 추천 링크 생성을 이어가세요.`,
-        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} 팬 역할, 추천 코드, 기여 포인트와 활동 기록이 같은 계정에 저장됩니다.`,
+        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} 팬 역할, 추천 코드, 활동 기록이 같은 계정에 저장됩니다.`,
         helper: `${starContext.universeName}의 크리에이터 네트워크 참여 상태를 이 계정 기준으로 확인합니다.`,
         onboardingBody:
-          "참여가 확인되면 추천 코드 생성, SNS 공유, 기여 포인트와 활동 기록 흐름으로 이어집니다.",
+          "참여가 확인되면 추천 코드 생성, SNS 공유, 활동 기록 흐름으로 이어집니다.",
         onboardingCta: "참여 계속",
         onboardingTitle: `${starContext.starName} 크리에이터 네트워크`,
         paymentBody:
@@ -325,10 +325,10 @@ function getContextCopy(
     return {
       accountBody: `After account connection, your Creator Network participation in ${starContext.universeName} is saved to this account and your referral link can be created.`,
       completedBody: `Your account connection is ready. Continue participation in ${starContext.universeName} and create the referral link.`,
-      connectBody: `Connect with email so the ${starContext.starName} Fan role, referral code, Contribution Points, and activity records stay attached to one account.`,
+      connectBody: `Connect with email so the ${starContext.starName} Fan role, referral code, and activity records stay attached to one account.`,
       helper: `AIAVpark checks Creator Network participation in ${starContext.universeName} for this account.`,
       onboardingBody:
-        "Once participation is confirmed, continue into referral code creation, SNS sharing, Contribution Points, and activity records.",
+        "Once participation is confirmed, continue into referral code creation, SNS sharing, and activity records.",
       onboardingCta: "Continue join",
       onboardingTitle: `${starContext.starName} Creator Network`,
       paymentBody:
@@ -769,13 +769,13 @@ function FounderBridgeEventCard({
   const copy =
     locale === "ko"
       ? {
-          body: `${universeName}의 참여가 확정되면 추천 코드와 기여 포인트 흐름이 활동 기록으로 이어집니다.`,
+          body: `${universeName}의 참여가 확정되면 추천 코드가 활동 기록으로 이어집니다.`,
           eyebrow: "활동 기록 브릿지",
           flow: "계정 연결 → 참여 → 활동 기록",
           title: `${starName} 참여 기록 준비`,
         }
       : {
-          body: `When participation in ${universeName} is confirmed, referral code and Contribution Point activity becomes activity records.`,
+          body: `When participation in ${universeName} is confirmed, referral code activity becomes activity records.`,
           eyebrow: "Activity bridge",
           flow: "Account → join → Activity record",
           title: `${starName} participation record ready`,
