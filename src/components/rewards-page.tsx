@@ -436,6 +436,7 @@ export function RewardsPage({
     return accumulator;
   }, {});
   const rewardsActionCopy = getRewardsActionCopy(locale);
+  const rewardHeroCopy = getRewardsHeroCopy(locale);
   const nextRedeemableReward = state.catalog.find((reward) => {
     if (state.summary.spendablePoints < reward.costPoints) {
       return false;
@@ -712,8 +713,7 @@ export function RewardsPage({
                     </InfoBadge>
                     {state.summary.nextTier ? (
                       <InfoBadge className="border-emerald-300/20 bg-emerald-300/12 text-emerald-100">
-                        {pointContextCopy.nextTierLabel} ·{" "}
-                        {nextTierStatusLabel}
+                        {rewardHeroCopy.tierGoalPrefix} · {nextTierStatusLabel}
                       </InfoBadge>
                     ) : (
                       <InfoBadge className="border-amber-300/24 bg-amber-300/14 text-amber-100">
@@ -722,91 +722,45 @@ export function RewardsPage({
                     )}
                   </div>
 
-                  <div className="mt-5 space-y-1.5 sm:mt-8 sm:space-y-2">
-                    <p className="text-[0.68rem] uppercase tracking-[0.2em] text-white/55 sm:text-sm sm:tracking-[0.26em]">
-                      {dictionary.rewardsPage.labels.spendablePoints}
-                    </p>
-                    <AnimatedNumberText
-                      className="text-3xl font-semibold tracking-tight sm:text-5xl"
-                      locale={locale}
-                      value={formatPoints(state.summary.spendablePoints, locale)}
-                    />
-                    <p className="max-w-md break-keep text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
-                      {pointContextCopy.spendableHeroCaption}
-                    </p>
+                  <div className="mt-5 grid gap-4 sm:mt-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <p className="text-[0.68rem] uppercase tracking-[0.2em] text-white/55 sm:text-sm sm:tracking-[0.26em]">
+                        {dictionary.rewardsPage.labels.spendablePoints}
+                      </p>
+                      <AnimatedNumberText
+                        className="text-4xl font-semibold tracking-tight sm:text-5xl"
+                        locale={locale}
+                        value={formatPoints(state.summary.spendablePoints, locale)}
+                      />
+                      <p className="max-w-md break-keep text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
+                        {rewardHeroCopy.spendableCaption}
+                      </p>
+                    </div>
+
+                    <div className="rounded-[22px] border border-white/12 bg-white/[0.08] p-3.5">
+                      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/55">
+                        {rewardHeroCopy.nextRewardLabel}
+                      </p>
+                      <p className="mt-1.5 break-keep text-base font-semibold leading-6 text-white">
+                        {nextRewardTitle ?? rewardHeroCopy.noNextReward}
+                      </p>
+                      <p className="mt-1 break-keep text-xs leading-5 text-white/52">
+                        {rewardPrimaryAction}
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="mt-4 hidden max-w-2xl text-sm leading-6 text-white/72 sm:block">
-                    {dictionary.rewardsPage.previewNote}
-                  </p>
-
-                  <div className="mt-4 rounded-[20px] border border-white/12 bg-white/[0.07] px-3 py-3 sm:mt-5 sm:px-4">
-                    <p className="text-sm font-semibold text-white">
-                      {pointContextCopy.definitionTitle}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
-                      {pointContextCopy.definitionBody}
-                    </p>
-                  </div>
-
-                  <PointContextFlow
-                    items={pointContextCopy.flowItems}
-                    title={pointContextCopy.flowTitle}
-                  />
-
-                  <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
-                    <PointContextCard
-                      hint={pointContextCopy.spendableHint}
-                      label={pointContextCopy.spendableLabel}
-                      tone="primary"
-                      value={formatPoints(state.summary.spendablePoints, locale)}
-                    />
-                    <PointContextCard
-                      hint={pointContextCopy.lifetimeHint}
-                      label={pointContextCopy.lifetimeLabel}
-                      tone="neutral"
-                      value={formatPoints(state.summary.lifetimePoints, locale)}
-                    />
-                    <PointContextCard
-                      hint={
-                        nextTierName
-                          ? pointContextCopy.nextTierHint
-                          : pointContextCopy.maxTierHint
-                      }
-                      label={
-                        nextTierName
-                          ? pointContextCopy.nextTierLabel
-                          : pointContextCopy.currentTierLabel
-                      }
-                      tone="progress"
-                      value={nextTierStatusLabel}
-                    />
-                  </div>
-
-                  <RewardActionRail
-                    copy={rewardsActionCopy}
-                    primaryAction={rewardPrimaryAction}
-                  />
-
-                  <p className="mt-4 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-white/55 sm:text-xs">
-                    {pointContextCopy.sourceBreakdownLabel}
-                  </p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-3">
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.referralRewardPoints}
-                      value={formatPoints(
-                        state.summary.sourceTotals.referralRewardPoints,
-                        locale,
-                      )}
-                    />
-                    <MiniStat
-                      label={dictionary.rewardsPage.labels.contentActivityPoints}
-                      value={formatPoints(
-                        state.summary.sourceTotals.contentActivityPoints,
-                        locale,
-                      )}
-                    />
-                  </div>
+                  <a
+                    className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-zinc-950 shadow-[0_18px_45px_rgba(255,255,255,0.08)] transition hover:bg-zinc-100 sm:w-auto"
+                    href="#reward-catalog"
+                  >
+                    <Gift className="size-4" />
+                    {nextRedeemableReward
+                      ? rewardHeroCopy.primaryCtaReady
+                      : nearestLockedReward
+                        ? rewardHeroCopy.primaryCtaLocked
+                        : rewardHeroCopy.primaryCtaHistory}
+                  </a>
 
                   <div className="mt-5 rounded-[20px] border border-white/12 bg-white/10 px-3 py-3 sm:mt-6 sm:rounded-[24px] sm:px-4 sm:py-4">
                     <div className="flex items-center justify-between gap-3">
@@ -827,6 +781,83 @@ export function RewardsPage({
                       {pointContextCopy.progressCaption}
                     </p>
                   </div>
+
+                  <details className="group mt-4 rounded-[22px] border border-white/12 bg-white/[0.06]">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-3 text-sm font-semibold text-white marker:content-none sm:px-4">
+                      <span>{rewardHeroCopy.detailsLabel}</span>
+                      <span className="text-xs font-medium text-white/45 group-open:hidden">
+                        {rewardHeroCopy.detailsClosed}
+                      </span>
+                      <span className="hidden text-xs font-medium text-white/45 group-open:inline">
+                        {rewardHeroCopy.detailsOpen}
+                      </span>
+                    </summary>
+
+                    <div className="border-t border-white/10 px-3.5 pb-4 pt-3 sm:px-4">
+                      <div className="rounded-[18px] border border-white/12 bg-white/[0.07] px-3 py-3">
+                        <p className="text-sm font-semibold text-white">
+                          {pointContextCopy.definitionTitle}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-white/62 sm:text-sm sm:leading-6">
+                          {pointContextCopy.definitionBody}
+                        </p>
+                      </div>
+
+                      <PointContextFlow
+                        items={pointContextCopy.flowItems}
+                        title={pointContextCopy.flowTitle}
+                      />
+
+                      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                        <PointContextCard
+                          hint={pointContextCopy.spendableHint}
+                          label={pointContextCopy.spendableLabel}
+                          tone="primary"
+                          value={formatPoints(state.summary.spendablePoints, locale)}
+                        />
+                        <PointContextCard
+                          hint={pointContextCopy.lifetimeHint}
+                          label={pointContextCopy.lifetimeLabel}
+                          tone="neutral"
+                          value={formatPoints(state.summary.lifetimePoints, locale)}
+                        />
+                        <PointContextCard
+                          hint={
+                            nextTierName
+                              ? pointContextCopy.nextTierHint
+                              : pointContextCopy.maxTierHint
+                          }
+                          label={
+                            nextTierName
+                              ? pointContextCopy.nextTierLabel
+                              : pointContextCopy.currentTierLabel
+                          }
+                          tone="progress"
+                          value={nextTierStatusLabel}
+                        />
+                      </div>
+
+                      <p className="mt-4 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-white/55 sm:text-xs">
+                        {pointContextCopy.sourceBreakdownLabel}
+                      </p>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2 sm:gap-3">
+                        <MiniStat
+                          label={dictionary.rewardsPage.labels.referralRewardPoints}
+                          value={formatPoints(
+                            state.summary.sourceTotals.referralRewardPoints,
+                            locale,
+                          )}
+                        />
+                        <MiniStat
+                          label={dictionary.rewardsPage.labels.contentActivityPoints}
+                          value={formatPoints(
+                            state.summary.sourceTotals.contentActivityPoints,
+                            locale,
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </section>
 
@@ -894,7 +925,10 @@ export function RewardsPage({
               </section>
             </section>
 
-            <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6">
+            <section
+              className="scroll-mt-24 rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[30px] sm:p-6"
+              id="reward-catalog"
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1.5">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
@@ -1380,50 +1414,6 @@ function DialogMetric({ label, value }: { label: string; value: string }) {
         {label}
       </p>
       <p className="mt-1.5 truncate text-sm font-semibold text-slate-950">{value}</p>
-    </div>
-  );
-}
-
-function RewardActionRail({
-  copy,
-  primaryAction,
-}: {
-  copy: ReturnType<typeof getRewardsActionCopy>;
-  primaryAction: string;
-}) {
-  return (
-    <div className="mt-4 rounded-[22px] border border-white/12 bg-white/[0.08] p-3 sm:mt-5 sm:rounded-[24px] sm:p-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/55 sm:text-xs sm:tracking-[0.24em]">
-            {copy.nextActionLabel}
-          </p>
-          <p className="mt-1 break-keep text-sm font-semibold leading-5 text-white sm:text-base">
-            {primaryAction}
-          </p>
-        </div>
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/14 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/82">
-          <Sparkles className="size-3.5" />
-          {copy.recordLabel}
-        </span>
-      </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        {copy.steps.map((step, index) => (
-          <div
-            className="min-w-0 rounded-2xl border border-white/10 bg-black/16 px-3 py-2.5"
-            key={step}
-          >
-            <div className="flex items-center gap-2">
-              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[0.62rem] font-semibold text-slate-950">
-                {index + 1}
-              </span>
-              <span className="min-w-0 truncate text-xs font-medium text-white/78">
-                {step}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -2675,6 +2665,69 @@ function getRewardPointContextCopy(locale: Locale) {
       "This is the actual balance available for rewards. Tier-basis lifetime points are tracked separately.",
     spendableHint: "Reward redemption spend basis",
     spendableLabel: "Redeemable balance",
+  };
+}
+
+function getRewardsHeroCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      detailsClosed: "열기",
+      detailsLabel: "포인트 기준 보기",
+      detailsOpen: "닫기",
+      nextRewardLabel: "지금 할 일",
+      noNextReward: "교환 이력을 확인하세요",
+      primaryCtaHistory: "교환 이력 보기",
+      primaryCtaLocked: "리워드 조건 확인하기",
+      primaryCtaReady: "리워드 선택하기",
+      spendableCaption:
+        "지금 바로 사용할 수 있는 포인트입니다. 다음 행동은 아래 리워드에서 선택하세요.",
+      tierGoalPrefix: "등급 기준",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      detailsClosed: "開く",
+      detailsLabel: "ポイント基準を見る",
+      detailsOpen: "閉じる",
+      nextRewardLabel: "今やること",
+      noNextReward: "交換履歴を確認してください",
+      primaryCtaHistory: "交換履歴を見る",
+      primaryCtaLocked: "リワード条件を見る",
+      primaryCtaReady: "交換可能なリワードを見る",
+      spendableCaption:
+        "今すぐ使えるポイントです。次のアクションは下のリワードから選んでください。",
+      tierGoalPrefix: "ランク基準",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      detailsClosed: "展开",
+      detailsLabel: "查看积分规则",
+      detailsOpen: "收起",
+      nextRewardLabel: "现在可做",
+      noNextReward: "查看兑换记录",
+      primaryCtaHistory: "查看兑换记录",
+      primaryCtaLocked: "查看奖励条件",
+      primaryCtaReady: "查看可兑换奖励",
+      spendableCaption: "这是现在可直接使用的积分。请在下方奖励中选择下一步。",
+      tierGoalPrefix: "等级基准",
+    };
+  }
+
+  return {
+    detailsClosed: "Open",
+    detailsLabel: "View point rules",
+    detailsOpen: "Close",
+    nextRewardLabel: "Next redemption",
+    noNextReward: "Review redemption history",
+    primaryCtaHistory: "View redemption history",
+    primaryCtaLocked: "View reward requirements",
+    primaryCtaReady: "View available rewards",
+    spendableCaption:
+      "These points are ready to use now. Choose the next reward action below.",
+    tierGoalPrefix: "Tier basis",
   };
 }
 
