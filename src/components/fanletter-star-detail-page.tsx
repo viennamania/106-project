@@ -1562,19 +1562,25 @@ export function FanletterStarDetailPage({
                 starName={displayStarName}
               />
 
-              <FanletterAIStarSocialAccountCard
-                className="mt-4 hidden max-w-2xl sm:block lg:mx-0"
-                connectHref={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
-                  star.id,
-                )}`}
-                locale={locale}
-                social={starSocialAccount}
-                source="fanletter_star_detail"
-                starId={star.id}
-                starName={displayStarName}
-                starPortraitImageUrl={star.portraitImageUrl}
-                starPortraitInitials={star.portraitInitials}
-              />
+              {memberPortfolio?.ownedStars?.some(
+                (item) => item.id === star.id,
+              ) ? (
+                // Connecting the star's TikTok channel is a CREATOR/OWNER
+                // action — only show it to the star owner, not to fans/guests.
+                <FanletterAIStarSocialAccountCard
+                  className="mt-4 hidden max-w-2xl sm:block lg:mx-0"
+                  connectHref={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
+                    star.id,
+                  )}`}
+                  locale={locale}
+                  social={starSocialAccount}
+                  source="fanletter_star_detail"
+                  starId={star.id}
+                  starName={displayStarName}
+                  starPortraitImageUrl={star.portraitImageUrl}
+                  starPortraitInitials={star.portraitInitials}
+                />
+              ) : null}
 
               <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-2">
                 <MetricTile
