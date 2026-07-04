@@ -872,9 +872,14 @@ export function FanletterConnectPage({
   const isReturnToOnboarding = returnTarget.kind === "onboarding";
   const isFounderBridge = isReturnToOnboarding && Boolean(starContext);
   const backLabel = returnTarget.backLabel;
-  const onboardingHref = isReturnToOnboarding
+  const onboardingHrefBase = isReturnToOnboarding
     ? returnToHref
     : setPathSearchParams(onboardingBaseHref, { returnTo: returnToHref });
+  // Keep the star context on "참여 계속" so it continues THIS star's join
+  // instead of dropping into the star-agnostic onboarding checklist.
+  const onboardingHref = trackedStarId
+    ? setPathSearchParams(onboardingHrefBase, { star: trackedStarId })
+    : onboardingHrefBase;
   const postConnectHref = isReturnToOnboarding ? onboardingHref : returnToHref;
   const createHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),

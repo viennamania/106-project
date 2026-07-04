@@ -6077,12 +6077,14 @@ export function FanletterFeedPage({
       ? `"${filters.query}"에 맞는 브이로그가 없습니다. 검색어를 지우거나 다른 캐릭터명, 제목, 장면으로 다시 찾아보세요.`
       : `No vlogs match "${filters.query}". Clear the search or try another character, title, or scene.`
     : copy.feed.empty;
-  const emptyFeedActionHref = hasSearchQuery ? resetFeedHref : startHref;
+  const emptyFeedActionHref = hasSearchQuery ? resetFeedHref : charactersHref;
   const emptyFeedActionLabel = hasSearchQuery
     ? locale === "ko"
       ? "전체 브이로그 보기"
       : "View all vlogs"
-    : copy.actions.start;
+    : locale === "ko"
+      ? "AI 스타 발견하기"
+      : "Discover AI Stars";
   const allContentSectionLabel =
     remainingItems.length > 0 && highlightedContentIds.size > 0
       ? locale === "ko"
@@ -7276,12 +7278,13 @@ export function FanletterCreatorPage({
   const fanRequestsFormId = `${fanRequestsSectionId}-form`;
   const fanRequestsSectionHref = `${channelHref}#${fanRequestsSectionId}`;
   const fanRequestsFormHref = `${channelHref}#${fanRequestsFormId}`;
-  const followHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/onboarding`, effectiveReferralCode),
-    {
-      returnTo: channelHref,
-    },
-  );
+  // Send the fan-join gate to the star's universe (where the join is
+  // contextualized) instead of jumping straight into the star-agnostic
+  // onboarding funnel — mirrors the /channel page fix.
+  const followHref = `${buildPathWithReferral(
+    `/${locale}/fanletter/${data.profile.referralCode}`,
+    effectiveReferralCode,
+  )}#star-next-action`;
   const fanOnlyHref = `${channelHref}#fan-only`;
   const ownerStudioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
