@@ -1874,19 +1874,145 @@ function SelectedMemberBottomSheet({
         </div>
 
         <div className="max-h-[calc(88vh-104px)] overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-4">
-          <SelectedMemberCard
-            className="mt-0"
+          <SelectedMemberMobileSummary
             dictionary={dictionary}
             locale={locale}
             member={member}
             networkReturnHref={networkReturnHref}
-            onApplyServiceStatus={onApplyServiceStatus}
-            onChangeServiceScope={onChangeServiceScope}
-            serviceCopy={serviceCopy}
-            serviceScope={serviceScope}
-            serviceStatusUpdate={serviceStatusUpdate}
+          />
+          <details className="group mt-3 rounded-[24px] border border-slate-200 bg-slate-50/88 p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)]">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  {copy.moreEyebrow}
+                </p>
+                <p className="mt-1 text-base font-semibold text-slate-950">
+                  {copy.moreTitle}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  {copy.moreDescription}
+                </p>
+              </div>
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition group-open:rotate-90">
+                <ChevronRight className="size-4" />
+              </span>
+            </summary>
+            <SelectedMemberCard
+              className="mt-3"
+              dictionary={dictionary}
+              locale={locale}
+              member={member}
+              networkReturnHref={networkReturnHref}
+              onApplyServiceStatus={onApplyServiceStatus}
+              onChangeServiceScope={onChangeServiceScope}
+              serviceCopy={serviceCopy}
+              serviceScope={serviceScope}
+              serviceStatusUpdate={serviceStatusUpdate}
+            />
+          </details>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SelectedMemberMobileSummary({
+  dictionary,
+  locale,
+  member,
+  networkReturnHref,
+}: {
+  dictionary: Dictionary;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+  networkReturnHref: string;
+}) {
+  const isServiceSuspended = Boolean(member.serviceSuspendedAt);
+  const serviceCopy = getServiceManagementCopy(locale);
+  const summaryCopy = getSelectedMemberSummaryCopy(locale);
+  const aiStarStatus = member.ownedAIStar
+    ? `${member.ownedAIStar.name} · ${getAIStarStatusLabel(member.ownedAIStar.status, locale)}`
+    : summaryCopy.aiStarPending;
+  const networkPosition =
+    locale === "ko"
+      ? `${member.depth}단계 · 직접 ${formatInteger(member.directReferralCount, locale)}명 · 전체 ${formatInteger(member.totalReferralCount, locale)}명`
+      : `Level ${formatInteger(member.depth, locale)} · ${formatInteger(member.directReferralCount, locale)} direct · ${formatInteger(member.totalReferralCount, locale)} network`;
+
+  return (
+    <div className="space-y-3">
+      <section className="rounded-[26px] border border-slate-900 bg-slate-950 p-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/48">
+              {summaryCopy.relationshipEyebrow}
+            </p>
+            <p className="mt-2 break-words text-base font-semibold leading-6 text-white">
+              {networkPosition}
+            </p>
+          </div>
+          {member.membershipCardTier !== "none" ? (
+            <MembershipCardBadge
+              active
+              dictionary={dictionary}
+              membershipCardTier={member.membershipCardTier}
+            />
+          ) : null}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <DarkMetric
+            label={dictionary.activateNetworkPage.labels.spendablePoints}
+            locale={locale}
+            value={`${formatInteger(member.spendablePoints, locale)}P`}
+          />
+          <DarkMetric
+            label={dictionary.activateNetworkPage.labels.lifetimePoints}
+            locale={locale}
+            value={`${formatInteger(member.lifetimePoints, locale)}P`}
           />
         </div>
+
+        <div className="mt-3 rounded-[20px] border border-white/10 bg-white/8 px-3 py-2.5">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/42">
+            {summaryCopy.aiStarLabel}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-white" title={aiStarStatus}>
+            {aiStarStatus}
+          </p>
+        </div>
+      </section>
+
+      <SelectedMemberAIStarCard
+        locale={locale}
+        member={member}
+        networkReturnHref={networkReturnHref}
+      />
+
+      <section className="grid grid-cols-2 gap-2">
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.memberStatus}
+          value={
+            member.status === "completed"
+              ? dictionary.member.completedValue
+              : dictionary.member.pendingValue
+          }
+        />
+        <InfoCard
+          label={serviceCopy.statusLabel}
+          value={
+            isServiceSuspended
+              ? serviceCopy.suspendedValue
+              : serviceCopy.activeValue
+          }
+        />
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.joinedAt}
+          value={formatDateTime(member.registrationCompletedAt, locale)}
+        />
+        <InfoCard
+          label={dictionary.activateNetworkPage.labels.lastConnectedAt}
+          value={formatDateTime(member.lastConnectedAt, locale)}
+        />
       </section>
     </div>
   );
@@ -3584,6 +3710,10 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       aiStarPending: "AI 스타 대기",
       aiStarReady: "AI 스타 있음",
       eyebrow: "선택한 회원",
+      moreDescription:
+        "지갑 주소, 추천 코드, 서비스 상태 변경은 필요할 때만 펼쳐서 확인합니다.",
+      moreEyebrow: "운영 상세",
+      moreTitle: "지갑·추천·서비스 관리",
       sheetTitle: "회원 상태",
     };
   }
@@ -3594,6 +3724,10 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       aiStarPending: "AIスター待ち",
       aiStarReady: "AIスターあり",
       eyebrow: "選択したメンバー",
+      moreDescription:
+        "ウォレット、紹介コード、サービス状態の変更は必要な時だけ開いて確認します。",
+      moreEyebrow: "運用詳細",
+      moreTitle: "ウォレット・紹介・サービス管理",
       sheetTitle: "メンバー状態",
     };
   }
@@ -3604,6 +3738,9 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       aiStarPending: "AI Star 待生成",
       aiStarReady: "已有 AI Star",
       eyebrow: "已选会员",
+      moreDescription: "钱包、推荐码和服务状态变更仅在需要时展开查看。",
+      moreEyebrow: "运营详情",
+      moreTitle: "钱包、推荐和服务管理",
       sheetTitle: "会员状态",
     };
   }
@@ -3614,6 +3751,10 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       aiStarPending: "AI Star đang chờ",
       aiStarReady: "Có AI Star",
       eyebrow: "Thành viên đã chọn",
+      moreDescription:
+        "Chỉ mở khi cần kiểm tra ví, mã giới thiệu và thay đổi trạng thái dịch vụ.",
+      moreEyebrow: "Chi tiết vận hành",
+      moreTitle: "Quản lý ví, giới thiệu và dịch vụ",
       sheetTitle: "Trạng thái thành viên",
     };
   }
@@ -3624,6 +3765,10 @@ function getMobileSelectedMemberCopy(locale: Locale) {
       aiStarPending: "AI Star menunggu",
       aiStarReady: "Ada AI Star",
       eyebrow: "Member terpilih",
+      moreDescription:
+        "Buka hanya saat perlu memeriksa wallet, kode referral, dan status layanan.",
+      moreEyebrow: "Detail operasional",
+      moreTitle: "Kelola wallet, referral, dan layanan",
       sheetTitle: "Status member",
     };
   }
@@ -3633,6 +3778,10 @@ function getMobileSelectedMemberCopy(locale: Locale) {
     aiStarPending: "AI Star pending",
     aiStarReady: "AI Star ready",
     eyebrow: "Selected member",
+    moreDescription:
+      "Open only when you need wallet, referral code, or service status controls.",
+    moreEyebrow: "Operations detail",
+    moreTitle: "Wallet, referral, and service",
     sheetTitle: "Member status",
   };
 }
