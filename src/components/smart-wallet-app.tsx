@@ -3007,6 +3007,7 @@ function ActivationServiceHub({
                   {secondaryMenuItems.map((item, index) => (
                     <ServiceHubMiniCard
                       badgeLabel={item.badge}
+                      description={item.description}
                       href={item.href}
                       icon={item.icon}
                       index={index + 2}
@@ -3113,41 +3114,46 @@ function ServiceHubCard({
         </span>
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center justify-between gap-2">
-          <span
-            className={cn(
-              "truncate text-sm font-semibold tracking-tight sm:text-base",
-              featured ? "text-white" : "text-zinc-950",
-            )}
-          >
-            {title}
-          </span>
-          {badgeLabel ? (
+        <span className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
+          <span className="min-w-0">
             <span
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
-                featured ? "bg-white text-zinc-950" : "bg-zinc-950 text-white",
+                "block truncate text-sm font-semibold tracking-tight sm:text-base",
+                featured ? "text-white" : "text-zinc-950",
               )}
             >
-              {badgeLabel}
+              {title}
             </span>
-          ) : null}
-          <span
-            className={cn(
-              "max-w-[138px] shrink-0 truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[180px] sm:px-2.5 sm:py-1 sm:text-xs",
-              featured ? "bg-white/10 text-white/72" : "bg-zinc-100 text-zinc-600",
-            )}
-          >
-            {metric}
+            <span
+              className={cn(
+                "mt-0.5 line-clamp-2 text-[0.72rem] leading-5 sm:text-xs",
+                featured ? "text-white/58" : "text-zinc-500",
+              )}
+            >
+              {description}
+            </span>
           </span>
-        </span>
-        <span
-          className={cn(
-            "mt-0.5 line-clamp-1 text-[0.72rem] leading-5 sm:text-xs",
-            featured ? "text-white/58" : "text-zinc-500",
-          )}
-        >
-          {description}
+          <span className="flex min-w-0 flex-wrap items-center gap-1.5 sm:justify-end">
+            {badgeLabel ? (
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                  featured ? "bg-white text-zinc-950" : "bg-zinc-950 text-white",
+                )}
+              >
+                {badgeLabel}
+              </span>
+            ) : null}
+            <span
+              className={cn(
+                "max-w-full truncate rounded-full px-2 py-0.5 text-[0.7rem] font-semibold sm:max-w-[180px] sm:px-2.5 sm:py-1 sm:text-xs",
+                featured ? "bg-white/10 text-white/72" : "bg-zinc-100 text-zinc-600",
+              )}
+              title={metric}
+            >
+              {metric}
+            </span>
+          </span>
         </span>
         {featured && reason ? (
           <span className="mt-2 block rounded-2xl border border-white/10 bg-white/[0.08] px-3 py-2">
@@ -3179,6 +3185,7 @@ function ServiceHubCard({
 
 function ServiceHubMiniCard({
   badgeLabel,
+  description,
   href,
   icon,
   index,
@@ -3186,6 +3193,7 @@ function ServiceHubMiniCard({
   title,
 }: {
   badgeLabel?: string;
+  description: string;
   href: string;
   icon: "feed" | "network" | "points" | "studio" | "wallet";
   index: number;
@@ -3226,8 +3234,11 @@ function ServiceHubMiniCard({
               </span>
             ) : null}
           </span>
-          <span className="mt-1 block max-w-full truncate text-[0.72rem] font-semibold text-zinc-500">
-            {metric}
+          <span className="mt-1 line-clamp-2 text-[0.7rem] leading-4 text-zinc-500">
+            {description}
+          </span>
+          <span className="mt-2 inline-flex max-w-full rounded-full bg-zinc-100 px-2 py-0.5 text-[0.66rem] font-semibold text-zinc-600">
+            <span className="truncate">{metric}</span>
           </span>
         </span>
         <ArrowUpRight className="mt-1 size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
