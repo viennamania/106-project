@@ -12,12 +12,8 @@ import {
 import { FanletterPrimaryHeader } from "@/components/fanletter-primary-header";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { FanletterCreatorPageData } from "@/lib/fanletter-content-service";
-import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import type { Locale } from "@/lib/i18n";
-import {
-  buildPathWithReferral,
-  setPathSearchParams,
-} from "@/lib/landing-branding";
+import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterAIStarChannelPageProps = {
   data: FanletterCreatorPageData;
@@ -86,13 +82,6 @@ export function FanletterAIStarChannelPage({
     `/${locale}/fanletter/${profile.referralCode}`,
     effectiveReferralCode,
   );
-  // Resolve the creator referral code to the canonical star id so "참여"
-  // opens the star-aware fan-join onboarding instead of generic creator setup.
-  const founderHref = setPathSearchParams(`/${locale}/fanletter/onboarding`, {
-    ref: effectiveReferralCode,
-    returnTo: `/${locale}/fanletter/channel/${profile.referralCode}`,
-    star: getLegacyFanletterStarId(profile.referralCode),
-  });
   const metrics = [
     {
       Icon: Clapperboard,
@@ -242,7 +231,7 @@ export function FanletterAIStarChannelPage({
             </FanletterTrackedLink>
             <Link
               className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-100"
-              href={founderHref}
+              href={`${universeHref}#star-next-action`}
             >
               {copy.founder}
             </Link>
