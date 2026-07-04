@@ -196,7 +196,7 @@ function buildShareLink({
 }) {
   const url = new URL(
     `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
-    "https://www.net402.ai",
+    process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://www.net402.ai",
   );
   url.searchParams.set("ref", referralCode);
 
