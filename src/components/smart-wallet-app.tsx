@@ -307,9 +307,9 @@ function getActivationHubCopy(locale: Locale) {
       notReady: "설정 필요",
       pending: "결제 확인 필요",
       pendingMessage: "10 USDT 확인 후 추천 코드와 포인트 화면을 이용할 수 있습니다.",
-      pointsDescription: "누적 적립 기록과 교환 가능 잔액을 구분해서 봅니다.",
+      pointsDescription: "추천 적립 기록을 보고, 실제 교환 가능 잔액은 포인트 화면에서 확인합니다.",
       pointsLabel: "포인트 내역",
-      pointsMetricPrefix: "누적 적립",
+      pointsMetricCta: "잔액 확인",
       profileFirstLabel: "프로필 먼저",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
@@ -393,9 +393,9 @@ function getActivationHubCopy(locale: Locale) {
     notReady: "Setup required",
     pending: "Payment check needed",
     pendingMessage: "Referral code and points open after the 10 USDT check.",
-    pointsDescription: "Separate lifetime earned records from redeemable balance.",
+    pointsDescription: "Review referral point records and confirm the redeemable balance on the points screen.",
     pointsLabel: "Point history",
-    pointsMetricPrefix: "Lifetime earned",
+    pointsMetricCta: "View balance",
     profileFirstLabel: "Profile first",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
@@ -2769,7 +2769,7 @@ function ActivationServiceHub({
       href: rewardsHref,
       icon: "points" as const,
       key: "points",
-      metric: `${copy.pointsMetricPrefix} ${numberFormatter.format(totalPoints)}P`,
+      metric: copy.pointsMetricCta,
       title: copy.pointsLabel,
     },
     {
@@ -3555,7 +3555,8 @@ function CompletedHomeDashboard({
           current: "현재 상태",
           manageNetwork: "추천 회원 보기",
           manageRewards: "포인트 교환",
-          points: "추천 적립 합계",
+          points: "추천 적립 누적",
+          pointsCaption: "교환 가능 잔액은 포인트 화면에서 확인",
           referralCode: "내 추천 코드",
           linkReady: "추천 링크 준비됨",
           referralLink: "공유 링크",
@@ -3563,8 +3564,10 @@ function CompletedHomeDashboard({
             "이 링크로 가입이 완료되면 추천 보상과 포인트 기록이 이어집니다.",
           refresh: "새로 확인",
           signups: "추천 회원",
+          signupsCaption: "내 코드로 가입한 회원",
           snapshot: "서비스 요약",
           updated: "최근 확인",
+          updatedCaption: "대시보드 기준 시각",
         }
       : {
           copied: "Copied",
@@ -3572,6 +3575,7 @@ function CompletedHomeDashboard({
           manageNetwork: "Manage referrals",
           manageRewards: "Redeem points",
           points: "Referral-earned total",
+          pointsCaption: "Redeemable balance is shown on the points screen",
           referralCode: "Referral code",
           linkReady: "Referral link ready",
           referralLink: "Referral link",
@@ -3579,8 +3583,10 @@ function CompletedHomeDashboard({
             "Completed signups from this link create referral rewards and point records.",
           refresh: "Refresh",
           signups: "Referral members",
+          signupsCaption: "Members joined with your code",
           snapshot: "Service snapshot",
           updated: "Last checked",
+          updatedCaption: "Dashboard timestamp",
         };
   const shouldPrioritizeNetwork =
     totalReferralCount > 0 || referralDashboard.rewards.totalPoints === 0;
@@ -3768,6 +3774,9 @@ function CompletedHomeDashboard({
               <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">
                 {numberFormatter.format(totalReferralCount)}
               </p>
+              <p className="mt-1 line-clamp-2 break-keep text-[0.72rem] leading-4 text-zinc-500 [word-break:keep-all]">
+                {quickLabels.signupsCaption}
+              </p>
             </div>
             <div className="rounded-[18px] border border-zinc-200 bg-zinc-50 px-3 py-3">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-zinc-500">
@@ -3776,6 +3785,9 @@ function CompletedHomeDashboard({
               <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">
                 {numberFormatter.format(referralDashboard.rewards.totalPoints)}P
               </p>
+              <p className="mt-1 line-clamp-2 break-keep text-[0.72rem] leading-4 text-zinc-500 [word-break:keep-all]">
+                {quickLabels.pointsCaption}
+              </p>
             </div>
             <div className="rounded-[18px] border border-zinc-200 bg-zinc-50 px-3 py-3">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-zinc-500">
@@ -3783,6 +3795,9 @@ function CompletedHomeDashboard({
               </p>
               <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-zinc-950">
                 {updatedAt}
+              </p>
+              <p className="mt-1 line-clamp-2 break-keep text-[0.72rem] leading-4 text-zinc-500 [word-break:keep-all]">
+                {quickLabels.updatedCaption}
               </p>
             </div>
           </div>

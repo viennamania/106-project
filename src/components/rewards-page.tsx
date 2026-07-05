@@ -136,6 +136,10 @@ export function RewardsPage({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
+  const [hasConnectionFallbackElapsed, setHasConnectionFallbackElapsed] =
+    useState(false);
+  const [hasInitialConnectionWaitElapsed, setHasInitialConnectionWaitElapsed] =
+    useState(false);
   const activateHref =
     returnTo ??
     setLandingLanguageContext(
@@ -151,8 +155,17 @@ export function RewardsPage({
     isResolving: isConnectionResolving,
   } = useThirdwebConnectionState({
     accountAddress,
+    resolveGraceMs: 1600,
     status,
   });
+  const shouldShowConnectionLoading =
+    isConnectionResolving &&
+    !hasConnectionFallbackElapsed &&
+    !hasInitialConnectionWaitElapsed;
+  const shouldShowDisconnected =
+    isDisconnected ||
+    (isConnectionResolving &&
+      (hasConnectionFallbackElapsed || hasInitialConnectionWaitElapsed));
   const historyPageCount = Math.max(
     1,
     Math.ceil(state.summary.history.length / HISTORY_PAGE_SIZE),
@@ -166,16 +179,55 @@ export function RewardsPage({
   const nextTierName = state.summary.nextTier
     ? getTierLabel(state.summary.nextTier, dictionary)
     : null;
+  const nextTierShortLabel = nextTierName
+    ? pointContextCopy.nextTierShort(
+        nextTierName,
+        formatNumber(state.summary.pointsToNextTier, locale),
+      )
+    : dictionary.rewardsPage.labels.maxTier;
   const nextTierStatusLabel = nextTierName
     ? pointContextCopy.nextTierNeeded(
         nextTierName,
         formatNumber(state.summary.pointsToNextTier, locale),
       )
     : dictionary.rewardsPage.labels.maxTier;
+  const completedRedemptionPoints = state.redemptions
+    .filter((redemption) => redemption.status === "completed")
+    .reduce((total, redemption) => total + redemption.costPoints, 0);
 
   useEffect(() => {
     setHistoryPage((currentPage) => Math.min(currentPage, historyPageCount));
   }, [historyPageCount]);
+
+  useEffect(() => {
+    if (!isConnectionResolving) {
+      setHasConnectionFallbackElapsed(false);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setHasConnectionFallbackElapsed(true);
+    }, 1800);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [accountAddress, isConnectionResolving, status]);
+
+  useEffect(() => {
+    if (accountAddress) {
+      setHasInitialConnectionWaitElapsed(false);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setHasInitialConnectionWaitElapsed(true);
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [accountAddress]);
 
   const loadRewards = useCallback(
     async ({ background = false } = {}) => {
@@ -671,9 +723,9 @@ export function RewardsPage({
 
         {!hasThirdwebClientId ? (
           <MessageCard>{dictionary.env.description}</MessageCard>
-        ) : isConnectionResolving ? (
+        ) : shouldShowConnectionLoading ? (
           <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
-        ) : isDisconnected ? (
+        ) : shouldShowDisconnected ? (
           <section className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[28px] sm:p-6">
             <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
               <WalletMinimal className="size-5" />
@@ -713,7 +765,7 @@ export function RewardsPage({
                     </InfoBadge>
                     {state.summary.nextTier ? (
                       <InfoBadge className="border-emerald-300/20 bg-emerald-300/12 text-emerald-100">
-                        {rewardHeroCopy.tierGoalPrefix} · {nextTierStatusLabel}
+                        {rewardHeroCopy.tierGoalPrefix} · {nextTierShortLabel}
                       </InfoBadge>
                     ) : (
                       <InfoBadge className="border-amber-300/24 bg-amber-300/14 text-amber-100">
@@ -745,9 +797,29 @@ export function RewardsPage({
                         {nextRewardTitle ?? rewardHeroCopy.noNextReward}
                       </p>
                       <p className="mt-1 break-keep text-xs leading-5 text-white/52">
-                        {rewardPrimaryAction}
+                        {nextTierName ? nextTierStatusLabel : rewardPrimaryAction}
                       </p>
                     </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
+                    <PointHeroMetricCard
+                      hint={pointContextCopy.spendableHint}
+                      label={pointContextCopy.spendableLabel}
+                      tone="primary"
+                      value={formatPoints(state.summary.spendablePoints, locale)}
+                    />
+                    <PointHeroMetricCard
+                      hint={pointContextCopy.lifetimeHint}
+                      label={pointContextCopy.lifetimeLabel}
+                      value={formatPoints(state.summary.lifetimePoints, locale)}
+                    />
+                    <PointHeroMetricCard
+                      hint={pointContextCopy.redeemedHint}
+                      label={pointContextCopy.redeemedLabel}
+                      tone="muted"
+                      value={formatPoints(completedRedemptionPoints, locale)}
+                    />
                   </div>
 
                   <a
@@ -807,35 +879,6 @@ export function RewardsPage({
                         items={pointContextCopy.flowItems}
                         title={pointContextCopy.flowTitle}
                       />
-
-                      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                        <PointContextCard
-                          hint={pointContextCopy.spendableHint}
-                          label={pointContextCopy.spendableLabel}
-                          tone="primary"
-                          value={formatPoints(state.summary.spendablePoints, locale)}
-                        />
-                        <PointContextCard
-                          hint={pointContextCopy.lifetimeHint}
-                          label={pointContextCopy.lifetimeLabel}
-                          tone="neutral"
-                          value={formatPoints(state.summary.lifetimePoints, locale)}
-                        />
-                        <PointContextCard
-                          hint={
-                            nextTierName
-                              ? pointContextCopy.nextTierHint
-                              : pointContextCopy.maxTierHint
-                          }
-                          label={
-                            nextTierName
-                              ? pointContextCopy.nextTierLabel
-                              : pointContextCopy.currentTierLabel
-                          }
-                          tone="progress"
-                          value={nextTierStatusLabel}
-                        />
-                      </div>
 
                       <p className="mt-4 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-white/55 sm:text-xs">
                         {pointContextCopy.sourceBreakdownLabel}
@@ -1063,7 +1106,7 @@ function MiniStat({
   );
 }
 
-function PointContextCard({
+function PointHeroMetricCard({
   hint,
   label,
   tone = "neutral",
@@ -1071,20 +1114,20 @@ function PointContextCard({
 }: {
   hint: string;
   label: string;
-  tone?: "neutral" | "primary" | "progress";
+  tone?: "muted" | "neutral" | "primary";
   value: string;
 }) {
   const toneClassName =
     tone === "primary"
       ? "border-emerald-300/24 bg-emerald-300/12"
-      : tone === "progress"
-        ? "border-amber-300/24 bg-amber-300/12"
+      : tone === "muted"
+        ? "border-white/10 bg-black/22"
         : "border-white/12 bg-white/10";
   const valueClassName =
     tone === "primary"
       ? "text-emerald-50"
-      : tone === "progress"
-        ? "text-amber-50"
+      : tone === "muted"
+        ? "text-white/86"
         : "text-white";
 
   return (
@@ -1106,7 +1149,9 @@ function PointContextCard({
       >
         {value}
       </p>
-      <p className="mt-1 text-[0.68rem] leading-4 text-white/55">{hint}</p>
+      <p className="mt-1 line-clamp-2 break-keep text-[0.68rem] leading-4 text-white/52 [word-break:keep-all]">
+        {hint}
+      </p>
     </div>
   );
 }
@@ -2547,8 +2592,11 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierLabel: "등급 기준 목표",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier} 등급까지 ${points}P 필요`,
+      nextTierShort: (tier: string, points: string) => `${tier}까지 ${points}P`,
       progressCaption:
         "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적으로 계산합니다.",
+      redeemedHint: "이미 리워드 교환에 사용한 포인트",
+      redeemedLabel: "사용 완료",
       sourceBreakdownLabel: "포인트 출처",
       spendableHeroCaption:
         "지금 리워드 교환에 쓸 수 있는 실제 잔액입니다. 등급 기준 누적과는 별도로 관리됩니다.",
@@ -2585,8 +2633,11 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierLabel: "ランク基準目標",
       nextTierNeeded: (tier: string, points: string) =>
         `${tier}ランクまで${points}P必要`,
+      nextTierShort: (tier: string, points: string) => `${tier}まで${points}P`,
       progressCaption:
         "ランク進捗は交換可能残高ではなく、ランク基準累積で計算します。",
+      redeemedHint: "すでにリワード交換に使用したポイント",
+      redeemedLabel: "使用済み",
       sourceBreakdownLabel: "ポイントの内訳",
       spendableHeroCaption:
         "今すぐリワード交換に使える実際の残高です。ランク基準累積とは別に管理されます。",
@@ -2623,7 +2674,10 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierLabel: "等级基准目标",
       nextTierNeeded: (tier: string, points: string) =>
         `到 ${tier} 等级还需 ${points}P`,
+      nextTierShort: (tier: string, points: string) => `到 ${tier} 还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
+      redeemedHint: "已用于奖励兑换的积分",
+      redeemedLabel: "已使用",
       sourceBreakdownLabel: "积分来源",
       spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级基准累计分开管理。",
       spendableHint: "奖励兑换扣减基准",
@@ -2658,8 +2712,11 @@ function getRewardPointContextCopy(locale: Locale) {
     nextTierLabel: "Tier-basis target",
     nextTierNeeded: (tier: string, points: string) =>
       `${points}P needed for ${tier}`,
+    nextTierShort: (tier: string, points: string) => `${points}P to ${tier}`,
     progressCaption:
       "Tier progress is calculated from tier-basis lifetime points, not redeemable balance.",
+    redeemedHint: "Points already spent on reward redemptions",
+    redeemedLabel: "Redeemed",
     sourceBreakdownLabel: "Point sources",
     spendableHeroCaption:
       "This is the actual balance available for rewards. Tier-basis lifetime points are tracked separately.",
