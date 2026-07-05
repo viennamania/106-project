@@ -802,24 +802,28 @@ export function RewardsPage({
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-2 sm:mt-6 sm:grid-cols-3">
-                    <PointHeroMetricCard
-                      hint={pointContextCopy.spendableHint}
-                      label={pointContextCopy.spendableLabel}
-                      tone="primary"
-                      value={formatPoints(state.summary.spendablePoints, locale)}
-                    />
-                    <PointHeroMetricCard
-                      hint={pointContextCopy.lifetimeHint}
-                      label={pointContextCopy.lifetimeLabel}
-                      value={formatPoints(state.summary.lifetimePoints, locale)}
-                    />
-                    <PointHeroMetricCard
-                      hint={pointContextCopy.redeemedHint}
-                      label={pointContextCopy.redeemedLabel}
-                      tone="muted"
-                      value={formatPoints(completedRedemptionPoints, locale)}
-                    />
+                  <div className="mt-5 rounded-[22px] border border-white/12 bg-white/[0.07] px-3.5 py-3.5 sm:mt-6 sm:rounded-[24px] sm:px-4 sm:py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/55">
+                        {pointContextCopy.definitionTitle}
+                      </p>
+                      <span className="rounded-full border border-emerald-300/20 bg-emerald-300/12 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-100">
+                        {pointContextCopy.spendableHint}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <PointBasisMiniItem
+                        hint={pointContextCopy.lifetimeHint}
+                        label={pointContextCopy.lifetimeLabel}
+                        value={formatPoints(state.summary.lifetimePoints, locale)}
+                      />
+                      <PointBasisMiniItem
+                        hint={pointContextCopy.redeemedHint}
+                        label={pointContextCopy.redeemedLabel}
+                        tone="muted"
+                        value={formatPoints(completedRedemptionPoints, locale)}
+                      />
+                    </div>
                   </div>
 
                   <a
@@ -1106,7 +1110,7 @@ function MiniStat({
   );
 }
 
-function PointHeroMetricCard({
+function PointBasisMiniItem({
   hint,
   label,
   tone = "neutral",
@@ -1114,35 +1118,28 @@ function PointHeroMetricCard({
 }: {
   hint: string;
   label: string;
-  tone?: "muted" | "neutral" | "primary";
+  tone?: "muted" | "neutral";
   value: string;
 }) {
   const toneClassName =
-    tone === "primary"
-      ? "border-emerald-300/24 bg-emerald-300/12"
-      : tone === "muted"
-        ? "border-white/10 bg-black/22"
-        : "border-white/12 bg-white/10";
-  const valueClassName =
-    tone === "primary"
-      ? "text-emerald-50"
-      : tone === "muted"
-        ? "text-white/86"
-        : "text-white";
+    tone === "muted"
+      ? "border-white/10 bg-black/22"
+      : "border-white/12 bg-white/10";
+  const valueClassName = tone === "muted" ? "text-white/86" : "text-white";
 
   return (
     <div
       className={cn(
-        "min-w-0 rounded-[18px] border px-3 py-3 sm:rounded-[22px] sm:px-4",
+        "min-w-0 rounded-[18px] border px-3 py-3 sm:rounded-[20px] sm:px-4",
         toneClassName,
       )}
     >
-      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/50">
+      <p className="break-keep text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-white/50 [word-break:keep-all]">
         {label}
       </p>
       <p
         className={cn(
-          "mt-1.5 truncate text-sm font-semibold sm:text-base",
+          "mt-1.5 truncate text-sm font-semibold leading-5 sm:text-base",
           valueClassName,
         )}
         title={value}
@@ -2674,8 +2671,9 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "교환 가능 잔액이 아닌 누적 기준",
       nextTierLabel: "등급 기준 목표",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier} 등급까지 ${points}P 필요`,
-      nextTierShort: (tier: string, points: string) => `${tier}까지 ${points}P`,
+        `${tier} 등급까지 ${points}P 더 필요`,
+      nextTierShort: (tier: string, points: string) =>
+        `${tier} 등급까지 ${points}P 더 필요`,
       progressCaption:
         "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적으로 계산합니다.",
       redeemedHint: "이미 리워드 교환에 사용한 포인트",
@@ -2683,7 +2681,7 @@ function getRewardPointContextCopy(locale: Locale) {
       sourceBreakdownLabel: "포인트 출처",
       spendableHeroCaption:
         "지금 리워드 교환에 쓸 수 있는 실제 잔액입니다. 등급 기준 누적과는 별도로 관리됩니다.",
-      spendableHint: "리워드 교환 차감 기준",
+      spendableHint: "교환 가능 포인트 기준",
       spendableLabel: "교환 가능 잔액",
     };
   }
@@ -2715,8 +2713,9 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierHint: "交換可能残高ではなく累積基準",
       nextTierLabel: "ランク基準目標",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}ランクまで${points}P必要`,
-      nextTierShort: (tier: string, points: string) => `${tier}まで${points}P`,
+        `${tier}ランクまであと${points}P`,
+      nextTierShort: (tier: string, points: string) =>
+        `${tier}ランクまであと${points}P`,
       progressCaption:
         "ランク進捗は交換可能残高ではなく、ランク基準累積で計算します。",
       redeemedHint: "すでにリワード交換に使用したポイント",
@@ -2724,7 +2723,7 @@ function getRewardPointContextCopy(locale: Locale) {
       sourceBreakdownLabel: "ポイントの内訳",
       spendableHeroCaption:
         "今すぐリワード交換に使える実際の残高です。ランク基準累積とは別に管理されます。",
-      spendableHint: "リワード交換の差し引き基準",
+      spendableHint: "交換可能ポイント基準",
       spendableLabel: "交換可能残高",
     };
   }
@@ -2757,13 +2756,14 @@ function getRewardPointContextCopy(locale: Locale) {
       nextTierLabel: "等级基准目标",
       nextTierNeeded: (tier: string, points: string) =>
         `到 ${tier} 等级还需 ${points}P`,
-      nextTierShort: (tier: string, points: string) => `到 ${tier} 还需 ${points}P`,
+      nextTierShort: (tier: string, points: string) =>
+        `到 ${tier} 等级还需 ${points}P`,
       progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
       redeemedHint: "已用于奖励兑换的积分",
       redeemedLabel: "已使用",
       sourceBreakdownLabel: "积分来源",
       spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级基准累计分开管理。",
-      spendableHint: "奖励兑换扣减基准",
+      spendableHint: "可兑换积分基准",
       spendableLabel: "可兑换余额",
     };
   }
@@ -2794,8 +2794,9 @@ function getRewardPointContextCopy(locale: Locale) {
     nextTierHint: "Based on lifetime points, not redeemable balance",
     nextTierLabel: "Tier-basis target",
     nextTierNeeded: (tier: string, points: string) =>
-      `${points}P needed for ${tier}`,
-    nextTierShort: (tier: string, points: string) => `${points}P to ${tier}`,
+      `${points}P more for ${tier}`,
+    nextTierShort: (tier: string, points: string) =>
+      `${points}P more for ${tier}`,
     progressCaption:
       "Tier progress is calculated from tier-basis lifetime points, not redeemable balance.",
     redeemedHint: "Points already spent on reward redemptions",
@@ -2803,7 +2804,7 @@ function getRewardPointContextCopy(locale: Locale) {
     sourceBreakdownLabel: "Point sources",
     spendableHeroCaption:
       "This is the actual balance available for rewards. Tier-basis lifetime points are tracked separately.",
-    spendableHint: "Reward redemption spend basis",
+    spendableHint: "Redeemable-point basis",
     spendableLabel: "Redeemable balance",
   };
 }
