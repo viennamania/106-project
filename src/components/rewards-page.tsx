@@ -1249,6 +1249,10 @@ function RewardRedeemDialog({
     0,
     dialog.spendablePointsBefore - dialog.reward.costPoints,
   );
+  const contextCopy = getRewardRedeemDialogContextCopy(locale);
+  const expectedBnbValue = dialog.silverQuote
+    ? `${dialog.silverQuote.bnbAmount} BNB`
+    : copy.expectedBnbUnavailable;
   const activeStepIndex = isSuccess ? 2 : isProcessing ? 1 : 0;
   const steps = [
     copy.steps.confirm,
@@ -1319,94 +1323,118 @@ function RewardRedeemDialog({
         </div>
 
         <div className="space-y-3 px-5 py-5 sm:px-6">
-          <div className="grid grid-cols-3 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
-            <div className="min-w-0 border-r border-slate-200 px-3 py-3">
-              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                {copy.costLabel}
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
-                -{formatPoints(dialog.reward.costPoints, locale)}
-              </p>
+          <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
+            <div
+              className={cn(
+                "border-b px-4 py-4",
+                isSuccess
+                  ? "border-emerald-200 bg-emerald-50"
+                  : isError
+                    ? "border-rose-200 bg-rose-50"
+                    : "border-slate-200 bg-slate-50",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    {contextCopy.receiptLabel}
+                  </p>
+                  <p className="mt-1 break-keep text-lg font-semibold leading-6 text-slate-950">
+                    {isSuccess ? contextCopy.successReceiptTitle : rewardTitle}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
+                    isSuccess
+                      ? "bg-emerald-600 text-white"
+                      : isError
+                        ? "bg-rose-600 text-white"
+                        : "bg-slate-950 text-white",
+                  )}
+                >
+                  {isSuccess
+                    ? copy.steps.completed
+                    : isProcessing
+                      ? copy.steps.processing
+                      : isError
+                        ? copy.errorTitle
+                        : copy.steps.confirm}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0 border-r border-slate-200 px-3 py-3">
-              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                {copy.afterBalanceLabel}
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-emerald-700">
-                {formatPoints(afterPoints, locale)}
-              </p>
-            </div>
-            <div className="min-w-0 px-3 py-3">
-              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                BNB
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-950">
-                {dialog.silverQuote
-                  ? dialog.silverQuote.bnbAmount
-                  : copy.expectedBnbUnavailable}
-              </p>
+
+            <div className="divide-y divide-slate-100 px-4 py-2">
+              <ReceiptRow label={copy.accountLabel} value={memberEmail ?? "-"} />
+              <ReceiptRow
+                label={copy.costLabel}
+                value={`-${formatPoints(dialog.reward.costPoints, locale)}`}
+              />
+              <ReceiptRow
+                label={copy.afterBalanceLabel}
+                tone="positive"
+                value={formatPoints(afterPoints, locale)}
+              />
+              <ReceiptRow
+                label={copy.expectedBnbLabel}
+                value={expectedBnbValue}
+                subValue={
+                  dialog.silverQuote
+                    ? formatUsd(dialog.silverQuote.usdAmount, locale)
+                    : undefined
+                }
+              />
+              <ReceiptRow
+                label={contextCopy.recordLabel}
+                value={contextCopy.recordValue}
+              />
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <DialogMetric
-                label={copy.accountLabel}
-                value={memberEmail ?? "-"}
+          <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {contextCopy.processLabel}
+            </p>
+            <div className="mt-3 grid gap-2">
+              <ProcessStep
+                active={!isError}
+                complete={isProcessing || isSuccess}
+                label={contextCopy.processPoints}
               />
-              <DialogMetric label={copy.rewardLabel} value={rewardTitle} />
-              <DialogMetric
-                label={copy.balanceLabel}
-                value={formatPoints(dialog.spendablePointsBefore, locale)}
+              <ProcessStep
+                active={isProcessing || isSuccess}
+                complete={isSuccess}
+                label={contextCopy.processRecord}
               />
-              <DialogMetric
-                label={copy.costLabel}
-                value={formatPoints(dialog.reward.costPoints, locale)}
+              <ProcessStep
+                active={isSuccess}
+                complete={isSuccess}
+                label={contextCopy.processBenefit}
               />
             </div>
-            <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3">
-              <p className="text-xs font-medium text-emerald-800">
-                {copy.afterBalanceLabel}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-emerald-950">
-                {formatPoints(afterPoints, locale)}
-              </p>
-            </div>
-            <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-3 py-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-500">
-                    {copy.expectedBnbLabel}
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">
-                    {dialog.silverQuote
-                      ? `${dialog.silverQuote.bnbAmount} BNB`
-                      : copy.expectedBnbUnavailable}
-                  </p>
-                </div>
-                {dialog.silverQuote ? (
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                    {formatUsd(dialog.silverQuote.usdAmount, locale)}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-2 break-keep text-xs leading-5 text-slate-500">
-                {copy.expectedBnbHint}
-              </p>
-            </div>
+            <p className="mt-3 break-keep text-xs leading-5 text-slate-500">
+              {copy.expectedBnbHint}
+            </p>
           </div>
 
           {isProcessing ? (
             <div className="flex items-center gap-3 rounded-[22px] border border-blue-200 bg-blue-50 px-4 py-3 text-blue-950">
               <RefreshCcw className="size-5 animate-spin" />
-              <p className="text-sm font-medium">{copy.processingTitle}</p>
+              <p className="text-sm font-medium">{contextCopy.processingHint}</p>
             </div>
           ) : null}
 
           {isSuccess ? (
             <div className="flex items-start gap-3 rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-950">
               <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
-              <p className="text-sm font-medium leading-6">{copy.successDescription}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold leading-6">
+                  {contextCopy.successOutcome}
+                </p>
+                <p className="break-keep text-xs leading-5 text-emerald-800">
+                  {copy.successDescription}
+                </p>
+              </div>
             </div>
           ) : null}
 
@@ -1452,13 +1480,68 @@ function RewardRedeemDialog({
   );
 }
 
-function DialogMetric({ label, value }: { label: string; value: string }) {
+function ProcessStep({
+  active,
+  complete,
+  label,
+}: {
+  active: boolean;
+  complete: boolean;
+  label: string;
+}) {
   return (
-    <div className="min-w-0 rounded-2xl border border-white bg-white px-3 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
-      <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-slate-500">
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium",
+        complete
+          ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+          : active
+            ? "border-slate-300 bg-white text-slate-950"
+            : "border-slate-200 bg-white/70 text-slate-500",
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.64rem]",
+          complete ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600",
+        )}
+      >
+        {complete ? "✓" : "•"}
+      </span>
+      <span className="min-w-0 break-keep [word-break:keep-all]">{label}</span>
+    </div>
+  );
+}
+
+function ReceiptRow({
+  label,
+  subValue,
+  tone = "neutral",
+  value,
+}: {
+  label: string;
+  subValue?: string;
+  tone?: "neutral" | "positive";
+  value: string;
+}) {
+  return (
+    <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center gap-3 py-3">
+      <p className="min-w-0 break-keep text-xs font-medium leading-5 text-slate-500 [word-break:keep-all]">
         {label}
       </p>
-      <p className="mt-1.5 truncate text-sm font-semibold text-slate-950">{value}</p>
+      <div className="min-w-0 text-right">
+        <p
+          className={cn(
+            "break-words text-sm font-semibold leading-5",
+            tone === "positive" ? "text-emerald-700" : "text-slate-950",
+          )}
+        >
+          {value}
+        </p>
+        {subValue ? (
+          <p className="mt-0.5 text-xs font-medium text-slate-500">{subValue}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -2722,6 +2805,66 @@ function getRewardPointContextCopy(locale: Locale) {
       "This is the actual balance available for rewards. Tier-basis lifetime points are tracked separately.",
     spendableHint: "Reward redemption spend basis",
     spendableLabel: "Redeemable balance",
+  };
+}
+
+function getRewardRedeemDialogContextCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      processBenefit: "Silver 멤버 카드 권한을 활성화합니다",
+      processingHint: "포인트 차감과 교환 기록 생성을 처리하고 있습니다.",
+      processLabel: "처리 흐름",
+      processPoints: "포인트 차감",
+      processRecord: "리워드 교환 기록 생성",
+      receiptLabel: "교환 영수증",
+      recordLabel: "생성되는 기록",
+      recordValue: "포인트 사용 이력",
+      successOutcome: "Silver 멤버 카드가 활성화되었습니다.",
+      successReceiptTitle: "Silver 멤버 카드 활성화",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      processBenefit: "Silverメンバーカード権限を有効化します",
+      processingHint: "ポイント差し引きと交換履歴の作成を処理しています。",
+      processLabel: "処理フロー",
+      processPoints: "ポイント差し引き",
+      processRecord: "リワード交換履歴の作成",
+      receiptLabel: "交換レシート",
+      recordLabel: "作成される記録",
+      recordValue: "ポイント使用履歴",
+      successOutcome: "Silverメンバーカードが有効化されました。",
+      successReceiptTitle: "Silverメンバーカード有効化",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      processBenefit: "激活 Silver 会员卡权限",
+      processingHint: "正在扣减积分并创建兑换记录。",
+      processLabel: "处理流程",
+      processPoints: "扣减积分",
+      processRecord: "创建奖励兑换记录",
+      receiptLabel: "兑换凭证",
+      recordLabel: "生成的记录",
+      recordValue: "积分使用记录",
+      successOutcome: "Silver 会员卡已激活。",
+      successReceiptTitle: "Silver 会员卡激活",
+    };
+  }
+
+  return {
+    processBenefit: "Activate Silver member card benefits",
+    processingHint: "Deducting points and creating the redemption record.",
+    processLabel: "Processing flow",
+    processPoints: "Deduct points",
+    processRecord: "Create reward redemption record",
+    receiptLabel: "Redemption receipt",
+    recordLabel: "Record created",
+    recordValue: "Point redemption ledger",
+    successOutcome: "Silver member card is now active.",
+    successReceiptTitle: "Silver member card activation",
   };
 }
 
