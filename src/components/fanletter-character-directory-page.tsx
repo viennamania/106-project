@@ -58,7 +58,7 @@ function getCopy(locale: Locale) {
           level: "Lv.",
           noLatest: "아직 공개된 브이로그가 없습니다.",
           publicVlogs: "공개 브이로그",
-          searchPlaceholder: "AI 스타명, 소개, 코드 검색",
+          searchPlaceholder: "AI 스타명 또는 소개 검색",
           totalCharacters: "활성 AI 스타",
         },
         nsfw: {
@@ -108,7 +108,7 @@ function getCopy(locale: Locale) {
           level: "Lv.",
           noLatest: "No public vlog has been published yet.",
           publicVlogs: "Public vlogs",
-          searchPlaceholder: "Search AI Star name, intro, or code",
+          searchPlaceholder: "Search AI Star name or intro",
           totalCharacters: "Active AI Stars",
         },
         nsfw: {
