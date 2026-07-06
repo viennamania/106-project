@@ -1571,6 +1571,7 @@ export function ActivateNetworkPage({
                     ) : (
                       paginatedMembers.map((member) => {
                         const isSelected = selectedMemberEmail === member.email;
+                        const memberAccountCopy = getMemberAccountCopy(locale);
 
                         return (
                           <article
@@ -1591,18 +1592,33 @@ export function ActivateNetworkPage({
                               type="button"
                             >
                               <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="break-all text-base font-semibold tracking-tight sm:truncate">
-                                    {member.email}
-                                  </p>
-                                  <p
-                                    className={cn(
-                                      "mt-1 text-sm",
-                                      isSelected ? "text-white/72" : "text-slate-600",
-                                    )}
-                                  >
-                                    {formatAddressLabel(member.lastWalletAddress)}
-                                  </p>
+                                <div className="flex min-w-0 items-start gap-3">
+                                  <MemberAccountAvatar
+                                    active={isSelected}
+                                    email={member.email}
+                                  />
+                                  <div className="min-w-0">
+                                    <p
+                                      className={cn(
+                                        "text-[0.64rem] font-semibold uppercase tracking-[0.16em]",
+                                        isSelected ? "text-white/45" : "text-slate-400",
+                                      )}
+                                    >
+                                      {memberAccountCopy.label}
+                                    </p>
+                                    <p className="mt-1 break-all text-base font-semibold tracking-tight sm:truncate">
+                                      {member.email}
+                                    </p>
+                                    <p
+                                      className={cn(
+                                        "mt-1 text-sm",
+                                        isSelected ? "text-white/72" : "text-slate-600",
+                                      )}
+                                    >
+                                      {memberAccountCopy.wallet} ·{" "}
+                                      {formatAddressLabel(member.lastWalletAddress)}
+                                    </p>
+                                  </div>
                                 </div>
                                 <div className="flex shrink-0 flex-col items-end gap-2">
                                   {member.membershipCardTier !== "none" ? (
@@ -2465,6 +2481,14 @@ function MemberAIStarInline({
             : "border-slate-200 bg-slate-50 text-slate-500",
         )}
       >
+        <span
+          className={cn(
+            "mb-1 block text-[0.62rem] font-semibold uppercase tracking-[0.16em]",
+            active ? "text-white/38" : "text-slate-400",
+          )}
+        >
+          {copy.label}
+        </span>
         {copy.empty}
       </div>
     );
@@ -2485,6 +2509,14 @@ function MemberAIStarInline({
         portraitImageUrl={star.portraitImageUrl}
       />
       <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "mb-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em]",
+            active ? "text-white/38" : "text-violet-500/70",
+          )}
+        >
+          {copy.label}
+        </p>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span
             className={cn(
@@ -2803,6 +2835,28 @@ function AIStarPortrait({
       }
     >
       {portraitImageUrl ? null : getAIStarInitials(name)}
+    </span>
+  );
+}
+
+function MemberAccountAvatar({
+  active,
+  email,
+}: {
+  active: boolean;
+  email: string;
+}) {
+  return (
+    <span
+      aria-label={getMemberInitials(email)}
+      className={cn(
+        "inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border text-sm font-black",
+        active
+          ? "border-white/14 bg-white/12 text-white"
+          : "border-slate-200 bg-slate-100 text-slate-700",
+      )}
+    >
+      {getMemberInitials(email)}
     </span>
   );
 }
@@ -3663,6 +3717,48 @@ function getMemberAIStarCopy(locale: Locale) {
   };
 }
 
+function getMemberAccountCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      label: "회원 계정",
+      wallet: "지갑",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      label: "メンバーアカウント",
+      wallet: "ウォレット",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      label: "会员账号",
+      wallet: "钱包",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      label: "Tài khoản thành viên",
+      wallet: "Ví",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      label: "Akun anggota",
+      wallet: "Wallet",
+    };
+  }
+
+  return {
+    label: "Member account",
+    wallet: "Wallet",
+  };
+}
+
 function getSelectedMemberSummaryCopy(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -3995,6 +4091,18 @@ function getAIStarInitials(name: string) {
   }
 
   return Array.from(compactName).slice(0, 2).join("").toUpperCase();
+}
+
+function getMemberInitials(email: string) {
+  const localPart = email.split("@")[0] || email;
+  const initials = localPart
+    .split(/[._\-\s]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.at(0)?.toUpperCase() ?? "")
+    .join("");
+
+  return initials || "M";
 }
 
 function getNetworkSummaryHintCopy(locale: Locale) {
