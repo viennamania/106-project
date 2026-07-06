@@ -2887,16 +2887,16 @@ function ManagedReferralNetworkExplorer({
       ? {
           collapse: "1단계만 보기",
           description:
-            "2단계 이상 하위 회원이 있으면 전체 트리를 펼쳐 추천 관계를 한 번에 확인할 수 있습니다.",
+            "2단계 이상 하위 회원이 있으면 전체 트리를 펼쳐 내 코드 가입 관계를 한 번에 확인할 수 있습니다.",
           expand: "전체 하위 트리 보기",
-          title: "추천 네트워크 표시 방식",
+          title: "내 코드 가입 회원 표시 방식",
         }
       : {
           collapse: "Show level 1 only",
           description:
-            "When deeper downline members exist, expand the full tree to review the referral relationship at once.",
+            "When deeper downline members exist, expand the full tree to review how members joined from your code.",
           expand: "Show full downline tree",
-          title: "Referral network view",
+          title: "Members from my code view",
         };
 
   const renderNestedMembers = (
@@ -3331,7 +3331,7 @@ function SelectedMemberRelationshipStrip({
 }) {
   const relationship =
     locale === "ko"
-      ? `나의 추천 네트워크 ${formatInteger(member.depth, locale)}단계`
+      ? `내 코드 가입 관계 ${formatInteger(member.depth, locale)}단계`
       : `Level ${formatInteger(member.depth, locale)} in my network`;
   const aiStarValue = member.ownedAIStar
     ? member.ownedAIStar.name
@@ -4191,7 +4191,7 @@ function getNetworkSummaryContextCopy(locale: Locale) {
     ko: {
       badge: "하위 회원 합산",
       description:
-        "요약 포인트는 내 지갑 잔액이 아니라 이 추천 네트워크에 포함된 완료 회원들의 합계입니다.",
+        "요약 포인트는 내 지갑 잔액이 아니라 내 코드 가입 회원 중 완료 회원들의 합계입니다.",
     },
     vi: {
       badge: "Tổng tuyến dưới",
