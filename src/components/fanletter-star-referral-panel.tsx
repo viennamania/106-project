@@ -173,7 +173,6 @@ function ReferralShareOutcomeCard({
   }`;
   const labels = isKorean
     ? {
-        cp: "기여 포인트 보상",
         creator: "크리에이터 진행",
         creatorCta: "크리에이터 여정",
         event: "활동 기록",
@@ -190,7 +189,6 @@ function ReferralShareOutcomeCard({
         readyTitle: "추천 공유 기록 생성됨",
       }
     : {
-        cp: "Contribution Point reward",
         creator: "Creator progress",
         creatorCta: "Creator Journey",
         event: "Activity record",
@@ -737,8 +735,10 @@ export function FanletterStarReferralPanel({
                 {panelLabels.signal}
               </p>
               <div className="mt-3 grid gap-2">
-                {["founder_joined", "referral_code_created"].map(
-                  (eventName) => (
+                {(locale === "ko"
+                  ? ["참여 완료", "추천 링크 생성"]
+                  : ["Joined", "Referral link created"]
+                ).map((eventName) => (
                     <div
                       className="flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
                       key={eventName}
@@ -746,7 +746,7 @@ export function FanletterStarReferralPanel({
                       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-[#6d28d9]">
                         <GitBranch className="size-4" />
                       </span>
-                      <span className="min-w-0 truncate font-mono text-xs font-semibold text-zinc-700">
+                      <span className="min-w-0 truncate text-xs font-semibold text-zinc-700">
                         {eventName}
                       </span>
                     </div>
