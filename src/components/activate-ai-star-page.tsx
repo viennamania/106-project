@@ -50,11 +50,15 @@ type AIStarPageState = {
 
 type ActivateAIStarCopy = {
   aiStarBadge: string;
+  appliedWhereItems: string[];
+  appliedWhereLabel: string;
   back: string;
+  checkingConnection: string;
   connected: string;
   contextAsset: string;
   contextMoat: string;
   description: string;
+  disconnected: string;
   errorFallback: string;
   imageLabel: string;
   imageUploadHelp: string;
@@ -66,6 +70,10 @@ type ActivateAIStarCopy = {
   nextAction: string;
   noImage: string;
   previewLabel: string;
+  profileComplete: string;
+  profileNeedsImage: string;
+  profileNeedsName: string;
+  profileStatusLabel: string;
   retry: string;
   save: string;
   saved: string;
@@ -81,12 +89,16 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
     case "ko":
       return {
         aiStarBadge: "AI STAR",
+        appliedWhereItems: ["콘텐츠 제작", "공개 콘텐츠", "추천 네트워크"],
+        appliedWhereLabel: "저장 후 적용 위치",
         back: "1066FRIEND+ 허브",
+        checkingConnection: "연결 확인 중",
         connected: "연결됨",
-        contextAsset: "이름과 프로필 이미지는 콘텐츠, 리워드, 네트워크 피드에서 같은 AI 스타 프로필로 누적됩니다.",
-        contextMoat: "가입 회원, 지갑, 추천 코드, AI 스타 프로필이 함께 묶여 복제하기 어려운 Context 자산이 됩니다.",
+        contextAsset: "저장한 이름과 이미지는 콘텐츠, 공개 피드, 추천 네트워크에서 같은 AI 스타로 표시됩니다.",
+        contextMoat: "가입 회원, 지갑, 추천 코드, AI 스타 프로필이 하나의 서비스 기록으로 연결됩니다.",
         description:
           "가입 완료 후 생성된 내 AI 스타의 이름과 프로필 이미지를 관리합니다.",
+        disconnected: "연결 필요",
         errorFallback: "AI 스타 프로필을 불러오지 못했습니다.",
         imageLabel: "프로필 이미지",
         imageUploadHelp: "정사각형 이미지가 가장 안정적으로 보입니다. JPG, PNG, WEBP를 지원합니다.",
@@ -98,6 +110,10 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
         nextAction: "저장 후 콘텐츠 제작과 공개 콘텐츠에서 같은 AI 스타로 표시됩니다.",
         noImage: "이미지 준비 전",
         previewLabel: "내 AI 스타 미리보기",
+        profileComplete: "프로필 준비 완료",
+        profileNeedsImage: "프로필 이미지를 추가하세요",
+        profileNeedsName: "AI 스타 이름을 입력하세요",
+        profileStatusLabel: "프로필 완성도",
         retry: "다시 확인",
         save: "AI 스타 정보 저장",
         saved: "AI 스타 프로필이 저장되었습니다.",
@@ -110,11 +126,15 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
     case "ja":
       return {
         aiStarBadge: "AI STAR",
+        appliedWhereItems: ["コンテンツ制作", "公開コンテンツ", "紹介ネットワーク"],
+        appliedWhereLabel: "保存後の反映先",
         back: "1066FRIEND+ Hub",
+        checkingConnection: "接続確認中",
         connected: "接続済み",
-        contextAsset: "名前と画像はコンテンツ、リワード、公開コンテンツで同じAIスタープロフィールとして蓄積されます。",
-        contextMoat: "会員、ウォレット、紹介コード、AIスタープロフィールが結びつき、コピーしにくいContext資産になります。",
+        contextAsset: "保存した名前と画像は、コンテンツ、公開フィード、紹介ネットワークで同じAIスターとして表示されます。",
+        contextMoat: "会員、ウォレット、紹介コード、AIスタープロフィールが1つのサービス記録として接続されます。",
         description: "登録完了後に作成されたAIスタープロフィールの名前とプロフィール画像を管理します。",
+        disconnected: "接続が必要",
         errorFallback: "AIスタープロフィール情報を読み込めませんでした。",
         imageLabel: "プロフィール画像",
         imageUploadHelp: "正方形画像が最も安定します。JPG、PNG、WEBPに対応しています。",
@@ -126,6 +146,10 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
         nextAction: "保存後、コンテンツ制作と公開コンテンツで同じAIスターとして表示されます。",
         noImage: "画像未設定",
         previewLabel: "AIスタープロフィールプレビュー",
+        profileComplete: "プロフィール準備完了",
+        profileNeedsImage: "プロフィール画像を追加してください",
+        profileNeedsName: "AIスター名を入力してください",
+        profileStatusLabel: "プロフィール完成度",
         retry: "再確認",
         save: "AIスター情報を保存",
         saved: "AIスタープロフィール情報を保存しました。",
@@ -138,12 +162,16 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
     default:
       return {
         aiStarBadge: "AI STAR",
+        appliedWhereItems: ["Content creation", "Public content", "Referral network"],
+        appliedWhereLabel: "Used after saving",
         back: "1066FRIEND+ hub",
+        checkingConnection: "Checking connection",
         connected: "Connected",
-        contextAsset: "The name and image accumulate as the same AI Star profile across content, rewards, and the network feed.",
-        contextMoat: "Member, wallet, referral code, and AI Star profile become a hard-to-copy Context asset.",
+        contextAsset: "The saved name and image appear as the same AI Star across content, public feed, and referral network surfaces.",
+        contextMoat: "Member, wallet, referral code, and AI Star profile connect into one service record.",
         description:
           "Manage the AI Star profile name and image created after activation.",
+        disconnected: "Connection needed",
         errorFallback: "Failed to load the AI Star profile.",
         imageLabel: "Profile image",
         imageUploadHelp: "Square images work best. JPG, PNG, and WEBP are supported.",
@@ -155,6 +183,10 @@ function getActivateAIStarCopy(locale: Locale): ActivateAIStarCopy {
         nextAction: "After saving, content creation and public content use the same AI Star identity.",
         noImage: "Image pending",
         previewLabel: "AI Star profile preview",
+        profileComplete: "Profile ready",
+        profileNeedsImage: "Add a profile image",
+        profileNeedsName: "Enter the AI Star name",
+        profileStatusLabel: "Profile completeness",
         retry: "Check again",
         save: "Save AI Star",
         saved: "AI Star profile saved.",
@@ -483,7 +515,25 @@ export function ActivateAIStarPage({
 
   const isBusy = isSaving || isUploading || state.status === "loading";
   const previewName = displayName.trim() || copy.noImage;
-  const contextScore = state.profileConfigured ? 8 : 6;
+  const hasProfileName = Boolean(displayName.trim());
+  const hasProfileImage = Boolean(avatarImageUrl.trim());
+  const completedProfileFields = [hasProfileName, hasProfileImage].filter(Boolean)
+    .length;
+  const profileStatusLabel = !hasProfileName
+    ? copy.profileNeedsName
+    : !hasProfileImage
+      ? copy.profileNeedsImage
+      : copy.profileComplete;
+  const connectionLabel = isResolving
+    ? copy.checkingConnection
+    : isDisconnected || !accountAddress
+      ? copy.disconnected
+      : copy.connected;
+  const connectionBadgeClassName = isResolving
+    ? "border-amber-200 bg-amber-50 text-amber-800"
+    : isDisconnected || !accountAddress
+      ? "border-zinc-200 bg-white text-zinc-600"
+      : "border-emerald-200 bg-emerald-50 text-emerald-800";
 
   return (
     <main className="min-h-screen bg-[#f7f3ea] px-4 py-4 text-zinc-950 sm:px-6 lg:px-8">
@@ -496,9 +546,17 @@ export function ActivateAIStarPage({
             <ArrowLeft className="size-4" />
             {copy.back}
           </Link>
-          <span className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800">
-            <CheckCircle2 className="size-4" />
-            {copy.connected}
+          <span
+            className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold ${connectionBadgeClassName}`}
+          >
+            {isResolving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : isDisconnected || !accountAddress ? (
+              <CircleAlert className="size-4" />
+            ) : (
+              <CheckCircle2 className="size-4" />
+            )}
+            {connectionLabel}
           </span>
         </div>
 
@@ -549,12 +607,43 @@ export function ActivateAIStarPage({
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-2 text-sm text-white/65">
+              <div className="mt-4 grid gap-3 text-sm text-white/65">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <p className="font-semibold text-white">{copy.nextAction}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-semibold text-white">
+                      {copy.profileStatusLabel}
+                    </p>
+                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-black text-zinc-950">
+                      {completedProfileFields}/2
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {[hasProfileName, hasProfileImage].map((isComplete, index) => (
+                      <span
+                        className={`h-2 rounded-full ${
+                          isComplete ? "bg-emerald-300" : "bg-white/14"
+                        }`}
+                        key={index}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 font-semibold text-white/80">
+                    {profileStatusLabel}
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <p>{copy.contextAsset}</p>
+                  <p className="font-semibold text-white">{copy.appliedWhereLabel}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {copy.appliedWhereItems.map((item) => (
+                      <span
+                        className="rounded-full border border-white/10 bg-white/8 px-2.5 py-1 text-xs font-semibold text-white/72"
+                        key={item}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-3 leading-6">{copy.contextAsset}</p>
                 </div>
               </div>
             </div>
@@ -657,11 +746,21 @@ export function ActivateAIStarPage({
                       <BadgeCheck className="mt-0.5 size-5 shrink-0 text-emerald-700" />
                       <div>
                         <p className="text-sm font-semibold text-emerald-950">
-                          Context Score {contextScore}/10
+                          {copy.appliedWhereLabel}
                         </p>
                         <p className="mt-1 text-sm leading-6 text-emerald-900/75">
                           {copy.contextMoat}
                         </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {copy.appliedWhereItems.map((item) => (
+                            <span
+                              className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-900"
+                              key={item}
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </section>
