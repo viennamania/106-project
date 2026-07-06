@@ -37,13 +37,10 @@ function getCopy(locale: Locale) {
         latest: "최신 브이로그",
         noLatest: "아직 공개된 브이로그가 없습니다.",
         publicVlogs: "공개 브이로그",
-        reputation: "활동 기록",
-        reputationValue: "스타 발견 신호",
         selected: "선택한 AI 스타",
         selectedBody: "브이로그와 팬 반응을 확인하고 다음 행동을 선택하세요.",
         titleSuffix: "AI 스타 채널",
-        universe: "AI 스타 유니버스 보기",
-        universeHint: "다음 행동",
+        universe: "이 AI 스타 둘러보기",
       }
     : {
         account: "Account",
@@ -54,13 +51,10 @@ function getCopy(locale: Locale) {
         latest: "Latest vlog",
         noLatest: "No public vlog has been published yet.",
         publicVlogs: "Public vlogs",
-        reputation: "Activity record",
-        reputationValue: "Star discovery signal",
         selected: "Selected AI Star",
         selectedBody: "Review vlogs and fan signals, then choose the next action.",
         titleSuffix: "AI Star channel",
-        universe: "View AI Star Universe",
-        universeHint: "Next action",
+        universe: "Explore this AI Star",
       };
 }
 
@@ -201,12 +195,6 @@ export function FanletterAIStarChannelPage({
           </div>
 
           <div className="mt-5 space-y-2">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-950">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] opacity-70">
-                {copy.reputation}
-              </p>
-              <p className="mt-1 text-sm font-semibold">{copy.reputationValue}</p>
-            </div>
             <p className="px-1 text-sm font-medium leading-6 text-zinc-500">
               {copy.selectedBody}
             </p>
