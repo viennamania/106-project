@@ -6068,10 +6068,6 @@ export function FanletterFeedPage({
     `/${locale}/fanletter/discovery`,
     referralCode,
   );
-  const startHref = buildPathWithReferral(
-    `/${locale}/fanletter/start`,
-    referralCode,
-  );
   const emptyFeedMessage = hasSearchQuery
     ? locale === "ko"
       ? `"${filters.query}"에 맞는 브이로그가 없습니다. 검색어를 지우거나 다른 캐릭터명, 제목, 장면으로 다시 찾아보세요.`
