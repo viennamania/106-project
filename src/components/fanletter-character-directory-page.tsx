@@ -79,17 +79,6 @@ function getCopy(locale: Locale) {
           publicVlogs: "공개 브이로그",
           totalCharacters: "활성 AI 스타",
         },
-        signpost: {
-          currentLabel: "현재 위치",
-          currentValue: "AI 스타 발견",
-          eventLabel: "활동 기록",
-          eventValue: "스타 발견 신호",
-          flow: ["발견", "스타 선택", "참여", "활동 기록"],
-          nextLabel: "다음 행동",
-          nextValue: "스타 선택",
-          subtitle:
-            "AI 스타를 선택하면 채널과 AI 스타 유니버스를 확인한 뒤 참여로 이어집니다.",
-        },
       }
     : {
         actions: {
@@ -138,17 +127,6 @@ function getCopy(locale: Locale) {
           fanOnly: "Fan-only posts",
           publicVlogs: "Public vlogs",
           totalCharacters: "Active AI Stars",
-        },
-        signpost: {
-          currentLabel: "Current",
-          currentValue: "AI Star Discovery",
-          eventLabel: "Activity log",
-          eventValue: "Star discovery signal",
-          flow: ["Discover", "Choose star", "Join", "Activity log"],
-          nextLabel: "Next action",
-          nextValue: "Choose a star",
-          subtitle:
-            "Choose an AI Star to review its channel and AI Star Universe before joining as a Fan.",
         },
       };
   if (locale === "ko" || locale === "en") {

@@ -754,7 +754,6 @@ function FanletterProductHomeDashboard({
         eventResult: "활동 기록 생성",
         resultDetail: "발견 신호가 활동 기록에 저장",
         unlocked: "활성화",
-        universeMap: "AI 스타 유니버스 맵",
       }
     : {
         connect: "Connect Account",
@@ -784,7 +783,6 @@ function FanletterProductHomeDashboard({
         eventResult: "AI Star Discovery event",
         resultDetail: "Discovery signal is saved as a activity record.",
         unlocked: "Unlocked",
-        universeMap: "AI Star Universe Map",
       };
   // zh/vi/id structural-UI drafts (pending native review). Any key not listed
   // here falls back to the English base copy above. Long-form prose and
