@@ -158,7 +158,7 @@ function getBaseCopy(locale: Locale) {
       "No AI Stars are operated yet. Review Creator permission activation conditions and prepare a new AI Star.",
     emptyCta: "View Creator Permission",
     emptyTitle: "No operated AI Stars yet",
-    eventConnected: "creator_social_connected activity record created",
+    eventConnected: "TikTok channel connection recorded",
     eventPending: "TikTok connection will create a activity record",
     founderRelationCta: "View joined networks",
     founderNetworks: "Joined Creator Networks",

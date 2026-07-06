@@ -347,7 +347,7 @@ function getPrimaryAction({
   return {
     helper: isKorean
       ? "계정을 연결한 뒤 이 AI 스타의 크리에이터 네트워크 참여와 추천 보상을 이어갑니다."
-      : "Connect your account, then join this AI Star Creator Network and keep referral attribution.",
+      : "Connect your account, then join this AI Star Creator Network and keep your invite link.",
     href: connectHref,
     label: isKorean ? "계정 연결하고 참여" : "Connect and join",
     status: isKorean ? "참여 전" : "Not joined",
@@ -660,7 +660,7 @@ function StarViewerRelationshipCard({
             ? "운영 권한 없음"
             : "계정 연결 필요",
         founderBody: founderRole
-          ? "이 AI 스타 유니버스 안의 6단계 초대/기여 포인트 구조에 참여 중입니다."
+          ? "이 AI 스타의 팬으로 참여하고 있습니다."
           : isMockFounder
             ? "이 브라우저에서 참여 미리보기가 완료된 상태입니다."
             : isAuthenticated
@@ -712,7 +712,7 @@ function StarViewerRelationshipCard({
             ? "No operator permission"
             : "Connect account",
         founderBody: founderRole
-          ? "You participate in this AI Star Universe's 6-tier invite and Contribution Points structure."
+          ? "You are participating as a fan of this AI Star."
           : isMockFounder
             ? "Mock participation is complete in this browser."
             : isAuthenticated
@@ -905,10 +905,7 @@ function StarViewerRelationshipCard({
             <p className="mt-1 truncate text-base font-semibold text-zinc-950">
               {relationshipAction.status}
             </p>
-            <p
-              className="mt-1 truncate text-xs font-semibold text-zinc-500"
-              title={relationshipAction.eventType}
-            >
+            <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
               {labels.recordLabel}: {relationshipEventLabel}
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all] sm:hidden">
@@ -1174,10 +1171,6 @@ function FounderJoinResultCard({
       };
   const resultMetrics = [
     {
-      label: copy.labels.influenceScore,
-      value: `+${formatNumber(loop.rewards.influenceScore, locale)}`,
-    },
-    {
       label: copy.labels.creatorProgress,
       value: `+${loop.rewards.creatorProgressPercent}%`,
     },
@@ -1221,7 +1214,7 @@ function FounderJoinResultCard({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2">
             {resultMetrics.map((item) => (
               <div
                 className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-3 text-center"
@@ -1247,7 +1240,10 @@ function FounderJoinResultCard({
               </span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {["founder_joined", "referral_code_created"].map((eventName) => (
+              {(locale === "ko"
+                ? ["참여 완료", "추천 링크 생성"]
+                : ["Joined", "Invite link created"]
+              ).map((eventName) => (
                 <span
                   className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.08] px-2.5 text-[0.66rem] font-semibold text-white/72"
                   key={eventName}

@@ -7570,9 +7570,6 @@ export function FanletterCreatorPage({
                     <h2 className="mt-3 break-words text-[1.9rem] font-semibold leading-[1.04] tracking-normal [overflow-wrap:anywhere] sm:text-[2.9rem] sm:[word-break:keep-all]">
                       {channelName}
                     </h2>
-                    <p className="mt-2 text-sm font-semibold text-white/44">
-                      {data.profile.referralCode}
-                    </p>
                     <p className="mt-3 flex max-w-2xl items-start gap-2 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#b9ffc8]">
                       <BadgeCheck className="mt-0.5 size-3.5 shrink-0" />
                       <span>{roleLabels.identityNote}</span>
@@ -10359,7 +10356,7 @@ export function FanletterOnboardingPage({
       ? locale === "ko"
         ? {
             accountState:
-              "이 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
+              "선택한 AI 스타 유니버스에 팬으로 연결됩니다. 지금은 결제 없이 진행됩니다.",
             asideBody:
               "아래 3단계를 순서대로 진행하면 참여가 완료됩니다.",
             asideTitle: "참여 준비",
@@ -10393,8 +10390,8 @@ export function FanletterOnboardingPage({
               },
               {
                 badge: "팬",
-                body: `${founderUniverseName}에 팬으로 귀속되는지 확인합니다. 새 결제 없이 mock 흐름으로 먼저 검증합니다.`,
-                cta: "참여 귀속 확인",
+                body: `${founderUniverseName}의 팬으로 참여되는지 확인합니다. 지금은 결제 없이 진행됩니다.`,
+                cta: "팬으로 참여 확인",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
                 meta: "02 · 참여",
@@ -10416,7 +10413,7 @@ export function FanletterOnboardingPage({
           }
       : {
             accountState:
-              "This Join is attributed to the selected AI Star Universe. Real payment is still deferred.",
+              "You'll be connected as a fan to the selected AI Star Universe. No payment right now.",
             asideBody:
               "Complete the 3 steps below in order to finish joining.",
             asideTitle: "Join setup",
@@ -10450,8 +10447,8 @@ export function FanletterOnboardingPage({
               },
               {
                 badge: "Fan",
-                body: `Confirm Join attribution in ${founderUniverseName}. This release previews the flow without a new payment.`,
-                cta: "Confirm Join attribution",
+                body: `Confirm you're joining ${founderUniverseName} as a fan. No payment right now.`,
+                cta: "Confirm your join",
                 href: founderJoinCompleteHref,
                 Icon: Crown,
                 meta: "02 · Join",
@@ -10609,13 +10606,13 @@ export function FanletterOnboardingPage({
   const founderStatusNote =
     isFounderClubOnboarding && locale === "ko"
       ? isFounderJoined
-        ? "참여가 완료되었습니다. 내 추천 링크를 공유하고 크리에이터 네트워크 확장을 확인하세요."
+        ? "참여가 완료되었습니다. 내 추천 링크를 공유해 더 많은 팬을 초대해 보세요."
         : hasConnectedAccount
           ? "계정 연결이 확인되었습니다. 이제 참여 확정을 누르면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다."
           : labels.accountState
       : isFounderClubOnboarding
         ? isFounderJoined
-          ? "Join is complete. Share your referral link and review the Creator Network expansion."
+          ? "Join is complete. Share your referral link to invite more fans."
           : hasConnectedAccount
             ? "Your account is connected. Confirm join to save membership and referral code for this AI Star Universe."
             : labels.accountState
@@ -10869,8 +10866,8 @@ export function FanletterOnboardingPage({
                           : "Required"
                         : index === 1
                           ? locale === "ko"
-                            ? "귀속"
-                            : "Attribute"
+                            ? "연결"
+                            : "Connect"
                           : locale === "ko"
                             ? "공유"
                             : "Share"}

@@ -804,10 +804,10 @@ function FounderBridgeEventCard({
           {copy.flow}
         </span>
         <span className="rounded-full border border-[#44f26e]/20 bg-[#44f26e]/10 px-2.5 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
-          founder_joined
+          {locale === "ko" ? "참여 완료" : "Joined"}
         </span>
         <span className="rounded-full border border-white/10 bg-black/24 px-2.5 py-1 text-[0.68rem] font-semibold text-white/62">
-          referral_code_created
+          {locale === "ko" ? "추천 링크 생성" : "Referral link created"}
         </span>
       </div>
     </div>
@@ -1212,7 +1212,9 @@ export function FanletterConnectPage({
                 ? locale === "ko"
                   ? `${starContext.starName} 참여 기록`
                   : `${starContext.starName} participation`
-                : "fanletter_bridge_view"
+                : locale === "ko"
+                  ? "팬 콘텐츠로 돌아가기"
+                  : "Back to fan content"
             }
           />
 
@@ -1270,7 +1272,7 @@ export function FanletterConnectPage({
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-violet-100">
                           <Crown className="size-3.5" />
-                          AI STAR FOUNDER
+                          AI STAR UNIVERSE
                         </p>
                         <p className="mt-1 truncate text-base font-semibold text-white">
                           {starContext.universeName}
