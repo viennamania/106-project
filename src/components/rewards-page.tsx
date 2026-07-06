@@ -521,6 +521,42 @@ export function RewardsPage({
               formatNumber(nextRewardPointGap, locale),
             )
           : rewardsActionCopy.reviewHistory;
+  const redeemableRewardsCount = state.catalog.filter((reward) => {
+    const alreadyRedeemed = Boolean(latestRedemptionsByReward[reward.rewardId]);
+
+    return (
+      activeMember?.status === "completed" &&
+      state.summary.spendablePoints >= reward.costPoints &&
+      (isRepeatableRewardCatalogId(reward.rewardId) || !alreadyRedeemed)
+    );
+  }).length;
+  const rewardCatalogFocusCopy = getRewardCatalogFocusCopy(locale);
+  const orderedRewardCatalog = [...state.catalog].sort((first, second) => {
+    const getPriority = (reward: RewardCatalogItemRecord) => {
+      const alreadyRedeemed = Boolean(latestRedemptionsByReward[reward.rewardId]);
+      const canRedeem =
+        activeMember?.status === "completed" &&
+        state.summary.spendablePoints >= reward.costPoints &&
+        (isRepeatableRewardCatalogId(reward.rewardId) || !alreadyRedeemed);
+
+      if (canRedeem) {
+        return 0;
+      }
+
+      if (!alreadyRedeemed) {
+        return 1;
+      }
+
+      return 2;
+    };
+    const priorityDiff = getPriority(first) - getPriority(second);
+
+    if (priorityDiff !== 0) {
+      return priorityDiff;
+    }
+
+    return first.costPoints - second.costPoints;
+  });
 
   function handleRedeemReward(rewardId: RewardCatalogId) {
     const reward = state.catalog.find((item) => item.rewardId === rewardId);
@@ -858,7 +894,7 @@ export function RewardsPage({
                     </p>
                   </div>
 
-                  <details className="group mt-4 rounded-[22px] border border-white/12 bg-white/[0.06]">
+                  <details className="group mt-4 hidden rounded-[22px] border border-white/12 bg-white/[0.06] sm:block">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-3 text-sm font-semibold text-white marker:content-none sm:px-4">
                       <span>{rewardHeroCopy.detailsLabel}</span>
                       <span className="text-xs font-medium text-white/45 group-open:hidden">
@@ -988,6 +1024,23 @@ export function RewardsPage({
                 </div>
               </div>
 
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <RewardCatalogFocusItem
+                  label={rewardCatalogFocusCopy.readyLabel}
+                  value={formatTemplate(rewardCatalogFocusCopy.readyValue, {
+                    count: formatNumber(redeemableRewardsCount, locale),
+                  })}
+                />
+                <RewardCatalogFocusItem
+                  label={rewardCatalogFocusCopy.nextLabel}
+                  value={nextRewardTitle ?? rewardCatalogFocusCopy.noneValue}
+                />
+                <RewardCatalogFocusItem
+                  label={rewardCatalogFocusCopy.resultLabel}
+                  value={rewardCatalogFocusCopy.resultValue}
+                />
+              </div>
+
               <div className="mt-4 sm:mt-5">
                 {actionNotice ? (
                   <div className="mb-4">
@@ -1010,7 +1063,7 @@ export function RewardsPage({
                   <MessageCard>{dictionary.rewardsPage.catalog.empty}</MessageCard>
                 ) : (
                   <div className="grid gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
-                    {state.catalog.map((reward) => (
+                    {orderedRewardCatalog.map((reward) => (
                       <RewardCatalogCard
                         canRedeem={activeMember?.status === "completed"}
                         dictionary={dictionary}
@@ -1212,6 +1265,25 @@ function MetricCard({
         {label}
       </p>
       <p className="mt-1.5 break-all text-sm font-semibold text-slate-950 sm:mt-2">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function RewardCatalogFocusItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-3 py-3 sm:rounded-[22px] sm:bg-white">
+      <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
+        {label}
+      </p>
+      <p className="mt-1.5 line-clamp-2 break-keep text-sm font-semibold leading-5 text-slate-950 [word-break:keep-all]">
         {value}
       </p>
     </div>
@@ -2929,6 +3001,72 @@ function getRewardsHeroCopy(locale: Locale) {
     spendableCaption:
       "These points are ready to use now. Choose the next reward action below.",
     tierGoalPrefix: "Tier basis",
+  };
+}
+
+function getRewardCatalogFocusCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      nextLabel: "다음 선택",
+      noneValue: "사용 이력을 확인하세요",
+      readyLabel: "바로 교환",
+      readyValue: "{count}개 가능",
+      resultLabel: "완료 후",
+      resultValue: "포인트 차감과 리워드 기록이 남습니다",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      nextLabel: "次の選択",
+      noneValue: "利用履歴を確認",
+      readyLabel: "交換可能",
+      readyValue: "{count}件",
+      resultLabel: "完了後",
+      resultValue: "ポイント差引とリワード記録が残ります",
+    };
+  }
+
+  if (locale === "zh") {
+    return {
+      nextLabel: "下一项",
+      noneValue: "查看使用记录",
+      readyLabel: "可兑换",
+      readyValue: "{count} 项",
+      resultLabel: "完成后",
+      resultValue: "扣除积分并留下奖励记录",
+    };
+  }
+
+  if (locale === "vi") {
+    return {
+      nextLabel: "Lựa chọn tiếp theo",
+      noneValue: "Xem lịch sử dùng",
+      readyLabel: "Có thể đổi",
+      readyValue: "{count} mục",
+      resultLabel: "Sau khi xong",
+      resultValue: "Điểm bị trừ và ghi lại lịch sử thưởng",
+    };
+  }
+
+  if (locale === "id") {
+    return {
+      nextLabel: "Pilihan berikutnya",
+      noneValue: "Lihat riwayat pemakaian",
+      readyLabel: "Bisa ditukar",
+      readyValue: "{count} item",
+      resultLabel: "Setelah selesai",
+      resultValue: "Poin dipotong dan catatan reward dibuat",
+    };
+  }
+
+  return {
+    nextLabel: "Next choice",
+    noneValue: "Review usage history",
+    readyLabel: "Ready now",
+    readyValue: "{count} available",
+    resultLabel: "After completion",
+    resultValue: "Points are deducted and a reward record is created",
   };
 }
 

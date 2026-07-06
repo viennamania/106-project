@@ -1507,7 +1507,35 @@ export function ActivateNetworkPage({
                     ) : null}
                   </div>
 
-                  <div className="mt-4 grid gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-4 rounded-[20px] border border-slate-200 bg-white/85 px-3 py-3 sm:hidden">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-950">
+                          {formatTemplate(memberListOverviewCopy.rangeValue, {
+                            end: formatInteger(memberPageEndIndex, locale),
+                            start: formatInteger(memberListStartIndex, locale),
+                            total: formatInteger(sortedMembers.length, locale),
+                          })}
+                        </p>
+                        <p className="mt-1 truncate text-[0.72rem] text-slate-500">
+                          {activeMemberSortLabel} ·{" "}
+                          {getMemberSortDirectionLabel(
+                            locale,
+                            memberSortKey,
+                            memberSortDirection,
+                          )}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-slate-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+                        {formatTemplate(memberListOverviewCopy.aiStarValue, {
+                          count: formatInteger(memberListAIStarCount, locale),
+                          total: formatInteger(sortedMembers.length, locale),
+                        })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 hidden gap-2 rounded-[22px] border border-slate-900/90 bg-slate-950 p-3 text-white shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:grid sm:grid-cols-2 xl:grid-cols-4">
                     <MemberListOverviewItem
                       label={memberListOverviewCopy.visibleRange}
                       value={formatTemplate(memberListOverviewCopy.rangeValue, {
@@ -1593,13 +1621,21 @@ export function ActivateNetworkPage({
                                 member={member}
                               />
 
-                              <MemberListContextGrid
+                              <div className="hidden sm:block">
+                                <MemberListContextGrid
+                                  active={isSelected}
+                                  locale={locale}
+                                  member={member}
+                                />
+                              </div>
+
+                              <MemberListMobileContextBar
                                 active={isSelected}
                                 locale={locale}
                                 member={member}
                               />
 
-                              <div className="mt-3 flex flex-wrap gap-2">
+                              <div className="mt-3 hidden flex-wrap gap-2 sm:flex">
                                 <Pill active={isSelected}>
                                   {dictionary.activateNetworkPage.labels.level}{" "}
                                   {formatInteger(member.depth, locale)}
@@ -2525,6 +2561,57 @@ function MemberListContextGrid({
         active={active}
         label={copy.statusLabel}
         value={statusValue}
+      />
+    </div>
+  );
+}
+
+function MemberListMobileContextBar({
+  active,
+  locale,
+  member,
+}: {
+  active: boolean;
+  locale: Locale;
+  member: ManagedReferralTreeNodeRecord;
+}) {
+  const copy = getMemberListContextCopy(locale);
+  const pointCopy = getMemberPointChipCopy(locale);
+  const statusValue = member.serviceSuspendedAt
+    ? copy.statusSuspended
+    : member.status === "completed"
+      ? copy.statusCompleted
+      : copy.statusPending;
+
+  return (
+    <div
+      className={cn(
+        "mt-3 grid grid-cols-2 gap-2 sm:hidden",
+        active ? "text-white" : "text-slate-950",
+      )}
+    >
+      <MemberListContextItem
+        active={active}
+        label={copy.joinedAtLabel}
+        value={formatDateOnly(member.registrationCompletedAt, locale)}
+      />
+      <MemberListContextItem
+        active={active}
+        label={copy.statusLabel}
+        value={statusValue}
+      />
+      <MemberListContextItem
+        active={active}
+        label={pointCopy.spendable}
+        value={`${formatInteger(member.spendablePoints, locale)}P`}
+      />
+      <MemberListContextItem
+        active={active}
+        label={copy.networkLabel}
+        value={formatTemplate(copy.networkValue, {
+          direct: formatInteger(member.directReferralCount, locale),
+          total: formatInteger(member.totalReferralCount, locale),
+        })}
       />
     </div>
   );
