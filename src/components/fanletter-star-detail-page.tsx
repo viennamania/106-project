@@ -335,8 +335,8 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 크리에이터 네트워크에 참여하고 내 추천 링크를 생성합니다."
-        : "Your account is connected. Join this AI Star Universe Creator Network and create your referral link.",
+        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 팬 클럽에 참여하고 내 추천 링크를 생성합니다."
+        : "Your account is connected. Join this AI Star Universe's fan club and create your referral link.",
       href: joinHref,
       label: isKorean ? "참여하기" : "Join",
       status: isKorean ? "계정 연결됨" : "Account connected",
@@ -346,8 +346,8 @@ function getPrimaryAction({
 
   return {
     helper: isKorean
-      ? "계정을 연결한 뒤 이 AI 스타의 크리에이터 네트워크 참여와 추천 보상을 이어갑니다."
-      : "Connect your account, then join this AI Star Creator Network and keep your invite link.",
+      ? "계정을 연결한 뒤 이 AI 스타의 팬 클럽 참여와 추천 보상을 이어갑니다."
+      : "Connect your account, then join this AI Star's fan club and keep your invite link.",
     href: connectHref,
     label: isKorean ? "계정 연결하고 참여" : "Connect and join",
     status: isKorean ? "참여 전" : "Not joined",
@@ -664,10 +664,10 @@ function StarViewerRelationshipCard({
           : isMockFounder
             ? "이 브라우저에서 참여 미리보기가 완료된 상태입니다."
             : isAuthenticated
-              ? "아직 이 AI 스타의 크리에이터 네트워크에 참여하지 않았습니다."
+              ? "아직 이 AI 스타의 팬 클럽에 참여하지 않았습니다."
               : "계정 연결 후 참여를 진행할 수 있습니다.",
         founderCaption: "회원 참여 역할",
-        founderLabel: "크리에이터 네트워크 역할",
+        founderLabel: "팬 역할",
         founderStatus: founderRole
           ? getFanletterPublicRoleLabel(founderRole.role, "ko")
           : isMockFounder
@@ -716,10 +716,10 @@ function StarViewerRelationshipCard({
           : isMockFounder
             ? "Mock participation is complete in this browser."
             : isAuthenticated
-              ? "You have not joined this AI Star's Creator Network yet."
+              ? "You have not joined this AI Star's fan club yet."
               : "Connect your account to join as a Fan.",
         founderCaption: "Member participation role",
-        founderLabel: "Creator Network role",
+        founderLabel: "Fan role",
         founderStatus: founderRole
           ? getFanletterPublicRoleLabel(founderRole.role, "en")
           : isMockFounder
@@ -1128,7 +1128,7 @@ function StarDetailMobileSignpost({
           href={founderNetworkHref}
         >
           <GitBranch className="size-4" />
-          {isKorean ? "크리에이터 네트워크 보기" : "View Creator Network"}
+          {isKorean ? "팬 클럽 보기" : "View fan club"}
         </Link>
       </div>
     </section>
@@ -1158,14 +1158,14 @@ function FounderJoinResultCard({
     ? {
         body: "추천 코드가 생성되었고, 보상과 활동 기록이 준비되었습니다.",
         event: "생성된 활동 기록",
-        network: "크리에이터 네트워크 보기",
+        network: "팬 클럽 보기",
         share: "추천 링크 공유하기",
         title: "참여 완료",
       }
     : {
         body: "Your referral code is ready, with rewards and activity records prepared.",
         event: "Activity records",
-        network: "View Creator Network",
+        network: "View fan club",
         share: "Share referral link",
         title: "Join complete",
       };
