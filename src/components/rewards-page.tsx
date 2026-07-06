@@ -801,7 +801,7 @@ export function RewardsPage({
                     </InfoBadge>
                     {state.summary.nextTier ? (
                       <InfoBadge className="border-emerald-300/20 bg-emerald-300/12 text-emerald-100">
-                        {rewardHeroCopy.tierGoalPrefix} · {nextTierShortLabel}
+                        {pointContextCopy.nextTierLabel} · {nextTierShortLabel}
                       </InfoBadge>
                     ) : (
                       <InfoBadge className="border-amber-300/24 bg-amber-300/14 text-amber-100">
@@ -2954,7 +2954,6 @@ function getRewardsHeroCopy(locale: Locale) {
       primaryCtaReady: "리워드 선택하기",
       spendableCaption:
         "지금 바로 사용할 수 있는 포인트입니다. 다음 행동은 아래 리워드에서 선택하세요.",
-      tierGoalPrefix: "등급 기준",
     };
   }
 
@@ -2970,7 +2969,6 @@ function getRewardsHeroCopy(locale: Locale) {
       primaryCtaReady: "交換可能なリワードを見る",
       spendableCaption:
         "今すぐ使えるポイントです。次のアクションは下のリワードから選んでください。",
-      tierGoalPrefix: "ランク基準",
     };
   }
 
@@ -2985,7 +2983,6 @@ function getRewardsHeroCopy(locale: Locale) {
       primaryCtaLocked: "查看奖励条件",
       primaryCtaReady: "查看可兑换奖励",
       spendableCaption: "这是现在可直接使用的积分。请在下方奖励中选择下一步。",
-      tierGoalPrefix: "等级基准",
     };
   }
 
@@ -3000,7 +2997,6 @@ function getRewardsHeroCopy(locale: Locale) {
     primaryCtaReady: "View available rewards",
     spendableCaption:
       "These points are ready to use now. Choose the next reward action below.",
-    tierGoalPrefix: "Tier basis",
   };
 }
 
