@@ -899,7 +899,12 @@ export function RewardsPage({
                         {pointContextCopy.spendableHint}
                       </span>
                     </div>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <PointBasisMiniItem
+                        hint={pointContextCopy.spendableHint}
+                        label={pointContextCopy.spendableLabel}
+                        value={formatPoints(state.summary.spendablePoints, locale)}
+                      />
                       <PointBasisMiniItem
                         hint={pointContextCopy.lifetimeHint}
                         label={pointContextCopy.lifetimeLabel}
