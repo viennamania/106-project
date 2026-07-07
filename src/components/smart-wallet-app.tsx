@@ -313,9 +313,9 @@ function getActivationHubCopy(locale: Locale) {
       notReady: "설정 필요",
       pending: "결제 확인 필요",
       pendingMessage: "10 USDT 확인 후 추천 코드와 포인트 화면을 이용할 수 있습니다.",
-      pointsDescription: "교환 가능한 포인트와 사용 이력을 확인합니다.",
+      pointsDescription: "리워드에 쓸 수 있는 포인트와 사용 이력을 확인합니다.",
       pointsLabel: "리워드 / 포인트",
-      pointsMetricCta: "잔액 확인",
+      pointsMetricCta: "사용 가능 P 확인",
       profileFirstLabel: "프로필 먼저",
       primaryDisconnected: "이메일로 시작하기",
       primaryPending: "10 USDT 결제 확인하기",
@@ -335,7 +335,7 @@ function getActivationHubCopy(locale: Locale) {
       nextActionReasonNetwork:
         "내 코드로 가입한 회원이 있으므로 가입 시간, 단계, AI 스타 정보를 먼저 확인하세요.",
       nextActionReasonPoints:
-        "누적 포인트가 있으므로 포인트 화면에서 교환 가능 잔액과 리워드 이력을 먼저 확인하세요.",
+        "사용 가능한 포인트가 있으므로 포인트 화면에서 실제 교환 잔액과 리워드 이력을 먼저 확인하세요.",
       nextActionReasonProfile:
         "AI 스타 프로필을 확인해야 콘텐츠 제작, 공개 피드, 추천 기록이 자연스럽게 이어집니다.",
       readyMessage: "가입 완료. 필요한 다음 행동만 먼저 보여줍니다.",
@@ -410,9 +410,9 @@ function getActivationHubCopy(locale: Locale) {
     notReady: "Setup required",
     pending: "Payment check needed",
     pendingMessage: "Referral code and points open after the 10 USDT check.",
-    pointsDescription: "Review redeemable points and redemption history.",
+    pointsDescription: "Review spendable points and redemption history.",
     pointsLabel: "Rewards / Points",
-    pointsMetricCta: "Check balance",
+    pointsMetricCta: "Check spendable P",
     profileFirstLabel: "Profile first",
     primaryDisconnected: "Start with email",
     primaryPending: "Confirm 10 USDT payment",
