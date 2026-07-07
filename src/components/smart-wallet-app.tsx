@@ -61,6 +61,7 @@ import {
   type LandingPageBranding,
 } from "@/lib/landing-branding";
 import { getContentCopy } from "@/lib/content-copy";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type {
   AppNotificationPreferencesRecord,
   AppNotificationRecord,
@@ -268,6 +269,11 @@ function getActivationHubCopy(locale: Locale) {
       assetDescription: "USDT와 BNB 잔고, 받을 주소, 전송 상태를 확인합니다.",
       assetLabel: "내 지갑",
       connected: "지갑 연결됨",
+      contextAssetAIStar: "AI 스타 프로필",
+      contextAssetMember: "회원 상태",
+      contextAssetReferral: "추천 코드",
+      contextAssetReward: "포인트 기록",
+      contextAssetTitle: "쌓이는 기록",
       contextDetailsClosed: "보기",
       contextDetailsOpen: "닫기",
       contextFlowItems: [
@@ -281,7 +287,7 @@ function getActivationHubCopy(locale: Locale) {
       contextFlowDone: "완료",
       contextFlowLabel: "서비스 기록",
       contextNote:
-        "가입, 지갑, 추천, AI 스타 프로필, 포인트 기록이 한 회원 기록으로 연결됩니다.",
+        "이 기록은 회원, 지갑, 추천, AI 스타, 포인트를 연결하는 Context 자산으로 쌓입니다.",
       contextFlowTodo: "대기",
       graphTitle: "진행 흐름",
       description:
@@ -354,6 +360,11 @@ function getActivationHubCopy(locale: Locale) {
     assetDescription: "Review USDT, BNB, receive address, and transfer status.",
     assetLabel: "My wallet",
     connected: "Wallet connected",
+    contextAssetAIStar: "AI Star profile",
+    contextAssetMember: "Member state",
+    contextAssetReferral: "Referral code",
+    contextAssetReward: "Point record",
+    contextAssetTitle: "Context assets",
     contextDetailsClosed: "View",
     contextDetailsOpen: "Close",
     contextFlowItems: [
@@ -367,7 +378,7 @@ function getActivationHubCopy(locale: Locale) {
     contextFlowDone: "Done",
     contextFlowLabel: "Service record",
     contextNote:
-      "Signup, wallet, referral, AI Star profile, and point records become one member record.",
+      "These records accumulate as Context assets that connect the member, wallet, referral, AI Star, and points.",
     contextFlowTodo: "Pending",
     graphTitle: "Progress flow",
     description:
@@ -2752,6 +2763,31 @@ function ActivationServiceHub({
   ).length;
   const nextContextStep =
     contextFlowSteps.find((step) => !step.isDone)?.label ?? copy.ready;
+  const contextAssetItems = [
+    {
+      isDone: isSignupCompleted,
+      label: copy.contextAssetMember,
+      value: membershipStatus,
+    },
+    {
+      isDone: Boolean(member?.referralCode),
+      label: copy.contextAssetReferral,
+      value: referralCode,
+    },
+    {
+      isDone: hasStarterAIStar,
+      label: copy.contextAssetAIStar,
+      value: aiStarIpStatus,
+    },
+    {
+      isDone: totalPoints > 0,
+      label: copy.contextAssetReward,
+      value:
+        totalPoints > 0
+          ? `${numberFormatter.format(totalPoints)}P`
+          : copy.contextFlowTodo,
+    },
+  ];
   const actionItems = [
     {
       description: copy.networkDescription,
@@ -2820,6 +2856,33 @@ function ActivationServiceHub({
     badge: index === 0 ? (item.badge ?? copy.recommendedLabel) : item.badge,
   }));
   const [primaryMenuItem, ...secondaryMenuItems] = orderedActionItems;
+
+  useEffect(() => {
+    trackFunnelEvent("activation_hub_view", {
+      metadata: {
+        completedContextStepCount,
+        connected: isConnected,
+        hasStarterAIStar,
+        nextContextStep,
+        product: "1066friend",
+        recommendedActionKey,
+        signupCompleted: isSignupCompleted,
+        totalPoints,
+        totalReferrals,
+      },
+      referralCode: member?.referralCode ?? null,
+    });
+  }, [
+    completedContextStepCount,
+    hasStarterAIStar,
+    isConnected,
+    isSignupCompleted,
+    member?.referralCode,
+    nextContextStep,
+    recommendedActionKey,
+    totalPoints,
+    totalReferrals,
+  ]);
 
   const primaryAction = isSignupCompleted ? null : isConnected ? (
     <a
@@ -2962,6 +3025,46 @@ function ActivationServiceHub({
                         {step.label}
                       </span>
                     </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-[20px] border border-white/10 bg-black/25 px-3 py-3">
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                  {copy.contextAssetTitle}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {contextAssetItems.map((item) => (
+                    <div
+                      className={cn(
+                        "min-w-0 rounded-2xl border px-2.5 py-2",
+                        item.isDone
+                          ? "border-emerald-300/20 bg-emerald-300/10"
+                          : "border-white/10 bg-white/[0.06]",
+                      )}
+                      key={item.label}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={cn(
+                            "size-1.5 shrink-0 rounded-full",
+                            item.isDone ? "bg-emerald-300" : "bg-white/20",
+                          )}
+                        />
+                        <p className="min-w-0 truncate text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/35">
+                          {item.label}
+                        </p>
+                      </div>
+                      <p
+                        className={cn(
+                          "mt-1 truncate text-xs font-semibold",
+                          item.isDone ? "text-emerald-50" : "text-white/55",
+                        )}
+                        title={item.value}
+                      >
+                        {item.value}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>

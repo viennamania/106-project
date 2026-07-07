@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -36,6 +36,7 @@ import {
   getServiceConnectModalTitle,
   SERVICE_BRAND_NAME,
 } from "@/lib/service-branding";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   createEmptyPointsSummary,
@@ -140,6 +141,7 @@ export function RewardsPage({
     useState(false);
   const [hasInitialConnectionWaitElapsed, setHasInitialConnectionWaitElapsed] =
     useState(false);
+  const trackedRewardViewKeyRef = useRef<string | null>(null);
   const activateHref =
     returnTo ??
     setLandingLanguageContext(
@@ -558,6 +560,56 @@ export function RewardsPage({
     return first.costPoints - second.costPoints;
   });
 
+  useEffect(() => {
+    if (state.status !== "ready" || !activeMember) {
+      return;
+    }
+
+    const viewKey = [
+      accountAddress ?? "session",
+      activeMember.status,
+      state.summary.spendablePoints,
+      state.summary.lifetimePoints,
+      state.summary.tier,
+      redeemableRewardsCount,
+      nextRewardTitle ?? "none",
+    ].join(":");
+
+    if (trackedRewardViewKeyRef.current === viewKey) {
+      return;
+    }
+
+    trackedRewardViewKeyRef.current = viewKey;
+    trackFunnelEvent("points_reward_view", {
+      metadata: {
+        availableRewardCount: redeemableRewardsCount,
+        completedRedemptionPoints,
+        connected: status === "connected",
+        hasNextReward: Boolean(nextRewardTitle),
+        memberStatus: activeMember.status,
+        nextRewardPointGap,
+        product: "1066friend",
+        spendablePoints: state.summary.spendablePoints,
+        tier: state.summary.tier,
+        tierBasisLifetimePoints: state.summary.lifetimePoints,
+      },
+      referralCode: activeMember.referralCode ?? referralCode ?? null,
+    });
+  }, [
+    accountAddress,
+    activeMember,
+    completedRedemptionPoints,
+    nextRewardPointGap,
+    nextRewardTitle,
+    redeemableRewardsCount,
+    referralCode,
+    state.status,
+    state.summary.lifetimePoints,
+    state.summary.spendablePoints,
+    state.summary.tier,
+    status,
+  ]);
+
   function handleRedeemReward(rewardId: RewardCatalogId) {
     const reward = state.catalog.find((item) => item.rewardId === rewardId);
 
@@ -813,7 +865,7 @@ export function RewardsPage({
                   <div className="mt-5 grid gap-4 sm:mt-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
                     <div className="space-y-1.5 sm:space-y-2">
                       <p className="text-[0.68rem] uppercase tracking-[0.2em] text-white/55 sm:text-sm sm:tracking-[0.26em]">
-                        {dictionary.rewardsPage.labels.spendablePoints}
+                        {pointContextCopy.spendableLabel}
                       </p>
                       <AnimatedNumberText
                         className="text-4xl font-semibold tracking-tight sm:text-5xl"
@@ -2718,9 +2770,9 @@ function getTierLabel(tier: PointTier, dictionary: Dictionary) {
 function getRewardPointContextCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      currentTierLabel: "현재 멤버 등급",
+      currentTierLabel: "멤버 등급",
       definitionBody:
-        "리워드는 교환 가능 포인트에서만 차감됩니다. 멤버 등급은 별도의 누적 적립 포인트로 계산합니다.",
+        "리워드는 사용 가능 포인트에서만 차감됩니다. 멤버 등급은 리워드 교환 후에도 줄어들지 않는 등급 기준 누적으로 계산합니다.",
       definitionTitle: "포인트 기준",
       flowItems: [
         {
@@ -2737,32 +2789,32 @@ function getRewardPointContextCopy(locale: Locale) {
         },
       ],
       flowTitle: "포인트 사용 기준",
-      lifetimeHint: "멤버 등급 산정용 누적 기록",
+      lifetimeHint: "리워드 교환 후에도 유지되는 등급 기준",
       lifetimeLabel: "등급 기준 누적",
       maxTierHint: "현재 최고 등급입니다",
-      nextTierHint: "교환 가능 잔액이 아닌 누적 기준",
-      nextTierLabel: "등급 기준 목표",
+      nextTierHint: "사용 가능 잔액이 아닌 등급 기준 누적",
+      nextTierLabel: "다음 등급까지",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier} 등급까지 ${points}P 더 필요`,
+        `${tier} 등급까지 등급 기준 누적 ${points}P 더 필요`,
       nextTierShort: (tier: string, points: string) =>
-        `${tier} 등급까지 ${points}P 더 필요`,
+        `${tier}까지 ${points}P · 누적 기준`,
       progressCaption:
-        "등급 진행도는 교환 가능 잔액이 아니라 등급 기준 누적으로 계산합니다.",
+        "등급 진행도는 사용 가능 포인트가 아니라 등급 기준 누적으로 계산합니다.",
       redeemedHint: "이미 리워드 교환에 사용한 포인트",
       redeemedLabel: "사용 완료",
       sourceBreakdownLabel: "포인트 출처",
       spendableHeroCaption:
-        "지금 리워드 교환에 쓸 수 있는 실제 잔액입니다. 등급 기준 누적과는 별도로 관리됩니다.",
-      spendableHint: "교환 가능 포인트 기준",
-      spendableLabel: "교환 가능 잔액",
+        "지금 리워드 교환에 쓸 수 있는 실제 잔액입니다. 등급 기준 누적과 별도로 관리됩니다.",
+      spendableHint: "리워드 교환 시 실제 차감",
+      spendableLabel: "사용 가능 포인트",
     };
   }
 
   if (locale === "ja") {
     return {
-      currentTierLabel: "現在の会員ランク",
+      currentTierLabel: "会員ランク",
       definitionBody:
-        "リワードは交換可能ポイントからのみ差し引かれます。会員ランクは別の累積獲得ポイントで計算します。",
+        "リワードは利用可能ポイントからのみ差し引かれます。会員ランクは交換後も減らないランク基準累積で計算します。",
       definitionTitle: "ポイント基準",
       flowItems: [
         {
@@ -2779,32 +2831,32 @@ function getRewardPointContextCopy(locale: Locale) {
         },
       ],
       flowTitle: "ポイント利用基準",
-      lifetimeHint: "会員ランク算定用の累積記録",
+      lifetimeHint: "交換後も維持されるランク基準",
       lifetimeLabel: "ランク基準累積",
       maxTierHint: "現在の最高ランクです",
-      nextTierHint: "交換可能残高ではなく累積基準",
-      nextTierLabel: "ランク基準目標",
+      nextTierHint: "利用可能残高ではなくランク基準累積",
+      nextTierLabel: "次のランクまで",
       nextTierNeeded: (tier: string, points: string) =>
-        `${tier}ランクまであと${points}P`,
+        `${tier}ランクまでランク基準累積があと${points}P必要`,
       nextTierShort: (tier: string, points: string) =>
-        `${tier}ランクまであと${points}P`,
+        `${tier}まで${points}P · 累積基準`,
       progressCaption:
-        "ランク進捗は交換可能残高ではなく、ランク基準累積で計算します。",
+        "ランク進捗は利用可能ポイントではなく、ランク基準累積で計算します。",
       redeemedHint: "すでにリワード交換に使用したポイント",
       redeemedLabel: "使用済み",
       sourceBreakdownLabel: "ポイントの内訳",
       spendableHeroCaption:
         "今すぐリワード交換に使える実際の残高です。ランク基準累積とは別に管理されます。",
-      spendableHint: "交換可能ポイント基準",
-      spendableLabel: "交換可能残高",
+      spendableHint: "リワード交換時に実際に差し引き",
+      spendableLabel: "利用可能ポイント",
     };
   }
 
   if (locale === "zh") {
     return {
-      currentTierLabel: "当前会员等级",
+      currentTierLabel: "会员等级",
       definitionBody:
-        "奖励只会从可兑换积分中扣减。会员等级按另一套累计获得积分计算。",
+        "奖励只会从可用积分中扣减。会员等级按兑换后也不会减少的等级基准累计积分计算。",
       definitionTitle: "积分基准",
       flowItems: [
         {
@@ -2821,29 +2873,29 @@ function getRewardPointContextCopy(locale: Locale) {
         },
       ],
       flowTitle: "积分使用基准",
-      lifetimeHint: "会员等级计算用累计记录",
+      lifetimeHint: "兑换后也会保留的等级基准",
       lifetimeLabel: "等级基准累计",
       maxTierHint: "当前已是最高等级",
-      nextTierHint: "不是可兑换余额，而是累计基准",
-      nextTierLabel: "等级基准目标",
+      nextTierHint: "不是可用余额，而是等级基准累计",
+      nextTierLabel: "距离下一等级",
       nextTierNeeded: (tier: string, points: string) =>
-        `到 ${tier} 等级还需 ${points}P`,
+        `到 ${tier} 等级还需等级基准累计 ${points}P`,
       nextTierShort: (tier: string, points: string) =>
-        `到 ${tier} 等级还需 ${points}P`,
-      progressCaption: "等级进度按等级基准累计积分计算，不按可兑换余额计算。",
+        `到 ${tier} 还需 ${points}P · 累计基准`,
+      progressCaption: "等级进度按等级基准累计积分计算，不按可用积分计算。",
       redeemedHint: "已用于奖励兑换的积分",
       redeemedLabel: "已使用",
       sourceBreakdownLabel: "积分来源",
       spendableHeroCaption: "这是现在可用于兑换奖励的实际余额，与等级基准累计分开管理。",
-      spendableHint: "可兑换积分基准",
-      spendableLabel: "可兑换余额",
+      spendableHint: "兑换奖励时实际扣减",
+      spendableLabel: "可用积分",
     };
   }
 
   return {
-    currentTierLabel: "Current member tier",
+    currentTierLabel: "Member tier",
     definitionBody:
-      "Rewards spend only redeemable points. Member tier is calculated from a separate lifetime earned total.",
+      "Rewards spend only available points. Member tier is calculated from a separate tier-basis lifetime total that does not decrease after redemption.",
     definitionTitle: "Point basis",
     flowItems: [
       {
@@ -2860,24 +2912,24 @@ function getRewardPointContextCopy(locale: Locale) {
       },
     ],
     flowTitle: "Point usage basis",
-    lifetimeHint: "Lifetime record used for member tier",
+    lifetimeHint: "Tier basis that stays after redemption",
     lifetimeLabel: "Tier basis lifetime",
     maxTierHint: "You are at the top tier",
-    nextTierHint: "Based on lifetime points, not redeemable balance",
-    nextTierLabel: "Tier-basis target",
+    nextTierHint: "Based on tier-basis lifetime, not available balance",
+    nextTierLabel: "Next tier needs",
     nextTierNeeded: (tier: string, points: string) =>
-      `${points}P more for ${tier}`,
+      `${points}P more tier-basis lifetime points for ${tier}`,
     nextTierShort: (tier: string, points: string) =>
-      `${points}P more for ${tier}`,
+      `${points}P to ${tier} · tier basis`,
     progressCaption:
-      "Tier progress is calculated from tier-basis lifetime points, not redeemable balance.",
+      "Tier progress is calculated from tier-basis lifetime points, not available points.",
     redeemedHint: "Points already spent on reward redemptions",
     redeemedLabel: "Redeemed",
     sourceBreakdownLabel: "Point sources",
     spendableHeroCaption:
       "This is the actual balance available for rewards. Tier-basis lifetime points are tracked separately.",
-    spendableHint: "Redeemable-point basis",
-    spendableLabel: "Redeemable balance",
+    spendableHint: "Actually deducted on redemption",
+    spendableLabel: "Available points",
   };
 }
 

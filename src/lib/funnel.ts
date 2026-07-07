@@ -22,6 +22,8 @@ export const funnelEventNames = [
   "fanletter_tiktok_content_published",
   "fanletter_tiktok_content_publish_failed",
   "fanletter_x402_mock_payment_intent",
+  "activation_hub_view",
+  "points_reward_view",
   "feed_view_public",
   "paid_unlock_click",
   "promo_share_to_creator_channel",
