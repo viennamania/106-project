@@ -321,6 +321,12 @@ function getActivationHubCopy(locale: Locale) {
       primaryPending: "10 USDT 결제 확인하기",
       primaryUnavailable: "환경 설정 필요",
       ready: "완료",
+      resultAssetAIStar: "AI 스타 프로필",
+      resultAssetFeed: "콘텐츠 활동 기록",
+      resultAssetNetwork: "가입자 기록",
+      resultAssetPoints: "포인트 장부",
+      resultAssetWallet: "지갑 상태",
+      resultLabel: "정리되는 기록",
       nextActionFooter:
         "각 행동은 전용 화면에서 이어집니다.",
       nextActionReasonDefault:
@@ -412,6 +418,12 @@ function getActivationHubCopy(locale: Locale) {
     primaryPending: "Confirm 10 USDT payment",
     primaryUnavailable: "Setup required",
     ready: "Complete",
+    resultAssetAIStar: "AI Star profile",
+    resultAssetFeed: "Content activity record",
+    resultAssetNetwork: "Signup member record",
+    resultAssetPoints: "Point ledger",
+    resultAssetWallet: "Wallet state",
+    resultLabel: "Record updated",
     nextActionFooter:
       "Each action continues in a dedicated screen.",
     nextActionReasonDefault:
@@ -2798,6 +2810,7 @@ function ActivationServiceHub({
         locale === "ko"
           ? `${numberFormatter.format(totalReferrals)}명`
           : `${numberFormatter.format(totalReferrals)} members`,
+      resultAsset: copy.resultAssetNetwork,
       title: copy.networkLabel,
     },
     {
@@ -2806,6 +2819,7 @@ function ActivationServiceHub({
       icon: "points" as const,
       key: "points",
       metric: copy.pointsMetricCta,
+      resultAsset: copy.resultAssetPoints,
       title: copy.pointsLabel,
     },
     {
@@ -2814,6 +2828,7 @@ function ActivationServiceHub({
       icon: "wallet" as const,
       key: "wallet",
       metric: assetManagementLocked ? copy.disconnected : copy.connected,
+      resultAsset: copy.resultAssetWallet,
       title: copy.assetLabel,
     },
     {
@@ -2823,6 +2838,7 @@ function ActivationServiceHub({
       icon: "studio" as const,
       key: "studio",
       metric: studioMetric,
+      resultAsset: copy.resultAssetAIStar,
       title: copy.studioLabel,
     },
     {
@@ -2831,6 +2847,7 @@ function ActivationServiceHub({
       icon: "feed" as const,
       key: "feed",
       metric: copy.feedMetric,
+      resultAsset: copy.resultAssetFeed,
       title: copy.feedLabel,
     },
   ];
@@ -3155,6 +3172,8 @@ function ActivationServiceHub({
                     reason={recommendedActionReason}
                     reasonFooter={copy.nextActionFooter}
                     reasonLabel={copy.nextActionReasonLabel}
+                    resultAsset={primaryMenuItem.resultAsset}
+                    resultLabel={copy.resultLabel}
                     title={primaryMenuItem.title}
                   />
                 ) : null}
@@ -3168,6 +3187,8 @@ function ActivationServiceHub({
                       index={index + 2}
                       key={item.title}
                       metric={item.metric}
+                      resultAsset={item.resultAsset}
+                      resultLabel={copy.resultLabel}
                       title={item.title}
                     />
                   ))}
@@ -3215,6 +3236,8 @@ function ServiceHubCard({
   reason,
   reasonFooter,
   reasonLabel,
+  resultAsset,
+  resultLabel,
   title,
 }: {
   badgeLabel?: string;
@@ -3227,6 +3250,8 @@ function ServiceHubCard({
   reason?: string;
   reasonFooter?: string;
   reasonLabel?: string;
+  resultAsset: string;
+  resultLabel: string;
   title: string;
 }) {
   const Icon =
@@ -3327,6 +3352,16 @@ function ServiceHubCard({
             ) : null}
           </span>
         ) : null}
+        <span
+          className={cn(
+            "mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.66rem] font-semibold",
+            featured ? "bg-white/10 text-white/60" : "bg-zinc-100 text-zinc-600",
+          )}
+          title={`${resultLabel}: ${resultAsset}`}
+        >
+          <span className="shrink-0 opacity-60">{resultLabel}</span>
+          <span className="min-w-0 truncate">{resultAsset}</span>
+        </span>
       </span>
       <ArrowUpRight
         className={cn(
@@ -3345,6 +3380,8 @@ function ServiceHubMiniCard({
   icon,
   index,
   metric,
+  resultAsset,
+  resultLabel,
   title,
 }: {
   badgeLabel?: string;
@@ -3353,6 +3390,8 @@ function ServiceHubMiniCard({
   icon: "feed" | "network" | "points" | "studio" | "wallet";
   index: number;
   metric: string;
+  resultAsset: string;
+  resultLabel: string;
   title: string;
 }) {
   const Icon =
@@ -3394,6 +3433,10 @@ function ServiceHubMiniCard({
           </span>
           <span className="mt-2 inline-flex max-w-full rounded-full bg-zinc-100 px-2 py-0.5 text-[0.66rem] font-semibold text-zinc-600">
             <span className="truncate">{metric}</span>
+          </span>
+          <span className="mt-1.5 inline-flex max-w-full items-center gap-1 rounded-full bg-zinc-50 px-2 py-0.5 text-[0.62rem] font-semibold text-zinc-500 ring-1 ring-zinc-100">
+            <span className="shrink-0 text-zinc-400">{resultLabel}</span>
+            <span className="truncate">{resultAsset}</span>
           </span>
         </span>
         <ArrowUpRight className="mt-1 size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
