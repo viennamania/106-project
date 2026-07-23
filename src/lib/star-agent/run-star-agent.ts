@@ -16,11 +16,11 @@ import {
 } from "./brain";
 import { recallStarMemories, rememberStarTick } from "./memory";
 import { loadStarPersona } from "./persona";
+import { loadStarAgentSignals } from "./signals";
 import { executeStarAgentTool } from "./tools";
 import type {
   StarAgentContext,
   StarAgentMode,
-  StarAgentSignals,
   StarAgentTickResult,
 } from "./types";
 
@@ -36,13 +36,10 @@ function defaultBrain(): StarAgentBrain {
 }
 
 async function loadStarAgentContext(starId: string): Promise<StarAgentContext> {
-  const persona = await loadStarPersona(starId);
-  // TODO(phase 1.5): real signals from AgentRank/feed.
-  const signals: StarAgentSignals = {
-    recentPosts: 0,
-    pendingFanRequests: 0,
-    reputationImpactTotal: null,
-  };
+  const [persona, signals] = await Promise.all([
+    loadStarPersona(starId),
+    loadStarAgentSignals(starId),
+  ]);
   const memories = await recallStarMemories(
     starId,
     `${persona.displayName} recent fan interactions and posting context`,
